@@ -1394,5 +1394,8 @@
         "node": ">=0.4"
       }
     }
+  },
+  "dependencies": {
+    "mercadopago": "^2.11.0"
   }
 }
