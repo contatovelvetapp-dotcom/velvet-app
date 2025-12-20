@@ -1,10 +1,4 @@
 
-const socket = window.socket;
-
-if (!socket) {
-  console.error("❌ Socket não disponível no chatmodelo");
-}
-
 console.log("ANTES DE TUDO → modeloPerfil =", localStorage.getItem("modeloPerfil"));
 
 document.addEventListener("DOMContentLoaded", () => {
