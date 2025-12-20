@@ -1,6 +1,4 @@
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
+
 // ===============================
 // SERVER.JS – VERSÃO ESTÁVEL
 // ===============================
@@ -850,6 +848,7 @@ app.post("/api/vip/criar", async (req, res) => {
 // ===============================
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
+app.listen(PORT, () => {
+  console.log("🚀 Servidor rodando na porta", PORT);
 });
+
