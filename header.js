@@ -29,7 +29,38 @@ function carregarHeader() {
     .catch(err => console.error("Erro ao carregar header:", err));
 }
 
-document.addEventListener("DOMContentLoaded", carregarHeader);
+document.addEventListener("DOMContentLoaded", () => {
+  initUsuario();
+  carregarHeader();
+});
+async function initUsuario() {
+  const token = localStorage.getItem("auth_token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("/api/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) throw new Error("não autenticado");
+
+    const user = await res.json();
+
+    // 🔑 guarda apenas para UX (não segurança)
+    localStorage.setItem("user_role", user.role);
+    localStorage.setItem("user_nome", user.nome);
+
+    console.log("✅ Usuário autenticado:", user.role, user.nome);
+
+  } catch (e) {
+    console.warn("Sessão inválida, limpando");
+    localStorage.clear();
+    window.location.href = "/index.html";
+  }
+}
+
 
 
 
@@ -99,18 +130,18 @@ function initHeaderMenu() {
 }
 
 function abrirConteudos() {
-    const role = localStorage.getItem("user_role");
-    const modelo = localStorage.getItem("modeloPerfil");
+  const role = localStorage.getItem("user_role");
 
-    // 🔐 blindagem básica no frontend
-    if (role !== "modelo" || !modelo) {
-        alert("Acesso negado");
-        return;
-    }
+  if (role !== "modelo") {
+    alert("Acesso negado");
+    return;
+  }
 
-    window.location.href = window.location.href = "public/conteudos.html";
-
+  window.location.href = "conteudos.html";
 }
+
+
+
 function ligarBotoesPerfilModelo() {
   const btnAvatar = document.getElementById("btnAlterarAvatar");
   const btnCapa   = document.getElementById("btnAlterarCapa");

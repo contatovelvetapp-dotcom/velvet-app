@@ -28,9 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const novaBio = bioInput.value.trim();
     if (!novaBio) return alert("A bio não pode estar vazia");
 
-    const modelo = localStorage.getItem("creatorName");
-    if (!modelo) return alert("Modelo não identificada");
-
     fetch("/saveBio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

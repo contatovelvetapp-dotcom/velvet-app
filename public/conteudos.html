@@ -15,13 +15,12 @@
 
 <body>
 <script>
-  //BLINDAGEM PAGINA
-  const role = localStorage.getItem("userRole");
-  const modeloPerfil = localStorage.getItem("modeloPerfil");
-  if (role !== "modelo" || !modeloPerfil) {
+  if (!localStorage.getItem("auth_token")) {
     window.location.href = "/index.html";
   }
 </script>
+
+
 <div id="header-container"></div>
 
 <!-- HEADER entra automaticamente via header.js -->
@@ -39,13 +38,9 @@
   <!-- input real (escondido) -->
   <input type="file" id="conteudoFile" accept="image/*,video/*" hidden />
 
-  <!-- botão visual -->
-  <label for="conteudoFile" class="btn-secondary">
-    Escolher ficheiro
-  </label>
-
-  <!-- nome do ficheiro -->
-  <span id="fileName" class="file-name"> Nenhum ficheiro selecionado </span>
+<input type="file" id="conteudoFile" hidden>
+<label for="conteudoFile" class="btn-file">Escolher ficheiro</label>
+<span id="fileName" class="file-name">Nenhum ficheiro selecionado</span>
 
   <!-- botão enviar -->
   <button class="btn-primary" onclick="uploadConteudo()"> Enviar Conteúdo</button>
@@ -57,9 +52,18 @@
 <!-- Lista -->
 <h2 class="section-subtitle">Meus Conteúdos</h2>
 <div id="listaConteudos" class="grid-conteudos"></div>
-
 </section>
 </main>
+<!-- MODAL PREMIUM -->
+<div id="modalConteudo" class="modal-premium hidden">
+  <div class="modal-backdrop" onclick="fecharModal()"></div>
+
+  <div class="modal-container">
+    <img id="modalImg" />
+    <video id="modalVideo" controls></video>
+  </div>
+</div>
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/header.js"></script>

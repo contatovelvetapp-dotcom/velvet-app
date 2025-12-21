@@ -1,173 +1,169 @@
-
 // ===============================
-// 📦 INIT
+// 📦 CONTEÚDOS — MODELO (LIMPO)
 // ===============================
-let modelo = localStorage.getItem("modeloPerfil");
-console.log("PAINEL DE CONTEÚDOS DA MODELO:", modelo);
 
-// mostra nome do ficheiro selecionado
+// ---------- ESTADO ----------
+let modelo = null;
+
+// ---------- ELEMENTOS DOM ----------
 const fileInput = document.getElementById("conteudoFile");
 const fileNameSpan = document.getElementById("fileName");
+const lista = document.getElementById("listaConteudos");
 
-fileInput.addEventListener("change", () => {
-  if (fileInput.files.length > 0) {
-    fileNameSpan.textContent = fileInput.files[0].name;
-  } else {
-    fileNameSpan.textContent = "Nenhum ficheiro selecionado";
-  }
-});
+// ---------- INIT ----------
+document.addEventListener("DOMContentLoaded", init);
 
-// ===============================
-// 📤 UPLOAD
-// ===============================
-function uploadConteudo() {
+async function init() {
+  await carregarModelo();
+  listarConteudos();
+  bindFileInput();
+}
+
+// ---------- MODELO (via JWT) ----------
+async function carregarModelo() {
+  const res = await fetch("/api/me", {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("auth_token")
+    }
+  });
+
+  const user = await res.json();
+  modelo = user.nome;
+
+  console.log("📦 Conteúdos da modelo:", modelo);
+}
+
+// ---------- INPUT FILE ----------
+function bindFileInput() {
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      fileNameSpan.textContent = fileInput.files[0].name;
+    } else {
+      fileNameSpan.textContent = "Nenhum ficheiro selecionado";
+    }
+  });
+}
+
+// ---------- UPLOAD ----------
+async function uploadConteudo() {
   const file = fileInput.files[0];
-
   if (!file) {
     alert("Selecione um ficheiro primeiro");
     return;
   }
 
-  if (!modelo) {
-    alert("Modelo não identificado");
+  const fd = new FormData();
+  fd.append("conteudo", file);
+
+  const res = await fetch("/api/conteudos/upload", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("auth_token")
+    },
+    body: fd
+  });
+
+  const data = await res.json();
+  if (!data.success) {
+    alert("Erro ao enviar conteúdo");
     return;
   }
 
-  const formData = new FormData();
-  formData.append("conteudo", file); // 🔑 NOME CORRETO
-  formData.append("preco", 0);       // opcional
-  formData.append("modelo", modelo); // redundante mas ok
-
-  fetch(`/uploadConteudo?modelo=${encodeURIComponent(modelo)}`, {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) {
-        alert("Erro ao enviar conteúdo");
-        return;
-      }
-
-      alert("Conteúdo enviado com sucesso!");
-      fileInput.value = "";
-      fileNameSpan.textContent = "Nenhum ficheiro selecionado";
-
-      listarConteudos(); // 🔥 atualiza grid
-    })
-    .catch(err => {
-      console.error("Erro no upload:", err);
-      alert("Erro no upload");
-    });
+  fileInput.value = "";
+  fileNameSpan.textContent = "Nenhum ficheiro selecionado";
+  listarConteudos();
 }
 
-
-// ===============================
-// 📋 LISTAR CONTEÚDOS
-// ===============================
-function listarConteudos() {
-  if (!modelo) return;
-
- fetch(`/getConteudos?modelo=${encodeURIComponent(modelo)}`)
-    .then(res => res.json())
-    .then(conteudos => {
-      const lista = document.getElementById("listaConteudos");
-      lista.innerHTML = "";
-
-      if (!conteudos.length) {
-        lista.innerHTML = "<p>Nenhum conteúdo enviado ainda.</p>";
-        return;
-      }
-
-     conteudos.forEach(c => {
-  const card = document.createElement("div");
-  card.className = "conteudo-card";
-
-  const url = `/conteudo/abrir?modelo=${modelo}&conteudoId=${c.id}`;
-
-  const media =
-    c.tipo === "video"
-      ? `<video src="${url}" muted></video>`
-      : `<img src="${url}" />`;
-
-  card.innerHTML = `
-    ${media}
-    <button class="btn-excluir" onclick="excluirConteudo('${c.id}')">
-      ✕
-    </button>
-  `;
-
-  lista.appendChild(card);
-});
-
-    })
-    .catch(err => console.error("Erro ao listar conteúdos:", err));
-}
-
-function excluirConteudo(conteudoId) {
-  if (!modelo) return;
-
-  const confirmar = confirm("Deseja excluir este conteúdo?");
-  if (!confirmar) return;
-
- fetch(
-  `/deleteConteudo?modelo=${encodeURIComponent(modelo)}&id=${encodeURIComponent(conteudoId)}`,
-  { method: "DELETE" }
-)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) {
-        alert("Erro ao excluir conteúdo");
-        return;
-      }
-
-      listarConteudos(); // 🔥 atualiza grid
-    })
-    .catch(err => {
-      console.error("Erro ao excluir:", err);
-      alert("Erro ao excluir conteúdo");
-    });
-}
-
-
-// ===============================
-// ▶️ AUTO LOAD
-// ===============================
-listarConteudos();
-
-
-/// ===========================
-// MINIATURAS (PROTEGIDO)
-// ===========================
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("conteudoFile");
-  const preview = document.getElementById("previewConteudos");
-
-  if (!input || !preview) return;
-
-  input.addEventListener("change", () => {
-    preview.innerHTML = "";
-
-    Array.from(input.files).forEach(file => {
-      const card = document.createElement("div");
-      card.className = "preview-card";
-
-      if (file.type.startsWith("image")) {
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        card.appendChild(img);
-      }
-
-      if (file.type.startsWith("video")) {
-        const video = document.createElement("video");
-        video.src = URL.createObjectURL(file);
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = "metadata";
-        card.appendChild(video);
-      }
-
-      preview.appendChild(card);
-    });
+// ---------- LISTAR ----------
+async function listarConteudos() {
+  const res = await fetch("/api/conteudos", {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("auth_token")
+    }
   });
-});
+
+  const conteudos = await res.json();
+  lista.innerHTML = "";
+
+  if (!conteudos.length) {
+    lista.innerHTML = "<p>Nenhum conteúdo enviado ainda.</p>";
+    return;
+  }
+
+  conteudos.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "conteudo-card";
+
+    const media =
+      c.tipo === "video"
+        ? `<video src="${c.url}" muted onclick="abrirModal('${c.url}', 'video')"></video>`
+        : `<img src="${c.url}" onclick="abrirModal('${c.url}', 'imagem')"/>`;
+
+    card.innerHTML = `
+      ${media}
+      <button class="btn-excluir"
+  onclick="event.stopPropagation(); excluirConteudo('${c.id}')">
+  ✕
+</button>
+
+    `;
+
+    lista.appendChild(card);
+  });
+}
+
+// ---------- EXCLUIR ----------
+async function excluirConteudo(id) {
+  if (!confirm("Deseja excluir este conteúdo?")) return;
+
+  const res = await fetch(`/api/conteudos/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("auth_token")
+    }
+  });
+
+  // 🔥 SE DER 403, NÃO TENTAR JSON
+  if (!res.ok) {
+    const texto = await res.text();
+    alert(texto);
+    return;
+  }
+
+  const data = await res.json();
+  if (!data.success) {
+    alert("Erro ao excluir conteúdo");
+    return;
+  }
+
+  listarConteudos();
+}
+
+function abrirModal(url, tipo) {
+  const modal = document.getElementById("modalConteudo");
+  const img = document.getElementById("modalImg");
+  const video = document.getElementById("modalVideo");
+
+  modal.classList.remove("hidden");
+
+  if (tipo === "video") {
+    img.style.display = "none";
+    video.style.display = "block";
+    video.src = url;
+    video.play();
+  } else {
+    video.pause();
+    video.style.display = "none";
+    img.style.display = "block";
+    img.src = url;
+  }
+}
+
+function fecharModal() {
+  const modal = document.getElementById("modalConteudo");
+  const video = document.getElementById("modalVideo");
+
+  modal.classList.add("hidden");
+  video.pause();
+  video.src = "";
+}

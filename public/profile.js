@@ -64,7 +64,7 @@ function initPerfil() {
     .then(user => {
         document.body.classList.remove("role-modelo", "role-cliente");
         document.body.classList.add(`role-${user.role}`);
-        
+
       if (avatarImg) {
         avatarImg.src = (user.avatar || "/assets/avatarDefault.png") + "?v=" + Date.now();
       }
@@ -144,7 +144,34 @@ function adicionarMidia(url) {
   el.className = "midiaThumb";
   el.addEventListener("click", () => abrirMidia(url));
 
+  // 🔴 BOTÃO EXCLUIR (SÓ MODELO)
+  const btnExcluir = document.createElement("button");
+  btnExcluir.className = "btnExcluirMidia only-modelo";
+  btnExcluir.textContent = "Excluir";
+
+  btnExcluir.addEventListener("click", async (e) => {
+    e.stopPropagation();
+
+    if (!confirm("Deseja excluir esta mídia?")) return;
+
+    const res = await fetch("/api/midia/excluir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ url })
+    });
+
+    if (res.ok) {
+      card.remove();
+    } else {
+      alert("Erro ao excluir mídia");
+    }
+  });
+
   card.appendChild(el);
+  card.appendChild(btnExcluir);
   listaMidias.appendChild(card);
 }
 
@@ -156,8 +183,6 @@ function abrirMidia(url) {
   const img   = document.getElementById("modalImg");
   const video = document.getElementById("modalVideo");
 
-  if (!modal) return;
-
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 
@@ -166,6 +191,7 @@ function abrirMidia(url) {
   video.pause();
 
   const ext = url.split(".").pop().toLowerCase();
+
   if (["mp4", "webm", "ogg"].includes(ext)) {
     video.src = url;
     video.style.display = "block";
@@ -175,12 +201,28 @@ function abrirMidia(url) {
     img.style.display = "block";
   }
 }
+document.getElementById("fecharModal")?.addEventListener("click", fecharModal);
 
-document.getElementById("fecharModal")?.addEventListener("click", () => {
-  document.getElementById("modalMidia").classList.add("hidden");
+function fecharModal() {
+  const modal = document.getElementById("modalMidia");
+  const video = document.getElementById("modalVideo");
+
+  modal.classList.add("hidden");
   document.body.style.overflow = "";
+
+  video.pause();
+  video.src = "";
+}
+
+document.getElementById("modalMidia")?.addEventListener("click", (e) => {
+  if (e.target.id === "modalMidia") {
+    fecharModal();
+  }
 });
 
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") fecharModal();
+});
 // ===============================
 // INIT
 // ===============================
