@@ -140,9 +140,8 @@ async function register() {
     alert(data.error || "Erro ao criar conta");
     return;
   }
-
-  // login automático após registro
-  await login();
+alert("Conta criada com sucesso! Agora faça login.");
+switchToLogin();
 }
 
 function redirectUser(role) {

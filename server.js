@@ -81,9 +81,6 @@ app.get("/", (req, res) => {
 const unreadMap = fs.existsSync(UNREAD_FILE)
 ? JSON.parse(fs.readFileSync(UNREAD_FILE, "utf8")) : {};
 
-require("dotenv").config({
-  path: require("path").resolve(__dirname, ".env")
-});
 console.log(
   "MP TOKEN INICIA COM:",
   process.env.MP_ACCESS_TOKEN?.slice(0, 8)
