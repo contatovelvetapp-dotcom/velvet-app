@@ -1,5 +1,4 @@
 const socket = io();
-Authorization: "Bearer " + window.authToken
 
 function logout() {
   localStorage.removeItem("token");

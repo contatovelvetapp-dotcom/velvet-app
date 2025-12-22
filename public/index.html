@@ -148,16 +148,17 @@ async function register() {
   const res = await fetch("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, senha, role })
+    body: JSON.stringify({ email, senha, role,
+       nome: email.split("@")[0]
+     })
   });
 
   const data = await res.json();
 
-  if (!res.ok) {
-  alert(data.erro || "Erro ao criar conta");
-  return;
-}
-
+  if (!data.success) {
+    alert(data.error || "Erro ao criar conta");
+    return;
+  }
 alert("Conta criada com sucesso! Agora faça login.");
 switchToLogin();
 }

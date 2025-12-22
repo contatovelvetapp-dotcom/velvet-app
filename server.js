@@ -268,9 +268,9 @@ function salvarUsuarios(users) {
 }
 
 // 🔹 REGISTRO
-app.post("/auth/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   try {
-    console.log("🔔 /auth/register chamado");
+    console.log("🔔 /api/register chamado");
 
     const { email, senha, role } = req.body;
 
