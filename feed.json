@@ -61,5 +61,36 @@
     "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766342667/velvet/1766341071877/midias/bguhyh8jy5my5hdrofrw.jpg",
     "tipo": "image",
     "criadoEm": 1766342668004
+  },
+  {
+    "id": "1766432463086",
+    "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766432461/velvet/undefined/midias/v54lz6r311p4wmt3mi0c.jpg",
+    "tipo": "image",
+    "criadoEm": 1766432463086
+  },
+  {
+    "id": "1766432469416",
+    "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766432467/velvet/undefined/midias/u3sgtgviro7ajcxzkf5r.jpg",
+    "tipo": "image",
+    "criadoEm": 1766432469416
+  },
+  {
+    "id": "1766432473741",
+    "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766432472/velvet/undefined/midias/e3cou2swxoehokkhwrdu.jpg",
+    "tipo": "image",
+    "criadoEm": 1766432473741
+  },
+  {
+    "id": "1766432478910",
+    "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766432477/velvet/undefined/midias/kl33wsjagquktrnznxzm.jpg",
+    "tipo": "image",
+    "criadoEm": 1766432478910
+  },
+  {
+    "id": "1766438185390",
+    "modeloId": 8,
+    "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766438183/velvet/8/midias/kmqr1foazgyp1mcu8w8d.jpg",
+    "tipo": "image",
+    "criadoEm": 1766438185390
   }
 ]

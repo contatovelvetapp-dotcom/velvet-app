@@ -1,4 +1,12 @@
 const socket = io();
+Authorization: "Bearer " + window.authToken
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
+}
+
 /* ===========================
     VARIÁVEIS PRINCIPAIS
 =========================== */

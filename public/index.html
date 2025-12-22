@@ -89,32 +89,49 @@ function updateModal() {
 }
 
 async function login() {
-  const email = document.getElementById("loginEmail").value;
-  const senha = document.getElementById("loginSenha").value;
+  const email = document.getElementById("loginEmail").value.trim();
+  const senha = document.getElementById("loginSenha").value.trim();
 
   if (!email || !senha) {
     alert("Preencha email e senha");
     return;
   }
 
-  const res = await fetch("/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, senha })
-  });
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, senha })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!data.success) {
-    alert(data.error || "Erro no login");
-    return;
+    if (!res.ok) {
+      alert(data.erro || "Erro no login");
+      return;
+    }
+
+    // 🔐 SALVAR TOKEN
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+
+    // 🔁 REDIRECIONAR PELO ROLE
+    if (data.role === "modelo") {
+      window.location.href = "/profile.html";
+    } else if (data.role === "cliente") {
+      window.location.href = "/clientHome.html";
+    } else {
+      window.location.href = "/";
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro de conexão com o servidor");
   }
-
-  localStorage.setItem("auth_token", data.token);
-  localStorage.setItem("user_role", data.role);
-
-  redirectUser(data.role);
 }
+
 
 async function register() {
   const email = document.getElementById("loginEmail").value;
@@ -128,7 +145,7 @@ async function register() {
     return;
   }
 
-  const res = await fetch("/auth/register", {
+  const res = await fetch("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, senha, role })
@@ -136,10 +153,11 @@ async function register() {
 
   const data = await res.json();
 
-  if (!data.success) {
-    alert(data.error || "Erro ao criar conta");
-    return;
-  }
+  if (!res.ok) {
+  alert(data.erro || "Erro ao criar conta");
+  return;
+}
+
 alert("Conta criada com sucesso! Agora faça login.");
 switchToLogin();
 }

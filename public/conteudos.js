@@ -1,3 +1,16 @@
+fetch("/api/rota-protegida", {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+});
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
+}
+
+
 // ===============================
 // 📦 CONTEÚDOS — MODELO (LIMPO)
 // ===============================
@@ -23,7 +36,7 @@ async function init() {
 async function carregarModelo() {
   const res = await fetch("/api/me", {
     headers: {
-      Authorization: "Bearer " + localStorage.getItem("auth_token")
+      Authorization: "Bearer " + localStorage.getItem("token")
     }
   });
 
@@ -58,7 +71,7 @@ async function uploadConteudo() {
   const res = await fetch("/api/conteudos/upload", {
     method: "POST",
     headers: {
-      Authorization: "Bearer " + localStorage.getItem("auth_token")
+      Authorization: "Bearer " + localStorage.getItem("token")
     },
     body: fd
   });
@@ -78,7 +91,7 @@ async function uploadConteudo() {
 async function listarConteudos() {
   const res = await fetch("/api/conteudos", {
     headers: {
-      Authorization: "Bearer " + localStorage.getItem("auth_token")
+      Authorization: "Bearer " + localStorage.getItem("token")
     }
   });
 
@@ -119,7 +132,7 @@ async function excluirConteudo(id) {
   const res = await fetch(`/api/conteudos/${id}`, {
     method: "DELETE",
     headers: {
-      Authorization: "Bearer " + localStorage.getItem("auth_token")
+      Authorization: "Bearer " + localStorage.getItem("token")
     }
   });
 

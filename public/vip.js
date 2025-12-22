@@ -1,4 +1,18 @@
 const socket = window.socket;
+Authorization: "Bearer " + window.authToken
+
+fetch("/api/rota-protegida", {
+  headers: {
+    "Authorization": "Bearer " + token
+  }
+});
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
+}
+
 
 if (!socket) {
   console.error("❌ Socket não disponível no chatmodelo");

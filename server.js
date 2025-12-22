@@ -8,6 +8,9 @@ console.log("JWT_SECRET carregado?", JWT_SECRET);
 
 const cors = require("cors");
 const express = require("express");
+const db = require("./db");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const chatsAtivos = {};
 const unread = {};
 const path = require("path");
@@ -51,6 +54,9 @@ function authModelo(req, res, next) {
   }
   next();
 }
+
+///ROTA AUTENTIC
+
 // ===============================
 // 🔐 MIDDLEWARE DE AUTENTICAÇÃO
 // ===============================
@@ -100,6 +106,24 @@ const rateLimit = require("express-rate-limit");
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
+});
+
+app.get("/api/me", auth, (req, res) => {
+  res.json(req.user);
+});
+
+app.get("/api/modelo/me", authMiddleware, authModelo, (req, res) => {
+  const modelos = lerModelos();
+  const dados = modelos[req.user.id] || {};
+
+res.json({
+  id: req.user.id,
+  nome: dados.nome || "Modelo",
+  bio: dados.bio || "",
+  avatar: dados.avatar || "",
+  capa: dados.capa || ""
+});
+
 });
 // ===============================
 // 📦 CONTEÚDOS – MODELO (JWT)
@@ -196,9 +220,11 @@ async function excluirConteudo(req, res) {
 }
 
 app.use("/auth", authLimiter);
-app.get("/conteudos.html", authModelo, (req, res) => {
+
+app.get("/conteudos.html", authMiddleware, authModelo, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "conteudos.html"));
 });
+
 app.get("/api/conteudos", authMiddleware, authModelo, listarConteudos);
 
 
@@ -222,10 +248,6 @@ const mpClient = new MercadoPagoConfig({
 });
 
 const paymentClient = new Payment(mpClient);
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
-
 
 // ===============================
 // 🔐 REGISTRO DE USUÁRIO
@@ -287,53 +309,6 @@ app.post("/auth/register", async (req, res) => {
 
 });
 
-
-// ===============================
-// 🔐 LOGIN
-// ===============================
-app.post("/auth/login", async (req, res) => {
-  console.log("🔔 /auth/login chamado");
-
-  try {
-    const { email, senha } = req.body;
-    console.log("📩 BODY LOGIN:", req.body);
-
-    const users = lerUsuarios();
-    console.log("👥 USERS:", users);
-
-    const user = users.find(u => u.email === email);
-    if (!user) {
-      return res.status(401).json({ error: "Email inválido" });
-    }
-
-    const ok = await bcrypt.compare(senha, user.senha);
-    console.log("🔐 SENHA OK?", ok);
-
-    if (!ok) {
-      return res.status(401).json({ error: "Senha inválida" });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    return res.json({
-      success: true,
-      token,
-      role: user.role
-    });
-
-  } 
-  catch (err) {
-  console.error("🔥 ERRO LOGIN:", err);
-  return res.status(500).json({ error: err.message });
-}
-
-});
-
-
 //blindagem vip
 
 const SUBSCRIPTIONS_FILE = path.join(__dirname, "subscriptions.json");
@@ -370,6 +345,37 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, "public")));
 
+// ===============================
+// ATUALIZAR BIO DO MODELO
+// ===============================
+app.put("/api/modelo/bio", authMiddleware, authModelo, (req, res) => {
+  try {
+    const { bio } = req.body;
+
+    if (!bio || typeof bio !== "string") {
+      return res.status(400).json({ error: "Bio inválida" });
+    }
+
+    const modelos = lerModelos();
+
+    // 🔑 CHAVE ÚNICA = user.id
+    modelos[req.user.id] ??= {};
+    modelos[req.user.id].bio = bio;
+
+    salvarModelos(modelos); // 🔥 ISSO É O QUE FAZ SALVAR
+
+    console.log("BIO SALVA:", req.user.id, bio);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erro ao salvar bio:", err);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+
+
 app.get("/api/me", auth, (req, res) => {
   if (req.user.role !== "modelo") {
     return res.json(req.user);
@@ -396,26 +402,84 @@ app.get("/api/feed/me", auth, (req, res) => {
   res.json(feed);
 });
 
-//ROTA BIO
-app.post("/api/modelo/bio", auth, (req, res) => {
-  if (req.user.role !== "modelo") {
-    return res.status(403).json({ error: "Apenas modelos podem editar bio" });
+//ROTA USER
+app.post("/api/register", async (req, res) => {
+  try {
+    const { email, senha, role, nome } = req.body;
+
+    if (!email || !senha || !role) {
+      return res.status(400).json({ erro: "Dados inválidos" });
+    }
+
+    const hash = await bcrypt.hash(senha, 10);
+
+    const userResult = await db.query(
+      `INSERT INTO users (email, password_hash, role)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [email, hash, role]
+    );
+
+    const userId = userResult.rows[0].id;
+
+    if (role === "modelo") {
+      const nomeModelo = nome || email.split("@")[0];
+
+      await db.query(
+        `INSERT INTO modelos (user_id, nome)
+         VALUES ($1, $2)`,
+        [userId, nomeModelo]
+      );
+    }
+
+    if (role === "cliente") {
+      await db.query(
+        `INSERT INTO clientes (user_id, nome)
+         VALUES ($1, $2)`,
+        [userId, nome || email.split("@")[0]]
+      );
+    }
+
+    // ✅ FINAL LIMPO
+    return res.status(201).json({ sucesso: true });
+
+  } catch (err) {
+    console.error("ERRO REGISTER:", err);
+
+    // email duplicado
+    if (err.code === "23505") {
+      return res.status(409).json({ erro: "Email já registado" });
+    }
+
+    return res.status(500).json({ erro: "Erro interno no servidor" });
   }
+});
 
-  const { bio } = req.body;
+//END POINT DE LOGIN
+app.post("/api/login", async (req, res) => {
+  const { email, senha } = req.body;
 
-  if (typeof bio !== "string") {
-    return res.status(400).json({ error: "Bio inválida" });
-  }
+  const result = await db.query(
+    "SELECT * FROM users WHERE email = $1 AND is_active = true",
+    [email]
+  );
 
-  const modelos = lerModelos();
+  if (result.rowCount === 0)
+    return res.status(401).json({ erro: "Usuário não encontrado" });
 
-  modelos[req.user.id] ??= {};
-  modelos[req.user.id].bio = bio;
+  const user = result.rows[0];
 
-  salvarModelos(modelos);
+  const ok = await bcrypt.compare(senha, user.password_hash);
+  if (!ok)
+    return res.status(401).json({ erro: "Senha inválida" });
 
-  res.json({ success: true });
+const token = jwt.sign(
+  { id: user.id, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
+  res.json({ token, role: user.role });
 });
 
 
@@ -470,7 +534,6 @@ salvarModelos(modelos);
 );
 
 
-
 app.post(
   "/uploadCapa",
   authMiddleware,
@@ -478,10 +541,6 @@ app.post(
   upload.single("capa"),
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: "Arquivo não enviado" });
-      }
-
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           {
@@ -491,14 +550,17 @@ app.post(
           (err, result) => (err ? reject(err) : resolve(result))
         ).end(req.file.buffer);
       });
-const modelos = lerModelos();
 
-modelos[req.user.id] ??= {};
-modelos[req.user.id].capa = result.secure_url;
+      const modelos = lerModelos();
+      modelos[req.user.id] ??= {};
 
-salvarModelos(modelos);
+      // 🔑 NOME DO CAMPO
+      modelos[req.user.id].capa = result.secure_url;
 
-      // ✅ RESPONDE AO FRONT
+      salvarModelos(modelos);
+
+      console.log("CAPA SALVA:", modelos[req.user.id].capa);
+
       res.json({ url: result.secure_url });
 
     } catch (err) {
@@ -724,6 +786,41 @@ async function excluirConteudo(req, res) {
   res.json({ success: true });
 }
 
+//STOP SE NAO PREENCHER OS DADOS COMPLETOS
+async function authModeloCompleto(req, res, next) {
+  const result = await db.query(
+    "SELECT 1 FROM modelos_dados WHERE user_id = $1",
+    [req.user.id]
+  );
+
+  if (result.rowCount === 0) {
+    return res.redirect("/dados-modelo.html");
+  }
+
+  next();
+}
+
+//PROTECAO CONTEUDOS E CHAT
+app.get(
+  "/conteudos.html",
+  authMiddleware,
+  authModelo,
+  authModeloCompleto,
+  (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "conteudos.html"));
+  }
+);
+
+app.get(
+  "/chatmodelo.html",
+  authMiddleware,
+  authModelo,
+  authModeloCompleto,
+  (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "chatmodelo.html"));
+  }
+);
+
 
   // disconnect
   socket.on("disconnect", () => {
@@ -770,6 +867,104 @@ app.get("/api/modelo/:modelo/ultima-resposta", (req, res) => {
         res.status(500).json({});
     }
 });
+
+// ===============================
+// 📄 DADOS DA MODELO
+// ===============================
+
+// Buscar dados
+app.get(
+  "/api/modelo/dados",
+  authMiddleware,
+  authModelo,
+  async (req, res) => {
+    try {
+      const result = await db.query(
+        "SELECT * FROM modelos_dados WHERE user_id = $1",
+        [req.user.id]
+      );
+
+      res.json(result.rows[0] || {});
+    } catch (err) {
+      console.error("Erro buscar dados modelo:", err);
+      res.status(500).json({ error: "Erro interno" });
+    }
+  }
+);
+
+// Salvar / atualizar dados
+app.post(
+  "/api/modelo/dados",
+  authMiddleware,
+  authModelo,
+  async (req, res) => {
+    try {
+      const {
+        nome_exibicao,
+        nome_completo,
+        data_nascimento,
+        telefone,
+        endereco,
+        pais,
+        instagram,
+        tiktok
+      } = req.body;
+
+      if (
+        !nome_exibicao ||
+        !nome_completo ||
+        !data_nascimento ||
+        !telefone ||
+        !endereco ||
+        !pais
+      ) {
+        return res.status(400).json({ error: "Dados obrigatórios em falta" });
+      }
+
+      await db.query(
+        `
+        INSERT INTO modelos_dados
+          (user_id, nome_exibicao, nome_completo, data_nascimento,
+           telefone, endereco, pais, instagram, tiktok)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+          nome_exibicao = EXCLUDED.nome_exibicao,
+          nome_completo = EXCLUDED.nome_completo,
+          data_nascimento = EXCLUDED.data_nascimento,
+          telefone = EXCLUDED.telefone,
+          endereco = EXCLUDED.endereco,
+          pais = EXCLUDED.pais,
+          instagram = EXCLUDED.instagram,
+          tiktok = EXCLUDED.tiktok,
+          atualizado_em = NOW()
+        `,
+        [
+          req.user.id,
+          nome_exibicao,
+          nome_completo,
+          data_nascimento,
+          telefone,
+          endereco,
+          pais,
+          instagram || null,
+          tiktok || null
+        ]
+      );
+
+      // 🔥 sincroniza nome exibido no perfil
+      await db.query(
+        "UPDATE modelos SET nome = $1 WHERE user_id = $2",
+        [nome_exibicao, req.user.id]
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Erro salvar dados modelo:", err);
+      res.status(500).json({ error: "Erro interno" });
+    }
+  }
+);
 
 
 

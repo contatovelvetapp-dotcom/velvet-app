@@ -1,0 +1,179 @@
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+/* =========================
+   VELVET – DADOS DA MODELO
+   Título roxo | Conteúdo preto
+========================= */
+
+:root {
+  --velvet-roxo: #7B2CFF;
+  --velvet-roxo-dark: #5a1fd1;
+
+  --velvet-bg: #f5f5fa;
+  --velvet-card: #ffffff;
+  --velvet-border: #e0e0e6;
+
+  --velvet-text: #555555;
+  --velvet-muted: #555555;
+}
+
+/* RESET BÁSICO */
+* {
+  box-sizing: border-box;
+  font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont,
+               'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+               'Helvetica Neue', Arial, sans-serif;
+}
+
+/* FUNDO DA PÁGINA */
+body.role-modelo {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #f7f7fc 0%,
+    #ededf4 100%
+  );
+  color: var(--velvet-text);
+}
+
+/* CONTAINER PRINCIPAL */
+.container-dados {
+  max-width: 520px;
+  margin: 60px auto;
+  padding: 28px 26px;
+  background: var(--velvet-card);
+  border-radius: 18px;
+  border: 1px solid var(--velvet-border);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* TÍTULO */
+.container-dados h1 {
+  margin: 0 0 6px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--velvet-roxo);
+}
+
+/* SUBTÍTULO */
+.container-dados .sub {
+  font-size: 0.9rem;
+  color: var(--velvet-muted);
+  margin-bottom: 22px;
+}
+
+/* LABELS */
+.container-dados label {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--velvet-text);
+}
+
+/* INPUTS E TEXTAREA */
+.container-dados input,
+.container-dados textarea {
+  width: 100%;
+  padding: 11px 12px;
+  background: #fafafa;
+  border: 1px solid var(--velvet-border);
+  border-radius: 10px;
+  color: #555555;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background 0.2s ease;
+}
+
+.container-dados textarea {
+  resize: none;
+}
+
+/* FOCUS */
+.container-dados input:focus,
+.container-dados textarea:focus {
+  border-color: var(--velvet-roxo);
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(123,44,255,0.18);
+}
+
+/* LINHA DIVISÓRIA */
+.container-dados hr {
+  margin: 26px 0 12px;
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0,0,0,0.15),
+    transparent
+  );
+}
+
+/* AVISO */
+.container-dados .aviso {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: var(--velvet-muted);
+  line-height: 1.4;
+}
+
+/* BOTÃO */
+.container-dados button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(
+    135deg,
+    var(--velvet-roxo),
+    var(--velvet-roxo-dark)
+  );
+
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  transition: transform 0.15s ease,
+              box-shadow 0.15s ease,
+              filter 0.15s ease;
+}
+
+/* HOVER DO BOTÃO */
+.container-dados button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 28px rgba(123,44,255,0.35);
+}
+
+/* STATUS */
+.status {
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.status.sucesso {
+  color: #2e7d32;
+}
+
+.status.erro {
+  color: #c62828;
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+  .container-dados {
+    margin: 30px 14px;
+    padding: 22px 18px;
+  }
+}

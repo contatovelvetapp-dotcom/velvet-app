@@ -1,3 +1,17 @@
+Authorization: "Bearer " + window.authToken
+
+fetch("/api/rota-protegida", {
+  headers: {
+    "Authorization": "Bearer " + token
+  }
+});
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
+}
+
 
 (function () {
   const token = localStorage.getItem("auth_token");
@@ -9,6 +23,8 @@
     return;
   }
 })();
+
+
 
 // =========================================================
 // CLIENT HOME — FEED DE MODELOS (FETCH VERSION)

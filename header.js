@@ -34,13 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarHeader();
 });
 async function initUsuario() {
-  const token = localStorage.getItem("auth_token");
+  const token = localStorage.getItem("token");
+
   if (!token) return;
 
   try {
     const res = await fetch("/api/me", {
       headers: {
-        Authorization: "Bearer " + token
+        Authorization: "Bearer " + localStorage.getItem("token")
       }
     });
 
@@ -49,8 +50,9 @@ async function initUsuario() {
     const user = await res.json();
 
     // 🔑 guarda apenas para UX (não segurança)
-    localStorage.setItem("user_role", user.role);
-    localStorage.setItem("user_nome", user.nome);
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("nome", user.nome);
+
 
     console.log("✅ Usuário autenticado:", user.role, user.nome);
 
@@ -84,23 +86,28 @@ const menuModelo = `
 <button onclick="location.href='chatmodelo.html'">Chat</button>
 <button id="btnAlterarAvatar">Alterar foto do Perfil</button>
 <button id="btnAlterarCapa">Alterar Capa</button>
-<button onclick="location.href='configm.html'">Configurações</button>
+<button onclick="abrirDados()">Dados</button>
 <hr class="menu-divider">
 <button class="logout-btn" onclick="logout()">Sair</button>
 `;
 
 function montarMenuPorRole() {
-  let role = localStorage.getItem("user_role");
+  const role = localStorage.getItem("role");
 
-  if (!role) {
-    role = "cliente";
-    localStorage.setItem("user_role", "cliente");
-  }
+const menu = document.getElementById("userMenu");
+if (!menu) return;
 
-  const menu = document.getElementById("userMenu");
-  if (!menu) return;
+if (role === "modelo") {
+  menu.innerHTML = menuModelo;
+} else if (role === "cliente") {
+  menu.innerHTML = menuCliente;
+} else {
+  console.warn("❌ Role inválido:", role);
+}
+}
 
-  menu.innerHTML = role === "modelo" ? menuModelo : menuCliente;
+function abrirDados() {
+  window.location.href = "/dados-modelo.html";
 }
 
 // =========================================================
@@ -130,7 +137,7 @@ function initHeaderMenu() {
 }
 
 function abrirConteudos() {
-  const role = localStorage.getItem("user_role");
+  const role = localStorage.getItem("role");
 
   if (role !== "modelo") {
     alert("Acesso negado");

@@ -47,5 +47,12 @@
     "url": "https://res.cloudinary.com/dcvmofgnc/image/upload/v1766348802/velvet/1766341071877/conteudos/nxcsbqz5ew3d62ec82zv.jpg",
     "tipo": "image",
     "criadoEm": 1766348804111
+  },
+  {
+    "id": "1766438873688",
+    "modeloId": 8,
+    "url": "https://res.cloudinary.com/dcvmofgnc/video/upload/v1766438871/velvet/8/conteudos/yhsrahgso9cexktphayh.mp4",
+    "tipo": "video",
+    "criadoEm": 1766438873688
   }
 ]

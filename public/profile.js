@@ -1,93 +1,69 @@
-// ===============================
-// PROFILE.JS — LIMPO (JWT ONLY)
-// ===============================
+//REFATURADO
 
-// 🔐 PROTEÇÃO DE ACESSO
-(function () {
-  const token = localStorage.getItem("auth_token");
-  const role = localStorage.getItem("user_role");
+//ELEMENTOS PERFIL
 
-  if (!token || role !== "modelo") {
-    localStorage.clear();
-    window.location.href = "/index.html";
-  }
-})();
+const avatarImg  = document.getElementById("profileAvatar");
+const capaImg    = document.getElementById("profileCapa");
+const nomeEl     = document.getElementById("profileName");
+const profileBio = document.getElementById("profileBio");
 
-const token = localStorage.getItem("auth_token");
 
-// ===============================
-// ELEMENTOS
-// ===============================
-const avatarImg = document.getElementById("profileAvatar");
-const capaImg   = document.getElementById("profileCapa");
-const nomeEl    = document.getElementById("profileNome");
+//ELEMENTOS BIO
+const btnSalvarBio = document.getElementById("btnSalvarBio");
+const bioInput = document.getElementById("bioInput");
 
+//ELEMENTOS FEED
 const inputAvatar = document.getElementById("inputAvatar");
 const inputCapa   = document.getElementById("inputCapa");
 const inputMedia  = document.getElementById("inputMedia");
 const listaMidias = document.getElementById("listaMidias");
+// ===============================
+// PERFIL BASE (FONTE DA VERDADE)
+// ===============================
+async function carregarPerfil() {
+  try {
+    const token = localStorage.getItem("token");
 
-const btnSalvarBio = document.getElementById("btnSalvarBio");
-const bioInput = document.getElementById("bioInput");
-const profileBio = document.getElementById("profileBio");
-
-if (btnSalvarBio) {
-  btnSalvarBio.addEventListener("click", async () => {
-    const novaBio = bioInput.value.trim();
-
-    const res = await fetch("/api/modelo/bio", {
-      method: "POST",
+    const res = await fetch("/api/modelo/me", {
       headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify({ bio: novaBio })
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
     });
 
-    if (res.ok) {
-      profileBio.textContent = novaBio;
-      document.getElementById("popupBio").classList.add("hidden");
-    } else {
-      alert("Erro ao salvar bio");
+    if (!res.ok) {
+      alert("Acesso negado");
+      window.location.href = "/";
+      return;
     }
-  });
+
+    const modelo = await res.json();
+    aplicarPerfilNoDOM(modelo);
+
+  } catch (err) {
+    console.error("Erro ao carregar perfil:", err);
+  }
 }
 
-// ===============================
-// PERFIL BÁSICO
-// ===============================
-function initPerfil() {
-  fetch("/api/me", {
-    headers: { Authorization: "Bearer " + token }
-  })
-    .then(r => r.json())
-    .then(user => {
-        document.body.classList.remove("role-modelo", "role-cliente");
-        document.body.classList.add(`role-${user.role}`);
+//CARREGA PERFIL/FEED
 
-      if (avatarImg) {
-        avatarImg.src = (user.avatar || "/assets/avatarDefault.png") + "?v=" + Date.now();
-      }
-      if (capaImg) {
-        capaImg.src = (user.capa || "/assets/capaDefault.jpg") + "?v=" + Date.now();
-      }
-      if (nomeEl) {
-        nomeEl.textContent = "Modelo";
-      }
-      if (profileBio) {
-  profileBio.textContent = user.bio || "";
+document.addEventListener("DOMContentLoaded", () => {
+  carregarPerfil();
+  carregarFeed();
+});
+
+//LOGOUT
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
 }
-    })
-    .catch(err => console.error("Erro perfil:", err));
-}
-// ===============================
-// FEED (LISTAR)
-// ===============================
+
+//CARREGAR FEED
 function carregarFeed() {
   if (!listaMidias) return;
 
   fetch("/api/feed/me", {
-    headers: { Authorization: "Bearer " + token }
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
   })
     .then(r => r.json())
     .then(feed => {
@@ -97,9 +73,7 @@ function carregarFeed() {
     .catch(err => console.error("Erro feed:", err));
 }
 
-// ===============================
-// FEED (UPLOAD)
-// ===============================
+//UPLOAD MIDIAS
 if (inputMedia) {
   inputMedia.addEventListener("change", async () => {
     const file = inputMedia.files[0];
@@ -110,7 +84,7 @@ if (inputMedia) {
 
     const res = await fetch("/uploadMidia", {
       method: "POST",
-      headers: { Authorization: "Bearer " + token },
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
       body: fd
     });
 
@@ -122,9 +96,7 @@ if (inputMedia) {
   });
 }
 
-// ===============================
-// ADICIONAR MÍDIA NA TELA
-// ===============================
+//ADICIONAR MIDIA
 function adicionarMidia(url) {
   const card = document.createElement("div");
   card.className = "midiaCard";
@@ -158,7 +130,7 @@ function adicionarMidia(url) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token
+        Authorization: "Bearer " + localStorage.getItem("token")
       },
       body: JSON.stringify({ url })
     });
@@ -224,12 +196,35 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") fecharModal();
 });
 // ===============================
-// INIT
+// INITS DOM
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  initPerfil();
-  carregarFeed();
+  const role = localStorage.getItem("role"); // "modelo" ou "cliente"
+
+  document.body.classList.remove("role-modelo", "role-cliente");
+
+  if (role === "modelo") {
+    document.body.classList.add("role-modelo");
+  }
+
+  if (role === "cliente") {
+    document.body.classList.add("role-cliente");
+  }
 });
+
+function aplicarPerfilNoDOM(modelo) {
+  if (nomeEl) nomeEl.textContent = modelo.nome;
+  if (profileBio) profileBio.textContent = modelo.bio || "";
+
+  if (avatarImg && modelo.avatar) {
+    avatarImg.src = modelo.avatar;
+  }
+
+  if (capaImg && modelo.capa) {
+    capaImg.src = modelo.capa; // 🔥 AQUI ESTAVA O ERRO
+  }
+}
+
 
 document.addEventListener("trocar-avatar", () => {
   if (inputAvatar) inputAvatar.click();
@@ -238,7 +233,6 @@ document.addEventListener("trocar-avatar", () => {
 document.addEventListener("trocar-capa", () => {
   if (inputCapa) inputCapa.click();
 });
-
 
 if (inputAvatar) {
   inputAvatar.addEventListener("change", async () => {
@@ -250,7 +244,7 @@ if (inputAvatar) {
 
     const res = await fetch("/uploadAvatar", {
       method: "POST",
-      headers: { Authorization: "Bearer " + token },
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
       body: fd
     });
 
@@ -271,7 +265,7 @@ if (inputCapa) {
 
     const res = await fetch("/uploadCapa", {
       method: "POST",
-      headers: { Authorization: "Bearer " + token },
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") },
       body: fd
     });
 
@@ -282,4 +276,3 @@ if (inputCapa) {
     }
   });
 }
-

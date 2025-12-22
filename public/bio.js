@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const btnEditarBio   = document.getElementById("btnEditarBio");
   const popupBio       = document.getElementById("popupBio");
   const btnSalvarBio   = document.getElementById("btnSalvarBio");
@@ -7,45 +6,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const bioInput       = document.getElementById("bioInput");
   const bioText        = document.getElementById("profileBio");
 
-  if (!btnEditarBio || !popupBio) {
-    console.warn("BIO: elementos não encontrados");
-    return;
-  }
+  if (!btnEditarBio || !popupBio) return;
 
-  // ABRIR POPUP
+  // abrir popup
   btnEditarBio.addEventListener("click", () => {
     bioInput.value = bioText.textContent.trim();
     popupBio.classList.remove("hidden");
   });
 
-  // FECHAR POPUP
+  // fechar popup
   btnFecharPopup.addEventListener("click", () => {
     popupBio.classList.add("hidden");
   });
 
-  // SALVAR BIO
-  btnSalvarBio.addEventListener("click", () => {
+  // salvar bio
+  btnSalvarBio.addEventListener("click", async () => {
     const novaBio = bioInput.value.trim();
     if (!novaBio) return alert("A bio não pode estar vazia");
 
-    fetch("/saveBio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ modelo, bio: novaBio })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        bioText.innerHTML = novaBio.replace(/\n/g, "<br>");
-        popupBio.classList.add("hidden");
-      } else {
-        alert("Erro ao salvar bio");
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Erro de servidor");
-    });
-  });
+    const token = localStorage.getItem("token");
 
+    const res = await fetch("/api/modelo/bio", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({ bio: novaBio })
+    });
+
+    if (res.ok) {
+      bioText.textContent = novaBio;
+      popupBio.classList.add("hidden");
+    } else {
+      alert("Erro ao salvar bio");
+    }
+  });
 });

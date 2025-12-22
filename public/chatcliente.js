@@ -1,8 +1,28 @@
+const token = localStorage.getItem("token");
+if (!token) {
+  window.location.href = "/";
+  throw new Error("Não autenticado");
+}
+
+
 const socket = window.socket;
 
 if (!socket) {
   console.error("❌ Socket não disponível no chatmodelo");
 }
+
+fetch("/api/rota-protegida", {
+  headers: {
+    "Authorization": "Bearer " + token
+  }
+});
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  window.location.href = "/";
+}
+
 // ===========================
 // IDENTIDADE
 // ===========================
