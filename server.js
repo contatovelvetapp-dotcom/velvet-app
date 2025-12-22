@@ -460,14 +460,26 @@ app.post("/api/login", async (req, res) => {
   try {
     const { email, senha } = req.body;
 
-    if (result.rowCount === 0)
+    if (!email || !senha) {
+      return res.status(400).json({ erro: "Email e senha obrigatórios" });
+    }
+
+    // 🔑 QUERY DEFINIDA CORRETAMENTE
+    const result = await db.query(
+      "SELECT id, email, password_hash, role FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rowCount === 0) {
       return res.status(401).json({ erro: "Usuário não encontrado" });
+    }
 
     const user = result.rows[0];
 
     const ok = await bcrypt.compare(senha, user.password_hash);
-    if (!ok)
+    if (!ok) {
       return res.status(401).json({ erro: "Senha inválida" });
+    }
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
@@ -475,11 +487,14 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, role: user.role });
+    return res.json({
+      token,
+      role: user.role
+    });
 
   } catch (err) {
     console.error("🔥 ERRO LOGIN:", err);
-    res.status(500).json({ erro: "Erro interno" });
+    return res.status(500).json({ erro: "Erro interno no login" });
   }
 });
 
