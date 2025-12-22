@@ -1203,6 +1203,20 @@ app.post(
   }
 );
 
+app.get("/api/health/db", async (req, res) => {
+  try {
+    const result = await db.query("SELECT 1 AS ok");
+    res.json({ status: "ok", db: result.rows[0] });
+  } catch (err) {
+    console.error("❌ DB ERROR:", err);
+    res.status(500).json({
+      status: "error",
+      message: err.message
+    });
+  }
+});
+
+
 
 // ===============================
 // START SERVER
