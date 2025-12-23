@@ -166,20 +166,15 @@ async function uploadConteudo(req, res) {
         (err, result) => (err ? reject(err) : resolve(result))
       ).end(req.file.buffer);
     });
+    await db.query(
+      `
+      INSERT INTO conteudos (user_id, url, tipo)
+      VALUES ($1, $2, $3)
+      `,
+      [req.user.id, result.secure_url, result.resource_type]
+    );
 
-    const conteudos = lerConteudos();
-
-    conteudos.push({
-      id: Date.now().toString(),
-      modeloId: req.user.id,
-      url: result.secure_url,
-      tipo: result.resource_type,
-      criadoEm: Date.now()
-    });
-
-    salvarConteudos(conteudos);
-
-    res.json({ success: true });
+    res.json({ success: true, url: result.secure_url });
 
   } catch (err) {
     console.error("Erro upload conteúdo:", err);
@@ -187,62 +182,51 @@ async function uploadConteudo(req, res) {
   }
 }
 
-// 🗑 EXCLUIR CONTEÚDO
 async function excluirConteudo(req, res) {
   const { id } = req.params;
-  const modeloId = req.user.id;
 
-  let conteudos = lerConteudos();
-  const conteudo = conteudos.find(
-    c => c.id === id && c.modeloId === modeloId
-  );
+  try {
+    const result = await db.query(
+      "SELECT url FROM conteudos WHERE id = $1 AND user_id = $2",
+      [id, req.user.id]
+    );
 
-  if (!conteudo) {
-    return res.status(404).json({ error: "Conteúdo não encontrado" });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Conteúdo não encontrado" });
+    }
+
+    const url = result.rows[0].url;
+
+    const publicId = url
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .replace(/\.[^/.]+$/, "");
+
+    await cloudinary.uploader.destroy(publicId);
+
+    await db.query(
+      "DELETE FROM conteudos WHERE id = $1 AND user_id = $2",
+      [id, req.user.id]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erro excluir conteúdo:", err);
+    res.status(500).json({ error: "Erro ao excluir conteúdo" });
   }
-
-  // 🔥 remove do Cloudinary
-  const publicId = conteudo.url
-    .split("/")
-    .slice(-2)
-    .join("/")
-    .replace(/\.[^/.]+$/, "");
-
-  await cloudinary.uploader.destroy(publicId);
-
-  conteudos = conteudos.filter(c => c.id !== id);
-  salvarConteudos(conteudos);
-
-  res.json({ success: true });
 }
 
-app.use("/auth", authLimiter);
-
-app.get("/conteudos.html", auth, authModelo, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "conteudos.html"));
-});
-
-app.get("/api/conteudos", auth, authModelo, listarConteudos);
-
-
-app.get("/", (req, res) => {
-  res.status(200).send("🚀 Velvet backend online");
-});
-
-
-const unreadMap = fs.existsSync(UNREAD_FILE)
-? JSON.parse(fs.readFileSync(UNREAD_FILE, "utf8")) : {};
-
-console.log(
-  "MP TOKEN INICIA COM:",
-  process.env.MP_ACCESS_TOKEN?.slice(0, 8)
-);
 
 const { MercadoPagoConfig, Payment } = require("mercadopago");
 
 const mpClient = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
 });
+
+
+
 
 const paymentClient = new Payment(mpClient);
 
@@ -308,6 +292,25 @@ app.put("/api/modelo/bio", authModelo, async (req, res) => {
   } catch (err) {
     console.error("Erro ao salvar bio:", err);
     res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+app.get("/api/conteudos", auth, authModelo, async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+      SELECT id, url, tipo, preco, criado_em
+      FROM conteudos
+      WHERE user_id = $1
+      ORDER BY criado_em DESC
+      `,
+      [req.user.id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro listar conteúdos:", err);
+    res.status(500).json({ error: "Erro ao listar conteúdos" });
   }
 });
 
@@ -551,7 +554,6 @@ app.post(
     }
   }
 );
-
 
 
 // ===============================
