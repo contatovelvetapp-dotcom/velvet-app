@@ -78,7 +78,7 @@ async function carregarPerfilPublico() {
   if (!nome) return;
 
   const res = await fetch(`/api/modelo/publico/${nome}`, {
-    headers: { Authorization: "Bearer " + token }
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
   });
 
   const modelo = await res.json();
@@ -124,7 +124,7 @@ function carregarFeedPublico() {
   if (!nome || !listaMidias) return;
 
   fetch(`/api/modelo/${nome}/feed`, {
-    headers: { Authorization: "Bearer " + token }
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
   })
     .then(r => r.json())
     .then(feed => {

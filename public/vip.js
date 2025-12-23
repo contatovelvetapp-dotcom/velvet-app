@@ -1,15 +1,3 @@
-fetch("/api/rota-protegida", {
-  headers: {
-    "Authorization": "Bearer " + localStorage.removeItem("token")
-  }
-});
-
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const btnVip = document.getElementById("btnVip");
 
@@ -41,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + token
+          Authorization: "Bearer " + localStorage.getItem("token")
         },
         body: JSON.stringify({
           modelo_id: modeloId
@@ -63,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
