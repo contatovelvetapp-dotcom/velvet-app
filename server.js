@@ -465,9 +465,9 @@ app.post("/api/cliente/dados", auth, async (req, res) => {
   }
 });
 // ===============================
-// 💳 CRIAR ASSINATURA VIP (CARTÃO)
+// 💳 CRIAR ASSINATURA VIP PIX
 // ===============================
-app.post("/api/vip/assinatura", auth, async (req, res) => {
+app.post("/api/vip/pix", auth, async (req, res) => {
   try {
     if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
@@ -478,31 +478,39 @@ app.post("/api/vip/assinatura", auth, async (req, res) => {
       return res.status(400).json({ error: "Modelo inválida" });
     }
 
-    const response = await preApprovalClient.create({
-      reason: "Assinatura VIP Velvet",
-      external_reference: `${req.user.id}_${modelo_id}`,
-      payer_email: req.user.email,
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        transaction_amount: 1,
-        currency_id: "BRL"
-      },
-      back_url: "https://velvet-app-production.up.railway.app",
-      metadata: {
-        tipo: "vip",
-        cliente_id: req.user.id,
-        modelo_id
+    // 1️⃣ cria VIP pendente
+    const vip = await db.query(`
+      INSERT INTO vip_assinaturas (cliente_id, modelo_id, status)
+      VALUES ($1,$2,'pendente')
+      RETURNING id
+    `, [req.user.id, modelo_id]);
+
+    const vipId = vip.rows[0].id;
+
+    // 2️⃣ cria pagamento PIX
+    const payment = await paymentClient.create({
+      body: {
+        transaction_amount: 29.90,
+        description: "VIP Velvet (30 dias)",
+        payment_method_id: "pix",
+        payer: { email: req.user.email },
+        metadata: {
+          tipo: "vip",
+          vip_id: vipId,
+          cliente_id: req.user.id,
+          modelo_id
+        }
       }
     });
 
     res.json({
-      init_point: response.init_point
+      pix: payment.point_of_interaction.transaction_data,
+      vip_id: vipId
     });
 
   } catch (err) {
-    console.error("🔥 ERRO ASSINATURA VIP:", err);
-    res.status(500).json({ error: "Erro ao criar assinatura" });
+    console.error("Erro VIP PIX:", err);
+    res.status(500).json({ error: "Erro ao gerar PIX" });
   }
 });
 
