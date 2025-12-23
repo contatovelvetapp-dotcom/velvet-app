@@ -7,10 +7,21 @@ const capaImg    = document.getElementById("profileCapa");
 const nomeEl     = document.getElementById("profileName");
 const profileBio = document.getElementById("profileBio");
 
+// 🔑 MODELO DO PERFIL PÚBLICO
+const nome = localStorage.getItem("modeloPerfil");
+
+if (!nome) {
+  alert("Modelo não identificada");
+  throw new Error("modeloPerfil não encontrado no localStorage");
+}
+
+// ID da modelo (vem do backend)
+let modeloAtualId = null;
 
 //ELEMENTOS BIO
 const btnSalvarBio = document.getElementById("btnSalvarBio");
 const bioInput = document.getElementById("bioInput");
+
 document.addEventListener("DOMContentLoaded", () => {
   const btnEditarBio   = document.getElementById("btnEditarBio");
   const popupBio       = document.getElementById("popupBio");
@@ -19,12 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const bioInput       = document.getElementById("bioInput");
   const bioText        = document.getElementById("profileBio");
   const token = localStorage.getItem("token");
-
-  const nome = localStorage.getItem("modeloPerfil");
-  if (!nome) {
-  alert("Modelo não identificada");
-  throw new Error("modeloPerfil não encontrado");
-}
 
   if (!btnEditarBio || !popupBio) return;
 
@@ -79,8 +84,6 @@ async function carregarPerfil() {
   }
 }
 //PUBLICO
-let modeloAtualId = null;
-
 async function carregarPerfilPublico() {
   const res = await fetch(`/api/modelo/publico/${nome}`, {
     headers: {
