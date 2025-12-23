@@ -1,102 +1,324 @@
 // ===============================
-// VIP.JS – VERSÃO SEGURA
+// ELEMENTOS DO PERFIL
 // ===============================
+const avatarImg  = document.getElementById("profileAvatar");
+const capaImg    = document.getElementById("profileCapa");
+const nomeEl     = document.getElementById("profileName");
+const profileBio = document.getElementById("profileBio");
 
+const inputAvatar = document.getElementById("inputAvatar");
+const inputCapa   = document.getElementById("inputCapa");
+const inputMedia  = document.getElementById("inputMedia");
+const listaMidias = document.getElementById("listaMidias");
+
+const btnSalvarBio = document.getElementById("btnSalvarBio");
+const bioInput     = document.getElementById("bioInput");
+
+// ===============================
+// ESTADO GLOBAL
+// ===============================
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
+const modeloPublico = localStorage.getItem("modeloPerfil");
+
+let modo = "privado";
+if (role === "cliente" && modeloPublico) modo = "publico";
+
+console.log("🧭 PROFILE MODO:", modo, "| role:", role);
+
+// ID backend
+window.modeloAtualId = null;
+
+// ===============================
+// GUARD MODELO PÚBLICO
+// ===============================
+if (modo === "publico" && !modeloPublico) {
+  alert("Modelo não identificada");
+  throw new Error("modeloPerfil não encontrado");
+}
+
+// ===============================
+// INIT PRINCIPAL
+// ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  const btnVip = document.getElementById("btnVip");
+  aplicarRoleNoBody();
+  iniciarBioPopup();
+  iniciarPerfil();
+  iniciarUploads();
+  iniciarModalMidia();
+});
 
-  if (!btnVip) {
-    console.error("❌ Botão VIP não encontrado");
-    return;
+// ===============================
+// ROLE VISUAL
+// ===============================
+function aplicarRoleNoBody() {
+  document.body.classList.remove("role-modelo", "role-cliente");
+  if (role === "modelo") document.body.classList.add("role-modelo");
+  if (role === "cliente") document.body.classList.add("role-cliente");
+}
+
+// ===============================
+// PERFIL / FEED
+// ===============================
+function iniciarPerfil() {
+  if (modo === "privado") {
+    carregarPerfil();
+    carregarFeed();
   }
 
-  console.log("✅ Botão VIP encontrado");
+  if (modo === "publico") {
+    carregarPerfilPublico();
+    carregarFeedPublico();
+    document.getElementById("btnvoltar")?.addEventListener("click", () => {
+      localStorage.removeItem("modeloPerfil");
+    });
+  }
+}
 
-  btnVip.addEventListener("click", async () => {
+async function carregarPerfil() {
+  try {
+    const res = await fetch("/api/modelo/me", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const modelo = await res.json();
+    aplicarPerfilNoDOM(modelo);
+  } catch (err) {
+    console.error("Erro ao carregar perfil:", err);
+  }
+}
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Você precisa estar logado");
-      return;
-    }
+async function carregarPerfilPublico() {
+  const res = await fetch(`/api/modelo/publico/${modeloPublico}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const modelo = await res.json();
+  window.modeloAtualId = modelo.user_id;
+  aplicarPerfilNoDOM(modelo);
+}
 
-    let modeloId = window.modeloAtualId;
+// ===============================
+// FEED
+// ===============================
+function carregarFeed() {
+  if (!listaMidias) return;
 
-    // ===============================
-    // FALLBACK – modelo ainda não carregada
-    // ===============================
-    if (!modeloId) {
-      const nomeModelo = localStorage.getItem("modeloPerfil");
+  fetch("/api/feed/me", {
+    headers: { Authorization: "Bearer " + token }
+  })
+    .then(r => r.json())
+    .then(feed => {
+      listaMidias.innerHTML = "";
+      feed.forEach(item => adicionarMidia(item.url));
+    });
+}
 
-      if (!nomeModelo) {
-        alert("Modelo não identificada");
-        return;
-      }
+function carregarFeedPublico() {
+  if (!listaMidias) return;
 
-      try {
-        console.warn("⚠️ modeloAtualId ausente, buscando via API...");
+  fetch(`/api/modelo/${modeloPublico}/feed`, {
+    headers: { Authorization: "Bearer " + token }
+  })
+    .then(r => r.json())
+    .then(feed => {
+      listaMidias.innerHTML = "";
+      feed.forEach(item => adicionarMidia(item.url));
+    });
+}
 
-        const resModelo = await fetch(`/api/modelo/publico/${nomeModelo}`, {
-          headers: {
-            Authorization: "Bearer " + token
-          }
-        });
+// ===============================
+// BIO
+// ===============================
+function iniciarBioPopup() {
+  const btnEditarBio   = document.getElementById("btnEditarBio");
+  const popupBio       = document.getElementById("popupBio");
+  const btnFecharPopup = document.getElementById("btnFecharPopup");
 
-        if (!resModelo.ok) {
-          alert("Erro ao identificar a modelo");
-          return;
-        }
+  if (!btnEditarBio || !popupBio) return;
 
-        const modelo = await resModelo.json();
+  btnEditarBio.addEventListener("click", () => {
+    bioInput.value = profileBio.textContent.trim();
+    popupBio.classList.remove("hidden");
+  });
 
-        if (!modelo.user_id) {
-          alert("Modelo inválida");
-          return;
-        }
+  btnFecharPopup.addEventListener("click", () => {
+    popupBio.classList.add("hidden");
+  });
+}
 
-        modeloId = modelo.user_id;
-        window.modeloAtualId = modeloId; // cache global
+if (btnSalvarBio && bioInput) {
+  btnSalvarBio.addEventListener("click", async () => {
+    const bio = bioInput.value.trim();
+    if (!bio) return alert("A bio não pode estar vazia");
 
-        console.log("✅ modeloAtualId recuperado:", modeloId);
+    const res = await fetch("/api/modelo/bio", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ bio })
+    });
 
-      } catch (err) {
-        console.error("Erro ao buscar modelo:", err);
-        alert("Erro ao identificar a modelo");
-        return;
-      }
-    }
+    if (!res.ok) return alert("Erro ao salvar bio");
 
-    // ===============================
-    // CRIAR ASSINATURA VIP
-    // ===============================
-    try {
-      const res = await fetch("/api/vip/assinatura", {
+    profileBio.textContent = bio;
+    alert("Biografia salva com sucesso!");
+  });
+}
+
+// ===============================
+// UPLOADS
+// ===============================
+function iniciarUploads() {
+  if (inputMedia) {
+    inputMedia.addEventListener("change", async () => {
+      const file = inputMedia.files[0];
+      if (!file) return;
+
+      const fd = new FormData();
+      fd.append("midia", file);
+
+      const res = await fetch("/uploadMidia", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token
-        },
-        body: JSON.stringify({
-          modelo_id: modeloId
-        })
+        headers: { Authorization: "Bearer " + token },
+        body: fd
       });
 
-      if (!res.ok) {
-        alert("Erro ao iniciar assinatura VIP");
-        return;
-      }
-
       const data = await res.json();
+      if (data.url) adicionarMidia(data.url);
+    });
+  }
 
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        alert("Erro ao iniciar assinatura VIP");
-      }
+  if (inputAvatar) {
+    inputAvatar.addEventListener("change", async () => {
+      const file = inputAvatar.files[0];
+      if (!file) return;
 
-    } catch (err) {
-      console.error("Erro assinatura VIP:", err);
-      alert("Erro de conexão");
-    }
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      const res = await fetch("/uploadAvatar", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token },
+        body: fd
+      });
+
+      if (res.ok) avatarImg.src = URL.createObjectURL(file);
+    });
+  }
+
+  if (inputCapa) {
+    inputCapa.addEventListener("change", async () => {
+      const file = inputCapa.files[0];
+      if (!file) return;
+
+      const fd = new FormData();
+      fd.append("capa", file);
+
+      const res = await fetch("/uploadCapa", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token },
+        body: fd
+      });
+
+      if (res.ok) capaImg.src = URL.createObjectURL(file);
+    });
+  }
+}
+
+// ===============================
+// MÍDIAS
+// ===============================
+function adicionarMidia(url) {
+  const card = document.createElement("div");
+  card.className = "midiaCard";
+
+  const ext = url.split(".").pop().toLowerCase();
+  const el = ["mp4", "webm", "ogg"].includes(ext)
+    ? Object.assign(document.createElement("video"), { src: url, controls: true })
+    : Object.assign(document.createElement("img"), { src: url });
+
+  el.className = "midiaThumb";
+  el.addEventListener("click", () => abrirMidia(url));
+
+  const btnExcluir = document.createElement("button");
+  btnExcluir.className = "btnExcluirMidia only-modelo";
+  btnExcluir.textContent = "Excluir";
+
+  btnExcluir.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (!confirm("Deseja excluir esta mídia?")) return;
+
+    const res = await fetch("/api/midia/excluir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ url })
+    });
+
+    if (res.ok) card.remove();
   });
-});
+
+  card.append(el, btnExcluir);
+  listaMidias.appendChild(card);
+}
+
+// ===============================
+// MODAL
+// ===============================
+function iniciarModalMidia() {
+  document.getElementById("fecharModal")?.addEventListener("click", fecharModal);
+
+  document.getElementById("modalMidia")?.addEventListener("click", (e) => {
+    if (e.target.id === "modalMidia") fecharModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") fecharModal();
+  });
+}
+
+function abrirMidia(url) {
+  const modal = document.getElementById("modalMidia");
+  const img   = document.getElementById("modalImg");
+  const video = document.getElementById("modalVideo");
+
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+
+  img.style.display = "none";
+  video.style.display = "none";
+  video.pause();
+
+  const ext = url.split(".").pop().toLowerCase();
+  if (["mp4", "webm", "ogg"].includes(ext)) {
+    video.src = url;
+    video.style.display = "block";
+    video.play();
+  } else {
+    img.src = url;
+    img.style.display = "block";
+  }
+}
+
+function fecharModal() {
+  const modal = document.getElementById("modalMidia");
+  const video = document.getElementById("modalVideo");
+
+  modal.classList.add("hidden");
+  document.body.style.overflow = "";
+  video.pause();
+  video.src = "";
+}
+
+// ===============================
+// DOM APLICAÇÃO PERFIL
+// ===============================
+function aplicarPerfilNoDOM(modelo) {
+  if (nomeEl) nomeEl.textContent = modelo.nome;
+  if (profileBio) profileBio.textContent = modelo.bio || "";
+  if (avatarImg && modelo.avatar) avatarImg.src = modelo.avatar;
+  if (capaImg && modelo.capa) capaImg.src = modelo.capa;
+}
