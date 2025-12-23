@@ -155,10 +155,11 @@ async function register() {
 
   const data = await res.json();
 
-  if (!data.success) {
-    alert(data.error || "Erro ao criar conta");
-    return;
-  }
+if (!res.ok) {
+  alert(data.erro || "Erro ao criar conta");
+  return;
+}
+
 alert("Conta criada com sucesso! Agora faça login.");
 switchToLogin();
 }
