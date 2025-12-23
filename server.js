@@ -332,7 +332,7 @@ app.post("/api/register", async (req, res) => {
     const hash = await bcrypt.hash(senha, 10);
 
     const userResult = await db.query(
-      `INSERT INTO users (email, password_hash, role)
+      `INSERT INTO public.users (email, password_hash, role)
        VALUES ($1, $2, $3)
        RETURNING id`,
       [email, hash, role]
@@ -344,18 +344,19 @@ app.post("/api/register", async (req, res) => {
       const nomeModelo = nome || email.split("@")[0];
 
       await db.query(
-        `INSERT INTO modelos (user_id, nome)
-         VALUES ($1, $2)`,
-        [userId, nomeModelo]
-      );
+  `INSERT INTO public.modelos (user_id, nome)
+   VALUES ($1, $2)`,
+  [userId, nomeModelo]
+);
+
     }
 
     if (role === "cliente") {
       await db.query(
-        `INSERT INTO clientes (user_id, nome)
-         VALUES ($1, $2)`,
-        [userId, nome || email.split("@")[0]]
-      );
+  `INSERT INTO public.clientes (user_id, nome)
+   VALUES ($1, $2)`,
+  [userId, nome || email.split("@")[0]]
+);
     }
 
     // ✅ FINAL LIMPO
@@ -383,7 +384,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     const result = await db.query(
-      "SELECT id, email, password_hash, role FROM users WHERE email = $1",
+      "SELECT id, email, password_hash, role FROM public.users WHERE email = $1",
       [email]
     );
 
