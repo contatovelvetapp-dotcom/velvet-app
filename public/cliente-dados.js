@@ -1,3 +1,33 @@
+async function carregarDadosCliente() {
+  const res = await fetch("/api/cliente/dados", {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (!res.ok) return;
+
+  const dados = await res.json();
+  if (!dados) return;
+
+  document.getElementById("username").value = dados.username || "";
+  document.getElementById("nomeCompleto").value = dados.nome_completo || "";
+  document.getElementById("dataNascimento").value =
+    dados.data_nascimento
+      ? dados.data_nascimento.split("T")[0]
+      : "";
+  document.getElementById("pais").value = dados.pais || "";
+
+  document.getElementById("nomeCartao").value = dados.nome_cartao || "";
+  document.getElementById("ultimos4").value = dados.ultimos4_cartao || "";
+  document.getElementById("bandeira").value = dados.bandeira_cartao || "";
+
+  if (dados.avatar) {
+    document.getElementById("avatarPreview").src = dados.avatar;
+  }
+}
+
+
 const form = document.getElementById("dadosForm");
 
 form.addEventListener("submit", async (e) => {
@@ -71,4 +101,8 @@ if (inputAvatar) {
     }
   });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarDadosCliente();
+});
 

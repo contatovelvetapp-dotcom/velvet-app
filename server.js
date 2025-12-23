@@ -839,6 +839,28 @@ function isConteudoPago(cliente, modelo, conteudoId) {
   );
 }
 
+// ===============================
+// 📄 BUSCAR DADOS DO CLIENTE
+// ===============================
+app.get("/api/cliente/dados", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json({ error: "Apenas clientes" });
+    }
+
+    const result = await db.query(
+      "SELECT * FROM clientes_dados WHERE user_id = $1",
+      [req.user.id]
+    );
+
+    res.json(result.rows[0] || {});
+  } catch (err) {
+    console.error("Erro buscar dados cliente:", err);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+
 
 
 

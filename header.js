@@ -73,7 +73,7 @@ const menuCliente = `
   <div class="menu-header">Menu</div>
   <button onclick="location.href='clientHome.html'">Feed de Modelos</button>
   <button onclick="location.href='chatcliente.html'">Mensagens</button>
-  <a href="cliente-dados.html">Meus Dados</a>
+  <button onclick="location.href='cliente-dados.html'">Meus Dados</button>
   <button class="logout-btn" onclick="logout()">Sair</button>
 `;
 
