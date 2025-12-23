@@ -91,8 +91,16 @@ async function carregarPerfilPublico() {
   const res = await fetch(`/api/modelo/publico/${modeloPublico}`, {
     headers: { Authorization: "Bearer " + token }
   });
+
   const modelo = await res.json();
+
   window.modeloAtualId = modelo.user_id;
+
+  console.log("✅ modeloAtualId definido:", window.modeloAtualId);
+
+  const btnVip = document.getElementById("btnVip");
+  if (btnVip) btnVip.disabled = false;
+
   aplicarPerfilNoDOM(modelo);
 }
 
@@ -326,6 +334,7 @@ function aplicarPerfilNoDOM(modelo) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const btnVip = document.getElementById("btnVip");
+  if (btnVip) btnVip.disabled = true;
 
   if (!btnVip) {
     console.error("❌ Botão VIP não encontrado");
@@ -335,6 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ Botão VIP encontrado");
 
  btnVip.addEventListener("click", async () => {
+  console.log("🧪 Clique VIP com modeloAtualId =", modeloAtualId);
   if (!modeloAtualId) {
     alert("Modelo não identificada");
     return;
