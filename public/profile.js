@@ -20,14 +20,12 @@ const bioInput     = document.getElementById("bioInput");
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
 const modeloPublico = localStorage.getItem("modeloPerfil");
+let modeloIdAtual = null;
 
 let modo = "privado";
 if (role === "cliente" && modeloPublico) modo = "publico";
 
 console.log("🧭 PROFILE MODO:", modo, "| role:", role);
-
-// ID backend
-window.modeloAtualId = null;
 
 // ===============================
 // GUARD MODELO PÚBLICO
@@ -94,15 +92,48 @@ async function carregarPerfilPublico() {
 
   const modelo = await res.json();
 
-  window.modeloAtualId = modelo.user_id;
-
-  console.log("✅ modeloAtualId definido:", window.modeloAtualId);
-
-  const btnVip = document.getElementById("btnVip");
-  if (btnVip) btnVip.disabled = false;
-
-  aplicarPerfilNoDOM(modelo);
+  modeloIdAtual = modelo.id;
+  console.log("🧩 Modelo carregada:", modeloIdAtual);
 }
+
+
+const btnVip = document.getElementById("btnVip");
+if (btnVip) btnVip.disabled = true;
+
+if (btnVip) {
+  btnVip.addEventListener("click", async () => {
+    if (!modeloIdAtual) {
+      alert("Modelo não identificada");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Faça login para continuar");
+      return;
+    }
+
+    const res = await fetch("/api/vip/assinar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({
+        modelo_id: modeloIdAtual
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Você agora é VIP 🎉");
+    } else {
+      alert(data.error || "Erro ao assinar VIP");
+    }
+  });
+}
+
 
 // ===============================
 // FEED
