@@ -485,8 +485,8 @@ app.post("/api/vip/assinatura", auth, async (req, res) => {
       auto_recurring: {
         frequency: 1,
         frequency_type: "months",
-        transaction_amount: 29.90,
-        currency_id: "EUR"
+        transaction_amount: 1,
+        currency_id: "BRL"
       },
       back_url: "https://velvet-app-production.up.railway.app",
       metadata: {
