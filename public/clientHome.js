@@ -1,17 +1,8 @@
-Authorization: "Bearer " + localStorage.removeItem("token");
-
-fetch("/api/rota-protegida", {
-  headers: {
-    "Authorization": "Bearer " + token
-  }
-});
-
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   window.location.href = "/";
 }
-
 
 (function () {
   const token = localStorage.getItem("token");
@@ -33,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  fetch("/api/modelos", {
+  fetch("/api/feed/modelos", {
     headers: {
       Authorization: "Bearer " + token
     }
@@ -59,14 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
         card.innerHTML = `
           <img
             src="${modelo.avatar || "/assets/avatarDefault.png"}"
-            alt="${modelo.nome_exibicao || modelo.nome}">
+            alt="${modelo.nome}">
         `;
 
         card.addEventListener("click", () => {
-          localStorage.setItem(
-            "modeloPerfil",
-            modelo.nome_exibicao || modelo.nome
-          );
+          localStorage.setItem("modeloPerfil", modelo.nome);
           window.location.href = "profile.html";
         });
 
