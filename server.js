@@ -482,10 +482,6 @@ app.post(
   upload.single("avatar"),
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: "Arquivo não enviado" });
-      }
-
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           {
@@ -495,15 +491,12 @@ app.post(
           (err, result) => (err ? reject(err) : resolve(result))
         ).end(req.file.buffer);
       });
-      const modelos = lerModelos();
 
-modelos[req.user.id] ??= {};
-modelos[req.user.id].avatar = result.secure_url;
+      await db.query(
+        "UPDATE public.modelos SET avatar = $1 WHERE user_id = $2",
+        [result.secure_url, req.user.id]
+      );
 
-salvarModelos(modelos);
-
-
-      // ✅ RESPONDE AO FRONT
       res.json({ url: result.secure_url });
 
     } catch (err) {
@@ -512,6 +505,7 @@ salvarModelos(modelos);
     }
   }
 );
+
 
 
 app.post(
@@ -531,15 +525,10 @@ app.post(
         ).end(req.file.buffer);
       });
 
-      const modelos = lerModelos();
-      modelos[req.user.id] ??= {};
-
-      // 🔑 NOME DO CAMPO
-      modelos[req.user.id].capa = result.secure_url;
-
-      salvarModelos(modelos);
-
-      console.log("CAPA SALVA:", modelos[req.user.id].capa);
+      await db.query(
+        "UPDATE public.modelos SET capa = $1 WHERE user_id = $2",
+        [result.secure_url, req.user.id]
+      );
 
       res.json({ url: result.secure_url });
 
@@ -549,6 +538,7 @@ app.post(
     }
   }
 );
+
 
 
 // ===============================
