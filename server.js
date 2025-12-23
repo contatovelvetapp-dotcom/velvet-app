@@ -462,19 +462,6 @@ app.post("/api/cliente/dados", auth, async (req, res) => {
     res.status(500).json({ error: "Erro interno" });
   }
 });
-//ROTA VIP
-app.post("/api/vip/assinatura", auth, async (req, res) => {
-  const { modeloId, metodo } = req.body;
-
-  if (req.user.role !== "cliente") {
-    return res.status(403).json({ error: "Apenas clientes" });
-  }
-
-  if (metodo !== "cartao") {
-    return res.status(400).json({ error: "Método inválido" });
-  }
-});
-
 // ===============================
 // 💳 CRIAR ASSINATURA VIP (CARTÃO)
 // ===============================
@@ -490,7 +477,7 @@ app.post("/api/vip/assinatura", auth, async (req, res) => {
       reason: "Assinatura VIP Velvet",
       preapproval_plan_id: process.env.MP_VIP_PLAN_ID,
       payer_email: req.user.email,
-      back_url: "https://SEU_DOMINIO/vip-sucesso.html",
+      back_url: "https://velvet-app-production.up.railway.app",
       metadata: {
         tipo: "vip",
         cliente_id: req.user.id,
@@ -1317,7 +1304,6 @@ app.post("/api/pagamentos/webhook", async (req, res) => {
     }
     const tipo = payment.metadata?.tipo;
 
-// PAGAMENTO VIP
 // ===============================
 // 🌟 PAGAMENTO VIP CONFIRMADO
 // ===============================
