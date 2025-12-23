@@ -200,11 +200,11 @@ async function excluirConteudo(req, res) {
 
 app.use("/auth", authLimiter);
 
-app.get("/conteudos.html", authMiddleware, auth, authModelo, (req, res) => {
+app.get("/conteudos.html", auth, authModelo, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "conteudos.html"));
 });
 
-app.get("/api/conteudos", authMiddleware, auth, authModelo, listarConteudos);
+app.get("/api/conteudos", auth, authModelo, listarConteudos);
 
 
 app.get("/", (req, res) => {
@@ -267,7 +267,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // ===============================
 // ATUALIZAR BIO DO MODELO
 // ===============================
-app.put("/api/modelo/bio", authMiddleware, authModelo, (req, res) => {
+app.put("/api/modelo/bio", authModelo, (req, res) => {
   try {
     const { bio } = req.body;
 
@@ -418,7 +418,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 
-app.get("/api/modelo/me", authMiddleware, async (req, res) => {
+app.get("/api/modelo/me", auth, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -457,7 +457,7 @@ app.get("/api/modelo/:modelo/vips", (req, res) => {
 
 app.post(
   "/uploadAvatar",
-  authMiddleware,
+  auth,
   onlyModelo,
   upload.single("avatar"),
   async (req, res) => {
@@ -496,7 +496,7 @@ salvarModelos(modelos);
 
 app.post(
   "/uploadCapa",
-  authMiddleware,
+  auth,
   onlyModelo,
   upload.single("capa"),
   async (req, res) => {
@@ -763,7 +763,7 @@ async function authModeloCompleto(req, res, next) {
 //PROTECAO CONTEUDOS E CHAT
 app.get(
   "/conteudos.html",
-  authMiddleware,
+  auth,
   auth,
   authModelo,
   authModeloCompleto,
@@ -774,7 +774,7 @@ app.get(
 
 app.get(
   "/chatmodelo.html",
-  authMiddleware,
+  auth,
   auth,
   authModelo,
   authModeloCompleto,
@@ -837,7 +837,7 @@ app.get("/api/modelo/:modelo/ultima-resposta", (req, res) => {
 // Buscar dados
 app.get(
   "/api/modelo/dados",
-  authMiddleware,
+  auth,
   auth,
   authModelo,
   async (req, res) => {
@@ -858,7 +858,7 @@ app.get(
 // Salvar / atualizar dados
 app.post(
   "/api/modelo/dados",
-  authMiddleware,
+  auth,
   authModelo,
   async (req, res) => {
     try {
@@ -934,7 +934,7 @@ app.post(
 //***************************************************************************************************************** */
 app.post(
   "/api/conteudos/upload",
-  authMiddleware,
+  auth,
   authModelo,
   upload.single("conteudo"),
   uploadConteudo
@@ -942,7 +942,7 @@ app.post(
 
 app.delete(
   "/api/conteudos/:id",
-  authMiddleware,
+  auth,
   authModelo,
   excluirConteudo
 );
@@ -1129,7 +1129,7 @@ app.post("/api/vip/criar", async (req, res) => {
 
 app.post(
   "/uploadMidia",
-  authMiddleware,
+  auth,
   onlyModelo,
   upload.single("midia"),
   async (req, res) => {
