@@ -32,6 +32,15 @@ const UNREAD_FILE = "unread.json";
 
 const cloudinary = require("cloudinary").v2;
 
+const { MercadoPagoConfig, PreApproval } = require("mercadopago");
+
+const mpClient = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN
+});
+
+const preApprovalClient = new PreApproval(mpClient);
+
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -215,14 +224,6 @@ async function excluirConteudo(req, res) {
     res.status(500).json({ error: "Erro ao excluir conteúdo" });
   }
 }
-//MERCADO PAGO
-const mercadopago = require("mercadopago");
-
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN
-});
-
-
 
 
 // ===============================
@@ -477,17 +478,17 @@ app.post("/api/vip/assinatura", auth, async (req, res) => {
       return res.status(400).json({ error: "Modelo inválida" });
     }
 
-    const preference = await mercadopago.preapproval.create({
+    const response = await preApprovalClient.create({
       reason: "Assinatura VIP Velvet",
       external_reference: `${req.user.id}_${modelo_id}`,
       payer_email: req.user.email,
-      back_url: "https://velvet-app-production.up.railway.app",
       auto_recurring: {
         frequency: 1,
         frequency_type: "months",
-        transaction_amount: 29.90, // 💰 PREÇO VIP
+        transaction_amount: 29.90,
         currency_id: "EUR"
       },
+      back_url: "https://velvet-app-production.up.railway.app",
       metadata: {
         tipo: "vip",
         cliente_id: req.user.id,
@@ -496,11 +497,11 @@ app.post("/api/vip/assinatura", auth, async (req, res) => {
     });
 
     res.json({
-      init_point: preference.body.init_point
+      init_point: response.init_point
     });
 
   } catch (err) {
-    console.error("🔥 ERRO CRIAR ASSINATURA VIP:", err);
+    console.error("🔥 ERRO ASSINATURA VIP:", err);
     res.status(500).json({ error: "Erro ao criar assinatura" });
   }
 });
