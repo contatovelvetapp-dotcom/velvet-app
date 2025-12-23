@@ -29,8 +29,6 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 const onlineClientes = {};
 const onlineModelos = {};
 const UNREAD_FILE = "unread.json";
-const VIP_PRECO = 0.1;
-const valorVip = 0.1; // 💰 preço da subscrição VIP
 
 const cloudinary = require("cloudinary").v2;
 
@@ -225,40 +223,8 @@ const mpClient = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
 });
 
-
-
-
 const paymentClient = new Payment(mpClient);
 
-//blindagem vip
-
-const SUBSCRIPTIONS_FILE = path.join(__dirname, "subscriptions.json");
-
-function lerAssinaturas() {
-  if (!fs.existsSync(SUBSCRIPTIONS_FILE)) {
-    fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify({}));
-  }
-  return JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE, "utf8"));
-}
-
-function salvarAssinaturas(data) {
-  fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(data, null, 2));
-}
-
-function verificarAssinatura(cliente, modelo) {
-  const subs = lerAssinaturas();
-  return subs[modelo]?.includes(cliente);
-}
-
-function adicionarAssinatura(cliente, modelo) {
-  const subs = lerAssinaturas();
-
-  if (!subs[modelo]) subs[modelo] = [];
-  if (!subs[modelo].includes(cliente)) {
-    subs[modelo].push(cliente);
-    salvarAssinaturas(subs);
-  }
-}
 // ===============================
 // MIDDLEWARES
 // ===============================
@@ -496,8 +462,54 @@ app.post("/api/cliente/dados", auth, async (req, res) => {
     res.status(500).json({ error: "Erro interno" });
   }
 });
+//ROTA VIP
+app.post("/api/vip/assinatura", auth, async (req, res) => {
+  const { modeloId, metodo } = req.body;
 
-//ROTA AVATAR CLIENTE
+  if (req.user.role !== "cliente") {
+    return res.status(403).json({ error: "Apenas clientes" });
+  }
+
+  if (metodo !== "cartao") {
+    return res.status(400).json({ error: "Método inválido" });
+  }
+});
+
+// ===============================
+// 💳 CRIAR ASSINATURA VIP (CARTÃO)
+// ===============================
+app.post("/api/vip/assinatura", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json({ error: "Apenas clientes" });
+    }
+
+    const { modelo_id } = req.body;
+
+    const response = await mercadopago.preapproval.create({
+      reason: "Assinatura VIP Velvet",
+      preapproval_plan_id: process.env.MP_VIP_PLAN_ID,
+      payer_email: req.user.email,
+      back_url: "https://SEU_DOMINIO/vip-sucesso.html",
+      metadata: {
+        tipo: "vip",
+        cliente_id: req.user.id,
+        modelo_id,
+        metodo: "cartao"
+      }
+    });
+
+    res.json({
+      init_point: response.body.init_point
+    });
+
+  } catch (err) {
+    console.error("Erro criar assinatura VIP:", err);
+    res.status(500).json({ error: "Erro ao criar assinatura" });
+  }
+});
+
+
 // ===============================
 // 📸 AVATAR DO CLIENTE
 // ===============================
@@ -686,16 +698,6 @@ app.get("/api/modelos", auth, async (req, res) => {
     res.status(500).json([]);
   }
 });
-
-
-
-//ROTA VIP
-app.get("/api/modelo/:modelo/vips", (req, res) => {
-  const modelo = req.params.modelo;
-  const subs = lerAssinaturas();
-  res.json(subs[modelo] || []);
-});
-
 
 // ===============================
 // UPLOAD AVATAR E CAPA
@@ -1242,6 +1244,21 @@ app.post("/api/pagamentos/criar", async (req, res) => {
   }
 });
 
+//FUNCAOVIP
+async function clienteEhVip(clienteId, modeloId) {
+  const result = await db.query(`
+    SELECT 1
+    FROM vip_assinaturas
+    WHERE cliente_id = $1
+      AND modelo_id = $2
+      AND status = 'ativa'
+      AND fim_em > NOW()
+  `, [clienteId, modeloId]);
+
+  return result.rowCount > 0;
+}
+
+
 function desbloquearConteudo(cliente, modelo, conteudoId) {
   const compras = readCompras();
 
@@ -1300,23 +1317,87 @@ app.post("/api/pagamentos/webhook", async (req, res) => {
     }
     const tipo = payment.metadata?.tipo;
 
-// 🌟 PAGAMENTO VIP
+// PAGAMENTO VIP
+// ===============================
+// 🌟 PAGAMENTO VIP CONFIRMADO
+// ===============================
 if (tipo === "vip") {
-  const { cliente, modelo } = payment.metadata;
+  const { cliente_id, modelo_id, metodo } = payment.metadata;
 
-  adicionarAssinatura(cliente, modelo);
-
-  // 🔔 avisa o cliente em tempo real
-  const sid = onlineClientes[cliente];
-  if (sid) {
-    io.to(sid).emit("vipAtivo", { modelo });
+  if (!cliente_id || !modelo_id) {
+    console.log("❌ METADATA VIP INCOMPLETA");
+    return res.sendStatus(200);
   }
 
-  console.log("🌟 VIP ATIVADO:", cliente, modelo);
+  // ⏱️ validade 30 dias
+  const inicio = new Date();
+  const fim = new Date();
+  fim.setDate(fim.getDate() + 30);
+
+  // 🔎 verifica se já existe assinatura
+  const existente = await db.query(`
+    SELECT id FROM vip_assinaturas
+    WHERE cliente_id = $1 AND modelo_id = $2
+  `, [cliente_id, modelo_id]);
+
+  let assinaturaId;
+
+  if (existente.rowCount === 0) {
+    // ➕ cria assinatura
+    const nova = await db.query(`
+      INSERT INTO vip_assinaturas
+        (cliente_id, modelo_id, status, metodo_pagamento, inicio_em, fim_em, mp_payment_id)
+      VALUES ($1,$2,'ativa',$3,$4,$5,$6)
+      RETURNING id
+    `, [
+      cliente_id,
+      modelo_id,
+      metodo || "pix",
+      inicio,
+      fim,
+      payment.id
+    ]);
+
+    assinaturaId = nova.rows[0].id;
+  } else {
+    // 🔄 renova
+    assinaturaId = existente.rows[0].id;
+
+    await db.query(`
+      UPDATE vip_assinaturas
+      SET
+        status = 'ativa',
+        inicio_em = $1,
+        fim_em = $2,
+        mp_payment_id = $3,
+        atualizado_em = NOW()
+      WHERE id = $4
+    `, [inicio, fim, payment.id, assinaturaId]);
+  }
+
+  // 💾 histórico
+  await db.query(`
+    INSERT INTO vip_pagamentos
+      (assinatura_id, valor, status, metodo_pagamento, mp_payment_id)
+    VALUES ($1,$2,'aprovado',$3,$4)
+  `, [
+    assinaturaId,
+    payment.transaction_amount,
+    metodo || "pix",
+    payment.id
+  ]);
+
+  // 🔔 socket (continua igual)
+  const sid = onlineClientes[cliente_id];
+  if (sid) {
+    io.to(sid).emit("vipAtivo", { modelo_id });
+  }
+
+  console.log("🌟 VIP ATIVO (POSTGRES):", cliente_id, modelo_id);
   return res.sendStatus(200);
 }
 
-
+//CONTEUDO PAGO
     const { cliente, modelo } = payment.metadata || {};
     const conteudoId =
       payment.metadata?.conteudoId ||
@@ -1339,49 +1420,6 @@ if (tipo === "vip") {
   }
 });
 
-/////////////ROTA PGMT VIP//////////////////
-app.post("/api/vip/criar", async (req, res) => {
-  try {
-    const { cliente, modelo } = req.body;
-
-    if (!cliente || !modelo) {
-      return res.status(400).json({ error: "Dados inválidos" });
-    }
-
-    // 🛑 Já é VIP?
-    if (verificarAssinatura(cliente, modelo)) {
-      return res.status(409).json({ error: "Cliente já é VIP" });
-    }
-
-    const payment = await paymentClient.create({
-      body: {
-        transaction_amount: valorVip,
-        description: `VIP ${modelo}`,
-        payment_method_id: "pix",
-        payer: { email: "teste@teste.com" },
-
-        metadata: {
-          tipo: "vip",   // 🔑 DIFERENCIADOR
-          cliente,
-          modelo
-        },
-
-        notification_url:
-          "https://nontemperamental-teresa-peaked.ngrok-free.dev/api/pagamentos/webhook"
-      }
-    });
-
-   res.json({
-  pix: payment.point_of_interaction.transaction_data,
-  preco: VIP_PRECO
-});
-
-
-  } catch (err) {
-    console.error("Erro criar VIP:", err);
-    res.status(500).json({ error: "Erro ao criar VIP" });
-  }
-});
 
 app.post(
   "/uploadMidia",
