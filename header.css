@@ -213,3 +213,15 @@ body {
 .hidden {
   display: none;
 }
+
+.btnMeusDados {
+  display: inline-block;
+  margin: 20px auto;
+  padding: 10px 20px;
+
+  background: linear-gradient(135deg,#7B2CFF,#AD47FF);
+  color: white;
+  font-weight: 600;
+  border-radius: 20px;
+  text-decoration: none;
+}
