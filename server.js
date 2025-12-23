@@ -49,11 +49,29 @@ if (
   process.exit(1);
 }
 function authModelo(req, res, next) {
-  if (!req.user || req.user.role !== "modelo") {
-    return res.status(403).json({ error: "Acesso negado" });
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ erro: "Token ausente" });
   }
-  next();
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 🔥 GARANTA ISSO
+    if (decoded.role !== "modelo") {
+      return res.status(403).json({ erro: "Apenas modelos" });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ erro: "Token inválido" });
+  }
 }
+
 
 
 
@@ -401,15 +419,18 @@ app.post("/api/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
+  {
+    id: user.id,
+    email: user.email,
+    role: user.role.toLowerCase() // 🔥 AQUI
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
     res.json({
-      token,
-      role: user.role
-    });
+  token,
+  role: user.role.toLowerCase()
+});
 
   } catch (err) {
     console.error("🔥 ERRO LOGIN:", err);
