@@ -31,7 +31,6 @@ const onlineModelos = {};
 const UNREAD_FILE = "unread.json";
 const VIP_PRECO = 0.1;
 const valorVip = 0.1; // 💰 preço da subscrição VIP
-const authMiddleware = auth;
 
 const cloudinary = require("cloudinary").v2;
 
@@ -55,6 +54,8 @@ function authModelo(req, res, next) {
   }
   next();
 }
+
+
 
 ///ROTA AUTENTIC
 
@@ -199,11 +200,11 @@ async function excluirConteudo(req, res) {
 
 app.use("/auth", authLimiter);
 
-app.get("/conteudos.html", authMiddleware, authModelo, (req, res) => {
+app.get("/conteudos.html", authMiddleware, auth, authModelo, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "conteudos.html"));
 });
 
-app.get("/api/conteudos", authMiddleware, authModelo, listarConteudos);
+app.get("/api/conteudos", authMiddleware, auth, authModelo, listarConteudos);
 
 
 app.get("/", (req, res) => {
@@ -415,6 +416,31 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ error: "Erro interno no login" });
   }
 });
+
+
+app.get("/api/modelo/me", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await db.query(
+      `SELECT m.*
+       FROM public.modelos m
+       WHERE m.user_id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ erro: "Modelo não encontrado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error("ERRO /api/modelo/me:", err);
+    res.status(500).json({ erro: "Erro interno" });
+  }
+});
+
 
 
 //ROTA VIP
@@ -738,6 +764,7 @@ async function authModeloCompleto(req, res, next) {
 app.get(
   "/conteudos.html",
   authMiddleware,
+  auth,
   authModelo,
   authModeloCompleto,
   (req, res) => {
@@ -748,6 +775,7 @@ app.get(
 app.get(
   "/chatmodelo.html",
   authMiddleware,
+  auth,
   authModelo,
   authModeloCompleto,
   (req, res) => {
@@ -810,6 +838,7 @@ app.get("/api/modelo/:modelo/ultima-resposta", (req, res) => {
 app.get(
   "/api/modelo/dados",
   authMiddleware,
+  auth,
   authModelo,
   async (req, res) => {
     try {
