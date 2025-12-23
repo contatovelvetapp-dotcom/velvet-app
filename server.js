@@ -443,9 +443,97 @@ app.get("/api/modelo/:nome/feed", auth, async (req, res) => {
   }
 });
 
+//ROTA CLIENTE DADOS
+// ===============================
+// 📄 DADOS DO CLIENTE
+// ===============================
+app.post("/api/cliente/dados", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json({ error: "Apenas clientes" });
+    }
 
+    const {
+      username,
+      nome_completo,
+      data_nascimento,
+      pais,
+      nome_cartao,
+      ultimos4_cartao,
+      bandeira_cartao
+    } = req.body;
 
+    await db.query(`
+      INSERT INTO clientes_dados
+        (user_id, username, nome_completo, data_nascimento, pais,
+         nome_cartao, ultimos4_cartao, bandeira_cartao)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        username = EXCLUDED.username,
+        nome_completo = EXCLUDED.nome_completo,
+        data_nascimento = EXCLUDED.data_nascimento,
+        pais = EXCLUDED.pais,
+        nome_cartao = EXCLUDED.nome_cartao,
+        ultimos4_cartao = EXCLUDED.ultimos4_cartao,
+        bandeira_cartao = EXCLUDED.bandeira_cartao,
+        atualizado_em = NOW()
+    `, [
+      req.user.id,
+      username,
+      nome_completo,
+      data_nascimento,
+      pais,
+      nome_cartao || null,
+      ultimos4_cartao || null,
+      bandeira_cartao || null
+    ]);
 
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erro salvar dados cliente:", err);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+//ROTA AVATAR CLIENTE
+// ===============================
+// 📸 AVATAR DO CLIENTE
+// ===============================
+app.post(
+  "/api/cliente/avatar",
+  auth,
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      if (req.user.role !== "cliente") {
+        return res.status(403).json({ error: "Apenas clientes" });
+      }
+
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder: `velvet/clientes/${req.user.id}/avatar`,
+            transformation: [{ width: 400, height: 400, crop: "fill" }]
+          },
+          (err, result) => (err ? reject(err) : resolve(result))
+        ).end(req.file.buffer);
+      });
+
+      await db.query(
+        "UPDATE clientes_dados SET avatar = $1 WHERE user_id = $2",
+        [result.secure_url, req.user.id]
+      );
+
+      res.json({ url: result.secure_url });
+
+    } catch (err) {
+      console.error("Erro avatar cliente:", err);
+      res.status(500).json({ error: "Erro ao atualizar avatar" });
+    }
+  }
+);
 
 //ROTA USER
 app.post("/api/register", async (req, res) => {

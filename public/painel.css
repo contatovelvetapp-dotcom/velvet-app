@@ -177,3 +177,39 @@ body.role-modelo {
     padding: 22px 18px;
   }
 }
+
+/* =========================
+   AVATAR CLIENTE
+========================= */
+
+.avatar-cliente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.avatar-cliente img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  border: 3px solid var(--velvet-roxo);
+  background: #fff;
+
+  box-shadow: 0 6px 20px rgba(123,44,255,0.25);
+}
+
+.btn-avatar {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--velvet-roxo);
+  cursor: pointer;
+}
+
+.btn-avatar:hover {
+  text-decoration: underline;
+}
+

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Meus Dados | Velvet</title>
+  <link rel="stylesheet" href="painel.css">
+  <link rel="stylesheet" href="header.css">
+</head>
+
+<body>
+
+<div class="container-dados">
+
+  <h1>Meus Dados</h1>
+  <p class="sub">Estas informações ajudam a personalizar sua experiência.</p>
+
+  <!-- AVATAR CLIENTE -->
+  <div class="avatar-cliente">
+    <img id="avatarPreview" src="/assets/avatarDefault.png" alt="Avatar">
+    <label for="inputAvatar" class="btn-avatar">Alterar foto</label>
+    <input type="file" id="inputAvatar" accept="image/*" hidden>
+  </div>
+
+  <form id="dadosForm">
+    <label>Nome de usuário</label>
+    <input type="text" id="username" required>
+
+    <label>Nome completo</label>
+    <input type="text" id="nomeCompleto" required>
+
+    <label>Data de nascimento</label>
+    <input type="date" id="dataNascimento" required>
+
+    <label>País</label>
+    <input type="text" id="pais" required>
+
+    <hr>
+
+    <label>Nome no cartão</label>
+    <input type="text" id="nomeCartao">
+
+    <label>Últimos 4 dígitos do cartão</label>
+    <input type="text" id="ultimos4" maxlength="4">
+
+    <label>Bandeira</label>
+    <input type="text" id="bandeira">
+
+    <p class="aviso">
+      Não guardamos dados sensíveis do cartão. Pagamentos futuros serão feitos
+      via plataforma segura.
+    </p>
+
+    <button type="submit">Salvar dados</button>
+    <div id="status" class="status"></div>
+  </form>
+
+</div>
+
+<script src="/auth.js"></script>
+<script src="/cliente-dados.js"></script>
+</body>
+</html>

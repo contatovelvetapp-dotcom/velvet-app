@@ -73,8 +73,7 @@ const menuCliente = `
   <div class="menu-header">Menu</div>
   <button onclick="location.href='clientHome.html'">Feed de Modelos</button>
   <button onclick="location.href='chatcliente.html'">Mensagens</button>
-  <button onclick="location.href='configc.html'">Perfil</button>
-  <hr class="menu-divider">
+  <a href="cliente-dados.html">Meus Dados</a>
   <button class="logout-btn" onclick="logout()">Sair</button>
 `;
 
@@ -86,7 +85,7 @@ const menuModelo = `
 <button onclick="location.href='chatmodelo.html'">Chat</button>
 <button id="btnAlterarAvatar">Alterar foto do Perfil</button>
 <button id="btnAlterarCapa">Alterar Capa</button>
-<button onclick="abrirDados()">Dados</button>
+<button onclick="abrirDados()">Meus Dados</button>
 <hr class="menu-divider">
 <button class="logout-btn" onclick="logout()">Sair</button>
 `;

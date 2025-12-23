@@ -352,13 +352,12 @@ body {
 }
 
 .btnvoltar:hover {
-  background: #7B2CFF;
+  background: #fff;
 }
 
-.btnvoltar:hover img {
-  filter: brightness(0) invert(1);
+  .btnvoltar:hover img {
+  filter: none;
 }
-
 
 /*BIOOOOOOOOOOOOOOOOOOOOOO N MEXERRRRRRRR */
 /* =========================
