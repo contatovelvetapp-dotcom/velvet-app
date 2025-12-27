@@ -66,10 +66,10 @@ function abrirChat(nomeModelo) {
   modelosMeta[nomeModelo].naoLido = false;
   renderListaModelos();
 
-  socket.emit("joinRoom", {
-    cliente,
-    modelo: nomeModelo
-  });
+socket.emit("joinRoom", {
+  clienteId: clienteIdLogado,
+  modeloId: modeloIdSelecionado
+});
 }
 
 
@@ -79,11 +79,12 @@ sendBtn.onclick = () => {
   const text = input.value.trim();
   if (!text) return;
 
-  socket.emit("sendMessage", {
-    cliente,
-    modelo: state.modeloAtual,
-    text
-  });
+socket.emit("sendMessage", {
+  clienteId: clienteIdLogado,
+  modeloId: modeloIdSelecionado,
+  text
+});
+
 
   input.value = "";
 };

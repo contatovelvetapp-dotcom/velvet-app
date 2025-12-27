@@ -831,9 +831,10 @@ function saveFeed(feed) {
 }
 
 
-function getRoom(cliente, modelo) {
-  return `${cliente}__${modelo}`;
+function getRoom(clienteId, modeloId) {
+  return `chat_${clienteId}_${modeloId}`;
 }
+
 
 
 function readJSON(file, fallback = []) {
@@ -934,35 +935,35 @@ socket.on("loginModelo", async (modelo) => {
 });
 
   // entrar na sala
-socket.on("joinRoom", async ({ cliente, modelo }) => {
+socket.on("joinRoom", async ({ clienteId, modeloId }) => {
   if (!socket.authenticated) return;
 
-  const room = getRoom(cliente, modelo);
+  const room = getRoom(clienteId, modeloId);
   socket.join(room);
 
   // ✅ HISTÓRICO ÚNICO: POSTGRES
-  const historico = await buscarHistoricoDB(cliente, modelo);
+  const historico = await buscarHistoricoDB(clienteId, modeloId);
   socket.emit("chatHistory", historico);
 
   if (socket.role === "cliente") {
-  await limparUnread(cliente, modelo);
+  await limparUnread(clienteId, modeloId);
 }
 });
 
 
-socket.on("sendMessage", async ({ cliente, modelo, text }) => {
+socket.on("sendMessage", async ({ clienteId, modeloId, text }) => {
   if (!socket.role) return;
 
   const from =
-    socket.role === "cliente" ? cliente :
-    socket.role === "modelo" ? modelo :
+    socket.role === "cliente" ? clienteId :
+    socket.role === "modelo" ? modeloId :
     null;
 
   if (!from) return;
 
   const newMessage = {
-    cliente,
-    modelo,
+    clienteId,
+    modeloId,
     from,
     text
   };
@@ -971,14 +972,14 @@ socket.on("sendMessage", async ({ cliente, modelo, text }) => {
   await salvarMensagemDB(newMessage);
 
   if (socket.role === "cliente") {
-  await marcarUnread(cliente, modelo);
+  await marcarUnread(clienteId, modeloId);
 }
 
 if (socket.role === "modelo") {
-  await marcarUnread(cliente, modelo);
+  await marcarUnread(clienteId, modeloId);
 }
 
-  const room = getRoom(cliente, modelo);
+  const room = getRoom(clienteId, modeloId);
   io.to(room).emit("newMessage", newMessage);
 });
 

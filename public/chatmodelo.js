@@ -63,7 +63,10 @@ function abrirChat(cliente) {
 
   renderListaClientes();
 
-  socket.emit("joinRoom", { cliente, modelo });
+  socket.emit("joinRoom", {
+  clienteId: clienteIdSelecionado,
+  modeloId: modeloIdLogado
+});
 }
 
 
@@ -74,10 +77,10 @@ sendBtn.onclick = () => {
   if (!text) return;
 
   socket.emit("sendMessage", {
-    cliente: state.clienteAtual,
-    modelo,
-    text
-  });
+  clienteId: clienteIdSelecionado,
+  modeloId: modeloIdLogado,
+  text
+});
 
   clientesMeta[state.clienteAtual].ultimaMsgModeloEm = Date.now();
   renderListaClientes();
