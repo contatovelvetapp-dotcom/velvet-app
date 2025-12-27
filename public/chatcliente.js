@@ -1,9 +1,9 @@
-const token = localStorage.getItem("token");
-if (!token) {
-  window.location.href = "/";
-  throw new Error("Não autenticado");
+// garante socket global vindo do header.js
+const socket = window.socket;
+if (!socket) {
+  console.error("❌ Socket ainda não inicializado");
+  throw new Error("Socket não disponível");
 }
-
 let cliente = null;
 
 // buscar identidade real
@@ -31,7 +31,6 @@ const chatBox = document.getElementById("chatBox");
 const lista = document.getElementById("listaModelos");
 const modeloNome = document.getElementById("modeloNome");
 
-
 // ===========================
 // SOCKET
 // ===========================
@@ -45,7 +44,6 @@ socket.on("connect", async () => {
   const modeloSalvo = localStorage.getItem("chatModelo");
   if (modeloSalvo) abrirChat(modeloSalvo);
 });
-
 
 
 socket.on("chatHistory", onChatHistory);
@@ -80,26 +78,30 @@ function onUnreadUpdate(map) {
 async function carregarModelos() {
   const res = await fetch("/api/cliente/modelos", {
     headers: {
-      Authorization: "Bearer " + token
+      Authorization: "Bearer " + window.token
+    }
+  });
+
+  if (!res.ok) {
+    console.error("Erro ao carregar modelos:", res.status);
+    return;
   }
-});
 
-    const modeloDoPerfil = localStorage.getItem("modeloAtual");
+  const modelosAPI = await res.json();
 
-    // base vem da API
-    state.modelos = [...modelosAPI];
+  const modeloDoPerfil = localStorage.getItem("modeloAtual");
 
-    // 🔑 se veio do perfil e não está na lista, adiciona
-    if (modeloDoPerfil && !state.modelos.includes(modeloDoPerfil)) {
-        state.modelos.unshift(modeloDoPerfil);
-    }
+  state.modelos = Array.isArray(modelosAPI) ? [...modelosAPI] : [];
 
-    renderLista();
+  if (modeloDoPerfil && !state.modelos.includes(modeloDoPerfil)) {
+    state.modelos.unshift(modeloDoPerfil);
+  }
 
-    // 🔑 se entrou pelo perfil, abre o chat automaticamente
-    if (modeloDoPerfil && !state.modeloAtual) {
-        abrirChat(modeloDoPerfil);
-    }
+  renderLista();
+
+  if (modeloDoPerfil && !state.modeloAtual) {
+    abrirChat(modeloDoPerfil);
+  }
 }
 
 function renderLista() {
