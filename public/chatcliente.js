@@ -1,5 +1,5 @@
 // ===============================
-// CHAT CLIENTE — SIMPLES E CORRETO
+// CHAT CLIENTE — FINAL CORRIGIDO
 // ===============================
 
 const socket = window.socket;
@@ -17,9 +17,7 @@ const modeloNome = document.getElementById("modeloNome");
 const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 
-// -------------------------------
 // SOCKET
-// -------------------------------
 socket.on("chatHistory", renderHistorico);
 socket.on("newMessage", renderMensagem);
 
@@ -32,9 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-// -------------------------------
-// DADOS DO CLIENTE
-// -------------------------------
+// CLIENTE
 async function carregarCliente() {
   const res = await fetch("/api/cliente/me", {
     headers: { Authorization: "Bearer " + localStorage.getItem("token") }
@@ -43,20 +39,22 @@ async function carregarCliente() {
   const data = await res.json();
 
   cliente = {
-    id: data.id,
+    id: Number(data.id),
     nome: data.nome
   };
 }
 
-// -------------------------------
-// LISTA DE MODELOS
-// -------------------------------
+// MODELOS
 async function carregarModelos() {
   const res = await fetch("/api/cliente/modelos", {
     headers: { Authorization: "Bearer " + localStorage.getItem("token") }
   });
 
-  state.modelos = await res.json(); // [{ id, nome }]
+  state.modelos = (await res.json()).map(m => ({
+    id: Number(m.id),
+    nome: m.nome
+  }));
+
   renderListaModelos();
 }
 
@@ -71,9 +69,7 @@ function renderListaModelos() {
   });
 }
 
-// -------------------------------
 // ABRIR CHAT
-// -------------------------------
 function abrirChat(modelo) {
   state.modeloAtual = modelo;
 
@@ -86,9 +82,7 @@ function abrirChat(modelo) {
   });
 }
 
-// -------------------------------
-// ENVIAR MENSAGEM
-// -------------------------------
+// ENVIAR
 sendBtn.onclick = () => {
   if (!state.modeloAtual) return;
 
@@ -112,9 +106,7 @@ input.addEventListener("keydown", e => {
   }
 });
 
-// -------------------------------
-// CHAT
-// -------------------------------
+// RENDER
 function renderHistorico(msgs) {
   chatBox.innerHTML = "";
   msgs.forEach(renderMensagem);
@@ -122,11 +114,11 @@ function renderHistorico(msgs) {
 
 function renderMensagem(msg) {
   if (!state.modeloAtual) return;
-  if (msg.modeloId !== state.modeloAtual.id) return;
+  if (Number(msg.modeloId) !== state.modeloAtual.id) return;
 
   const div = document.createElement("div");
   div.className =
-    msg.from === cliente.id ? "msg-cliente" : "msg-modelo";
+    Number(msg.from) === cliente.id ? "msg-cliente" : "msg-modelo";
 
   div.textContent = msg.text;
   chatBox.appendChild(div);
