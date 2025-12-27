@@ -97,6 +97,13 @@ sendBtn.onclick = () => {
   const text = input.value.trim();
   if (!text) return;
 
+  // 🔥 renderiza local imediatamente
+  renderMensagem({
+    modeloId: state.modeloAtual.id,
+    from: cliente.id,
+    text
+  });
+
   socket.emit("sendMessage", {
     clienteId: cliente.id,
     modeloId: state.modeloAtual.id,

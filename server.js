@@ -421,25 +421,27 @@ io.on("connection", socket => {
   });
 
   // 🟪 entrar na sala
-  socket.on("joinRoom", async ({ clienteId, modeloId }) => {
-    if (!socket.role) return;
+socket.on("joinRoom", async ({ clienteId, modeloId }) => {
+  const room = `chat_${clienteId}_${modeloId}`;
+  socket.join(room);
 
-    const room = `chat_${clienteId}_${modeloId}`;
-    socket.join(room);
+  console.log("🟪 Entrou na sala:", room, socket.id);
 
-    const historico = await buscarHistoricoDB(clienteId, modeloId);
-    socket.emit("chatHistory", historico);
+  const historico = await buscarHistoricoDB(clienteId, modeloId);
+  socket.emit("chatHistory", historico);
 
-    // limpar unread ao abrir o chat
-    await limparUnread(clienteId, modeloId);
-  });
+  await limparUnread(clienteId, modeloId);
+});
+
 
   // 💬 enviar mensagem
-  socket.on("sendMessage", async ({ clienteId, modeloId, text }) => {
+socket.on("sendMessage", async ({ clienteId, modeloId, text }) => {
   if (!text) return;
 
-  const fromUserId = socket.userId || clienteId;
   const room = `chat_${clienteId}_${modeloId}`;
+  const fromUserId = socket.userId || clienteId;
+
+  console.log("💬 MSG:", room, text);
 
   await salvarMensagemDB({
     clienteId,
@@ -448,14 +450,11 @@ io.on("connection", socket => {
     text
   });
 
-  await marcarUnread(clienteId, modeloId);
-
   io.to(room).emit("newMessage", {
     clienteId,
     modeloId,
     from: fromUserId,
-    text,
-    createdAt: new Date()
+    text
   });
 });
 
