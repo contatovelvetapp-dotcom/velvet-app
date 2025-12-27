@@ -2,7 +2,11 @@
 // CHAT CLIENTE — FINAL CORRIGIDO
 // ===============================
 
-const socket = io();
+const socket = io({
+  path: "/socket.io",
+  transports: ["websocket", "polling"]
+});
+
 
 let cliente = null;
 

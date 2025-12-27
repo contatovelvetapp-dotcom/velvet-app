@@ -2,7 +2,11 @@
 // CHAT MODELO — FINAL CORRIGIDO
 // ===============================
 
-const socket = io();
+const socket = io({
+  path: "/socket.io",
+  transports: ["websocket", "polling"]
+});
+
 
 const modeloId = Number(localStorage.getItem("modeloId"));
 

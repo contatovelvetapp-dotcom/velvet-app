@@ -1,3 +1,12 @@
+const io = new Server(server, {
+  cors: {
+    origin: "https://velvet-app-production.up.railway.app",
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ["websocket", "polling"]
+});
+
 // ===============================
 // SERVER.JS 
 // ===============================
@@ -16,7 +25,6 @@ const fs = require("fs");
 const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
-const io = new Server(server);
 app.use(express.json());
 app.use(express.static("public"));
 const multer = require("multer");
