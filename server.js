@@ -225,6 +225,20 @@ async function excluirConteudo(req, res) {
   }
 }
 
+async function clienteEhVip(clienteId, modeloId) {
+  const result = await db.query(
+    `
+    SELECT 1
+    FROM vip_assinaturas
+    WHERE cliente_id = $1
+      AND modelo_id = $2
+    `,
+    [clienteId, modeloId]
+  );
+
+  return result.rowCount > 0;
+}
+
 
 // ===============================
 // MIDDLEWARES

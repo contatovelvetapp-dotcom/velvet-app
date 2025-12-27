@@ -10,6 +10,9 @@ const inputAvatar = document.getElementById("inputAvatar");
 const inputCapa   = document.getElementById("inputCapa");
 const inputMedia  = document.getElementById("inputMedia");
 const listaMidias = document.getElementById("listaMidias");
+const btnChat = document.getElementById("btnChat");
+const btnVip = document.getElementById("btnVip");
+
 
 const btnSalvarBio = document.getElementById("btnSalvarBio");
 const bioInput     = document.getElementById("bioInput");
@@ -102,27 +105,12 @@ async function carregarPerfilPublico() {
   if (btnVip) btnVip.disabled = false;
 }
 
-async function clienteEhVip(clienteId, modeloId) {
-  const result = await db.query(
-    `
-    SELECT 1
-    FROM vip_assinaturas
-    WHERE cliente_id = $1
-      AND modelo_id = $2
-    `,
-    [clienteId, modeloId]
-  );
-
-  return result.rowCount > 0;
-}
-
 //BTN CHAT
+
 btnChat?.addEventListener("click", () => {
   localStorage.setItem("chatModelo", nomeEl.textContent);
   window.location.href = "/chatcliente.html";
 });
-
-const btnVip = document.getElementById("btnVip");
 
 if (btnVip) {
   btnVip.addEventListener("click", async () => {

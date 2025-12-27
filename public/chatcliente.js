@@ -5,12 +5,6 @@ if (!token) {
 }
 
 
-const socket = window.socket;
-
-if (!socket) {
-  console.error("❌ Socket não disponível no chatmodelo");
-}
-
 fetch("/api/rota-protegida", {
   headers: {
     "Authorization": "Bearer " + token
