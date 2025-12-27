@@ -1008,18 +1008,33 @@ app.get(
 });
 
 //-------------------------------------------------------------------------------------------- 
-app.get("/api/cliente/:cliente/modelos", (req, res) => {
-    const cliente = req.params.cliente;
-    const messages = readMessages();
+//ROTA LISTA VIP CLIENTES
+// ===============================
+// 💬 MODELOS COM CHAT (CLIENTE)
+// ===============================
+app.get("/api/cliente/modelos", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json([]);
+    }
 
-    const modelos = [...new Set(
-        messages
-            .filter(m => m.cliente === cliente)
-            .map(m => m.modelo)
-    )];
+    const result = await db.query(`
+      SELECT
+        m.nome
+      FROM vip_assinaturas v
+      JOIN modelos m ON m.user_id = v.modelo_id
+      WHERE v.cliente_id = $1
+      ORDER BY m.nome
+    `, [req.user.id]);
 
-    res.json(modelos);
+    res.json(result.rows.map(r => r.nome));
+
+  } catch (err) {
+    console.error("Erro modelos chat cliente:", err);
+    res.status(500).json([]);
+  }
 });
+
 
 app.get("/api/modelo/:modelo/ultima-resposta", (req, res) => {
     try {

@@ -92,8 +92,11 @@ function onUnreadUpdate(map) {
 // LISTA DE MODELOS
 // ===========================
 async function carregarModelos() {
-    const res = await fetch(`/api/cliente/${cliente}/modelos`);
-    const modelosAPI = await res.json();
+  const res = await fetch("/api/cliente/modelos", {
+    headers: {
+      Authorization: "Bearer " + token
+  }
+});
 
     const modeloDoPerfil = localStorage.getItem("modeloAtual");
 

@@ -116,6 +116,11 @@ async function clienteEhVip(clienteId, modeloId) {
   return result.rowCount > 0;
 }
 
+//BTN CHAT
+btnChat?.addEventListener("click", () => {
+  localStorage.setItem("chatModelo", nomeEl.textContent);
+  window.location.href = "/chatcliente.html";
+});
 
 const btnVip = document.getElementById("btnVip");
 
