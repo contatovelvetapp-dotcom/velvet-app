@@ -102,6 +102,21 @@ async function carregarPerfilPublico() {
   if (btnVip) btnVip.disabled = false;
 }
 
+async function clienteEhVip(clienteId, modeloId) {
+  const result = await db.query(
+    `
+    SELECT 1
+    FROM vip_assinaturas
+    WHERE cliente_id = $1
+      AND modelo_id = $2
+    `,
+    [clienteId, modeloId]
+  );
+
+  return result.rowCount > 0;
+}
+
+
 const btnVip = document.getElementById("btnVip");
 
 if (btnVip) {
@@ -116,7 +131,7 @@ if (btnVip) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + token
+          Authorization: "Bearer " + localStorage.getItem("token")
         },
         body: JSON.stringify({ modelo_id: modeloIdAtual })
       });
@@ -124,38 +139,19 @@ if (btnVip) {
       const data = await res.json();
 
       if (data.success) {
-        alert("VIP ativado com sucesso 💜");
-        btnVip.textContent = "VIP ativo";
+        btnVip.textContent = "VIP ativo 💜";
         btnVip.disabled = true;
+        alert("VIP ativado com sucesso!");
       } else {
         alert(data.error || "Erro ao ativar VIP");
       }
 
     } catch (err) {
-      console.error("Erro VIP:", err);
+      console.error("Erro botão VIP:", err);
       alert("Erro de conexão");
     }
   });
 }
-
-//     const res = await fetch("/api/vip/pix", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: "Bearer " + token
-//       },
-//       body: JSON.stringify({ modelo_id: modeloIdAtual })
-//     });
-
-//     const data = await res.json();
-
-//     if (data.pix) {
-//       abrirModalPix(data.pix);
-//     } else {
-//       alert("Erro ao gerar pagamento VIP");
-//     }
-//   });
-// }
 
 
 // ===============================
