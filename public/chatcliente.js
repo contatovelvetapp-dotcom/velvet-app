@@ -19,14 +19,6 @@ const input = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 
 // ===============================
-// GUARD
-// ===============================
-if (!socket) {
-  console.error("Socket não encontrado (header.js)");
-  throw new Error("Socket ausente");
-}
-
-// ===============================
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {

@@ -1,4 +1,14 @@
 // ===============================
+// SOCKET GLOBAL (CRIA 1 VEZ)
+// ===============================
+if (!window.socket) {
+  window.socket = io({
+    transports: ["websocket"],
+    withCredentials: true
+  });
+}
+
+// ===============================
 // SOCKET GLOBAL (1x só)
 // ===============================
 function carregarHeader() {
@@ -181,9 +191,8 @@ function logout() {
   location.href = "index.html";
 }
 // carregar valor salvo
-const socket = window.socket;
-if (socket) {
-  socket.on("novaMensagem", (data) => {
+if (window.socket) {
+  window.socket.on("novaMensagem", (data) => {
     console.log("📩 HEADER recebeu novaMensagem:", data);
 
     const total = Number(localStorage.getItem("unreadTotal") || 0) + 1;
@@ -191,4 +200,5 @@ if (socket) {
     atualizarBadge(total);
   });
 }
+
 
