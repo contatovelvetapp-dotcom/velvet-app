@@ -1,12 +1,9 @@
 // ===============================
 // CHAT CLIENTE — FINAL CORRIGIDO
 // ===============================
-
 const socket = io({
-  path: "/socket.io",
   transports: ["websocket", "polling"]
 });
-
 
 let cliente = null;
 
@@ -21,18 +18,23 @@ const modeloNome = document.getElementById("modeloNome");
 const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 
-// SOCKET
+// 🔔 listeners DO SOCKET (fora do connect)
 socket.on("chatHistory", renderHistorico);
 socket.on("newMessage", renderMensagem);
 
-document.addEventListener("DOMContentLoaded", async () => {
-  socket.emit("auth", { token: localStorage.getItem("token") });
+// 🔌 conecta
+socket.on("connect", async () => {
+  console.log("🟢 Socket conectado:", socket.id);
 
-  socket.on("connect", async () => {
-    await carregarCliente();
-    await carregarModelos();
+  // 🔐 autentica DEPOIS de conectar
+  socket.emit("auth", {
+    token: localStorage.getItem("token")
   });
+
+  await carregarCliente();
+  await carregarModelos();
 });
+
 
 // CLIENTE
 async function carregarCliente() {

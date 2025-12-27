@@ -1,14 +1,4 @@
 // ===============================
-// SOCKET GLOBAL (CRIA 1 VEZ)
-// ===============================
-if (!window.socket) {
-  window.socket = io({
-    transports: ["websocket"],
-    withCredentials: true
-  });
-}
-
-// ===============================
 // SOCKET GLOBAL (1x só)
 // ===============================
 function carregarHeader() {
