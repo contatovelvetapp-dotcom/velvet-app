@@ -2,7 +2,7 @@
 // CHAT MODELO — FINAL CORRIGIDO
 // ===============================
 
-const socket = window.socket;
+const socket = io();
 
 const modeloId = Number(localStorage.getItem("modeloId"));
 

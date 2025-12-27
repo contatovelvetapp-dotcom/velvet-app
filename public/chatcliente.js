@@ -2,7 +2,7 @@
 // CHAT CLIENTE — FINAL CORRIGIDO
 // ===============================
 
-const socket = window.socket;
+const socket = io();
 
 let cliente = null;
 
