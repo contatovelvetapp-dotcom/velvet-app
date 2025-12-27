@@ -1,157 +1,179 @@
 // ===============================
-// CHAT MODELO — FINAL FUNCIONAL
+// CHAT MODELO — FINAL CORRIGIDO
 // ===============================
 
 const socket = window.socket;
-const modelo = localStorage.getItem("modeloPerfil");
+
+// 🔐 IDs reais (vindos do token / backend)
+const modeloId = localStorage.getItem("modeloId"); // SALVE ISSO NO LOGIN
+const modeloNome = localStorage.getItem("modeloPerfil");
 
 const state = {
-  clientes: [],
-  clienteAtual: null
+  clientes: [],                 // [{ id, nome }]
+  clienteIdSelecionado: null,
+  clienteNomeSelecionado: null
 };
+
 const clientesMeta = {};
 
 const lista = document.getElementById("listaClientes");
 const chatBox = document.getElementById("chatBox");
-const clienteNome = document.getElementById("clienteNome");
+const clienteNomeEl = document.getElementById("clienteNome");
 const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 
+// ===============================
+// SOCKET INIT
+// ===============================
 document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("auth", { token: localStorage.getItem("token") });
 
   socket.on("connect", async () => {
-    socket.emit("loginModelo", modelo);
+    socket.emit("loginModelo", modeloId);
     await carregarClientesVip();
-
-    // entra em todas as salas
-    state.clientes.forEach(c => {
-      socket.emit("joinRoom", { cliente: c, modelo });
-    });
   });
 
   socket.on("chatHistory", renderHistorico);
   socket.on("newMessage", renderMensagem);
 });
 
+// ===============================
+// CARREGAR CLIENTES VIP
+// ===============================
 async function carregarClientesVip() {
-const res = await fetch("/api/modelo/vips", {
-  headers: { Authorization: "Bearer " + localStorage.getItem("token") }
-});
-  const clientes = await res.json();
-  state.clientes = clientes.map(c => c.cliente);
-  lista.innerHTML = "";
+  const res = await fetch("/api/modelo/vips", {
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+  });
+
+  const clientes = await res.json(); // [{ id, cliente }]
+  state.clientes = clientes.map(c => ({
+    id: c.id,
+    nome: c.cliente
+  }));
+
   state.clientes.forEach(c => {
-    if (!clientesMeta[c]) {
-      clientesMeta[c] = {
+    if (!clientesMeta[c.id]) {
+      clientesMeta[c.id] = {
         novo: true,
         naoLido: false,
         ultimaMsgModeloEm: null
       };
     }
-  })
-   renderListaClientes();
+  });
+
+  renderListaClientes();
 }
 
-function abrirChat(cliente) {
-  state.clienteAtual = cliente;
-  clienteNome.textContent = cliente;
+// ===============================
+// ABRIR CHAT
+// ===============================
+function abrirChat(c) {
+  state.clienteIdSelecionado = c.id;
+  state.clienteNomeSelecionado = c.nome;
+
+  clienteNomeEl.textContent = c.nome;
   chatBox.innerHTML = "";
 
-  clientesMeta[cliente].novo = false;
-  clientesMeta[cliente].naoLido = false;
+  clientesMeta[c.id].novo = false;
+  clientesMeta[c.id].naoLido = false;
 
   renderListaClientes();
 
   socket.emit("joinRoom", {
-  clienteId: clienteIdSelecionado,
-  modeloId: modeloIdLogado
-});
+    clienteId: c.id,
+    modeloId
+  });
 }
 
-
+// ===============================
+// ENVIAR MENSAGEM
+// ===============================
 sendBtn.onclick = () => {
-  if (!state.clienteAtual) return;
+  if (!state.clienteIdSelecionado) return;
 
   const text = input.value.trim();
   if (!text) return;
 
   socket.emit("sendMessage", {
-  clienteId: clienteIdSelecionado,
-  modeloId: modeloIdLogado,
-  text
-});
+    clienteId: state.clienteIdSelecionado,
+    modeloId,
+    text
+  });
 
-  clientesMeta[state.clienteAtual].ultimaMsgModeloEm = Date.now();
+  clientesMeta[state.clienteIdSelecionado].ultimaMsgModeloEm = Date.now();
   renderListaClientes();
 
   input.value = "";
 };
 
-// ⌨️ ENTER envia mensagem (Shift+Enter quebra linha)
-input.addEventListener("keydown", (e) => {
+// ⌨️ ENTER envia
+input.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendBtn.onclick();
   }
 });
 
+// ===============================
+// RENDER HISTÓRICO
+// ===============================
 function renderHistorico(msgs) {
   chatBox.innerHTML = "";
 
-  if (msgs.length > 0 && state.clienteAtual) {
-    clientesMeta[state.clienteAtual].novo = false;
+  if (msgs.length > 0 && state.clienteIdSelecionado) {
+    clientesMeta[state.clienteIdSelecionado].novo = false;
     renderListaClientes();
   }
 
   msgs.forEach(renderMensagem);
 }
 
-
-
+// ===============================
+// RENDER MENSAGEM
+// ===============================
 function renderMensagem(msg) {
-  if (msg.from !== modelo && msg.cliente !== state.clienteAtual) {
-    clientesMeta[msg.cliente].naoLido = true;
+  if (
+    msg.from !== modeloId &&
+    msg.clienteId !== state.clienteIdSelecionado
+  ) {
+    clientesMeta[msg.clienteId].naoLido = true;
     renderListaClientes();
   }
 
-  if (msg.cliente !== state.clienteAtual) return;
+  if (msg.clienteId !== state.clienteIdSelecionado) return;
 
   const div = document.createElement("div");
-  div.className = msg.from === modelo ? "msg-modelo" : "msg-cliente";
+  div.className =
+    msg.from === modeloId ? "msg-modelo" : "msg-cliente";
+
   div.textContent = msg.text;
   chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-
-
+// ===============================
+// LISTA DE CLIENTES (ORDENADA)
+// ===============================
 function renderListaClientes() {
   lista.innerHTML = "";
 
-const ordenados = [...state.clientes].sort((a, b) => {
-  const A = clientesMeta[a];
-  const B = clientesMeta[b];
+  const ordenados = [...state.clientes].sort((a, b) => {
+    const A = clientesMeta[a.id];
+    const B = clientesMeta[b.id];
 
-  // 1️⃣ Novo primeiro
-  if (A.novo !== B.novo) return A.novo ? -1 : 1;
+    if (A.novo !== B.novo) return A.novo ? -1 : 1;
+    if (A.naoLido !== B.naoLido) return A.naoLido ? -1 : 1;
 
-  // 2️⃣ Não lido depois
-  if (A.naoLido !== B.naoLido) return A.naoLido ? -1 : 1;
+    return (B.ultimaMsgModeloEm || 0) - (A.ultimaMsgModeloEm || 0);
+  });
 
-  // 3️⃣ Última mensagem enviada pela modelo
-  const tA = A.ultimaMsgModeloEm || 0;
-  const tB = B.ultimaMsgModeloEm || 0;
-
-  return tB - tA;
-});
-
-  ordenados.forEach(cliente => {
-    const meta = clientesMeta[cliente];
+  ordenados.forEach(c => {
+    const meta = clientesMeta[c.id];
 
     const li = document.createElement("li");
-    li.onclick = () => abrirChat(cliente);
+    li.onclick = () => abrirChat(c);
 
-    let label = cliente;
+    let label = c.nome;
     if (meta.novo) label = "🆕 Novo — " + label;
     else if (meta.naoLido) label = "🔴 Não lido — " + label;
 

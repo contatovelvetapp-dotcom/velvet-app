@@ -80,6 +80,9 @@ async function carregarPerfil() {
   if (!res.ok) return;
 
   const modelo = await res.json();
+  localStorage.setItem("modeloId", modelo.id);
+  localStorage.setItem("modeloPerfil", modelo.nome);
+
   aplicarPerfilNoDOM(modelo);
 }
 
