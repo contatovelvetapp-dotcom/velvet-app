@@ -289,7 +289,7 @@ function salvarModelos(data) {
 
 async function salvarMensagemDB({ clienteId, modeloId, fromUserId, text }) {
   await db.query(`
-    INSERT INTO messages (cliente, modelo, from_user_id, text)
+    INSERT INTO messages (cliente_id, modelo_id, from_user_id, text)
     VALUES ($1, $2, $3, $4)
   `, [
     clienteId,
@@ -298,6 +298,7 @@ async function salvarMensagemDB({ clienteId, modeloId, fromUserId, text }) {
     text
   ]);
 }
+
 
 async function buscarHistoricoDB(clienteId, modeloId) {
   const result = await db.query(
