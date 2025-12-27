@@ -1,5 +1,5 @@
 // ===============================
-// CHAT CLIENTE — FINAL FUNCIONAL
+// CHAT CLIENTE — FINAL CORRIGIDO
 // ===============================
 
 const socket = window.socket;
@@ -15,6 +15,10 @@ const chatBox = document.getElementById("chatBox");
 const modeloNome = document.getElementById("modeloNome");
 const input = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
+
+// 🔥 LISTENERS DO CHAT (ESTAVAM FALTANDO)
+socket.on("chatHistory", renderHistorico);
+socket.on("newMessage", renderMensagem);
 
 document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("auth", { token: localStorage.getItem("token") });
@@ -55,7 +59,10 @@ function abrirChat(nomeModelo) {
   modeloNome.textContent = nomeModelo;
   chatBox.innerHTML = "";
 
-  socket.emit("joinRoom", { cliente, modelo: nomeModelo });
+  socket.emit("joinRoom", {
+    cliente,
+    modelo: nomeModelo
+  });
 }
 
 sendBtn.onclick = () => {
@@ -82,7 +89,11 @@ function renderMensagem(msg) {
   if (msg.modelo !== state.modeloAtual) return;
 
   const div = document.createElement("div");
-  div.className = msg.from === cliente ? "msg-cliente" : "msg-modelo";
+  div.className =
+    msg.from === cliente ? "msg-cliente" : "msg-modelo";
+
   div.textContent = msg.text;
   chatBox.appendChild(div);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
