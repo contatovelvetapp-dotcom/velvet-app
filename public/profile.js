@@ -45,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
   aplicarRoleNoBody();
   iniciarPerfil();
   iniciarUploads();
-  iniciarModalMidia();
   iniciarBioPopup();
 });
 

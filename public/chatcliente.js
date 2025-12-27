@@ -2,7 +2,6 @@
 // ESTADO GLOBAL
 // ===============================
 let cliente = null;
-const socket = window.socket; // 🔑 USA O SOCKET DO header.js
 
 const state = {
   modelos: [],
@@ -31,9 +30,9 @@ if (!socket) {
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  socket.emit("auth", { token: localStorage.getItem("token") });
+  window.socket.emit("auth", { token: localStorage.getItem("token") });
 
-  socket.on("connect", async () => {
+  window.socket.on("connect", async () => {
     await carregarCliente();
     await carregarModelos();
     pedirUnread();
@@ -42,9 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (modeloSalvo) abrirChat(modeloSalvo);
   });
 
-  socket.on("chatHistory", onChatHistory);
-  socket.on("newMessage", onNewMessage);
-  socket.on("unreadUpdate", onUnreadUpdate);
+  window.socket.on("chatHistory", onChatHistory);
+  window.socket.on("newMessage", onNewMessage);
+  window.socket.on("unreadUpdate", onUnreadUpdate);
 });
 
 // ===============================
@@ -103,11 +102,11 @@ function abrirChat(nomeModelo) {
   chatBox.innerHTML = "";
 
   localStorage.setItem("chatModelo", nomeModelo);
-  socket.emit("joinRoom", { cliente, modelo: nomeModelo });
+  window.socket.emit("joinRoom", { cliente, modelo: nomeModelo });
 }
 
 function limparUnread(modelo) {
-  socket.emit("markAsRead", { cliente, modelo });
+  window.socket.emit("markAsRead", { cliente, modelo });
   delete state.unread[modelo];
   renderLista();
 }
@@ -121,7 +120,7 @@ sendBtn.onclick = () => {
   const text = input.value.trim();
   if (!text) return;
 
-  socket.emit("sendMessage", {
+  window.socket.emit("sendMessage", {
     cliente,
     modelo: state.modeloAtual,
     from: cliente,
@@ -146,7 +145,7 @@ function onUnreadUpdate(map) {
 }
 
 function pedirUnread() {
-  socket.emit("getUnread", cliente);
+  window.socket.emit("getUnread", cliente);
 }
 
 // ===============================
