@@ -33,6 +33,8 @@ socket.on("connect", async () => {
 
   await carregarCliente();
   await carregarModelos();
+  
+  socket.emit("loginCliente", cliente.id);
 });
 
 
