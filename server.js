@@ -748,11 +748,30 @@ function salvarModelos(data) {
 async function salvarMensagemDB(msg) {
   await db.query(
     `
-    INSERT INTO messages (cliente_id, modelo_id, from_user, text)
+    INSERT INTO messages (cliente_id, modelo_id, from_user_id, text)
     VALUES ($1, $2, $3, $4)
     `,
-    [msg.clienteId, msg.modeloId, msg.from, msg.text]
+    [msg.clienteId, msg.modeloId, msg.fromUserId, msg.text]
   );
+}
+
+async function buscarHistoricoDB(clienteId, modeloId) {
+  const result = await db.query(
+    `
+    SELECT
+      cliente_id   AS "clienteId",
+      modelo_id    AS "modeloId",
+      from_user_id AS "from",
+      text,
+      created_at
+    FROM messages
+    WHERE cliente_id = $1 AND modelo_id = $2
+    ORDER BY created_at ASC
+    `,
+    [clienteId, modeloId]
+  );
+
+  return result.rows;
 }
 
 async function buscarHistoricoDB(clienteId, modeloId) {
@@ -834,10 +853,10 @@ function saveFeed(feed) {
   fs.writeFileSync(FEED_FILE, JSON.stringify(feed, null, 2));
 }
 
-
 function getRoom(clienteId, modeloId) {
   return `chat_${clienteId}_${modeloId}`;
 }
+
 
 
 
@@ -940,51 +959,37 @@ socket.on("loginModelo", async (modelo) => {
 
   // entrar na sala
 socket.on("joinRoom", async ({ clienteId, modeloId }) => {
-  if (!socket.authenticated) return;
+  if (!socket.role) return;
 
   const room = getRoom(clienteId, modeloId);
   socket.join(room);
 
-  // ✅ HISTÓRICO ÚNICO: POSTGRES
   const historico = await buscarHistoricoDB(clienteId, modeloId);
   socket.emit("chatHistory", historico);
-
-  if (socket.role === "cliente") {
-  await limparUnread(clienteId, modeloId);
-}
 });
 
 
 socket.on("sendMessage", async ({ clienteId, modeloId, text }) => {
   if (!socket.role) return;
 
-  const from =
-    socket.role === "cliente" ? clienteId :
-    socket.role === "modelo" ? modeloId :
-    null;
+  const fromUserId =
+    socket.role === "cliente" ? clienteId : modeloId;
 
-  if (!from) return;
-
-  const newMessage = {
+  await salvarMensagemDB({
     clienteId,
     modeloId,
-    from,
+    fromUserId,
     text
-  };
-
-  // ✅ SALVA APENAS NO POSTGRES
-  await salvarMensagemDB(newMessage);
-
-  if (socket.role === "cliente") {
-  await marcarUnread(clienteId, modeloId);
-}
-
-if (socket.role === "modelo") {
-  await marcarUnread(clienteId, modeloId);
-}
+  });
 
   const room = getRoom(clienteId, modeloId);
-  io.to(room).emit("newMessage", newMessage);
+
+  io.to(room).emit("newMessage", {
+    clienteId,
+    modeloId,
+    from: fromUserId,
+    text
+  });
 });
 
 async function excluirConteudo(req, res) {
