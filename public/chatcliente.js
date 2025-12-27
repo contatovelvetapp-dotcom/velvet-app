@@ -4,27 +4,18 @@ if (!token) {
   throw new Error("Não autenticado");
 }
 
+let cliente = null;
 
-fetch("/api/rota-protegida", {
-  headers: {
-    "Authorization": "Bearer " + token
-  }
-});
+// buscar identidade real
+async function carregarCliente() {
+  const res = await fetch("/api/cliente/me", {
+    headers: { Authorization: "Bearer " + window.token }
+  });
 
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
+  const data = await res.json();
+  cliente = data.nome;
 }
 
-// ===========================
-// IDENTIDADE
-// ===========================
-const cliente = localStorage.getItem("clientName");
-if (!cliente) {
-    alert("Cliente não identificado");
-    throw new Error("clientName ausente");
-}
 // ===========================
 // ESTADO
 // ===========================
@@ -44,16 +35,17 @@ const modeloNome = document.getElementById("modeloNome");
 // ===========================
 // SOCKET
 // ===========================
-socket.on("connect", () => {
-    socket.emit("loginCliente", cliente);
-    carregarModelos();
-    pedirUnread();
+socket.on("connect", async () => {
+  await carregarCliente();
 
-    const modeloSalvo = localStorage.getItem("chatModelo");
-    if (modeloSalvo) {
-        abrirChat(modeloSalvo); // ✅ agora é seguro
-    }
+  socket.emit("loginCliente", cliente);
+  carregarModelos();
+  pedirUnread();
+
+  const modeloSalvo = localStorage.getItem("chatModelo");
+  if (modeloSalvo) abrirChat(modeloSalvo);
 });
+
 
 
 socket.on("chatHistory", onChatHistory);

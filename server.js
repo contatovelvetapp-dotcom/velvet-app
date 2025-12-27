@@ -1477,6 +1477,26 @@ app.post("/api/vip/ativar", auth, async (req, res) => {
 });
 
 // ===============================
+// 👤 IDENTIDADE DO CLIENTE (JWT)
+// ===============================
+app.get("/api/cliente/me", auth, async (req, res) => {
+  if (req.user.role !== "cliente") {
+    return res.status(403).json({ error: "Apenas cliente" });
+  }
+
+  const result = await db.query(
+    "SELECT nome FROM clientes WHERE user_id = $1",
+    [req.user.id]
+  );
+
+  res.json({
+    id: req.user.id,
+    nome: result.rows[0]?.nome
+  });
+});
+
+
+// ===============================
 // START SERVER
 // ===============================
 const PORT = process.env.PORT || 3000;
