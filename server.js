@@ -1256,7 +1256,6 @@ async function clienteEhVip(clienteId, modeloId) {
     WHERE cliente_id = $1
       AND modelo_id = $2
       AND status = 'ativa'
-      AND fim_em > NOW()
   `, [clienteId, modeloId]);
 
   return result.rowCount > 0;
@@ -1578,7 +1577,7 @@ app.post("/api/vip/ativar", auth, async (req, res) => {
     await db.query(`
       INSERT INTO vip_assinaturas
         (cliente_id, modelo_id, status)
-      VALUES ($1,$2,'ativa)
+      VALUES ($1,$2,'ativa')
     `, [req.user.id, modelo_id]);
 
     res.json({ success: true });
