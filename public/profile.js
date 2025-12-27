@@ -110,17 +110,34 @@ if (btnVip) {
       alert("Modelo não identificada");
       return;
     }
+
+    try {
+      const res = await fetch("/api/vip/ativar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({ modelo_id: modeloIdAtual })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("VIP ativado com sucesso 💜");
+        btnVip.textContent = "VIP ativo";
+        btnVip.disabled = true;
+      } else {
+        alert(data.error || "Erro ao ativar VIP");
+      }
+
+    } catch (err) {
+      console.error("Erro VIP:", err);
+      alert("Erro de conexão");
+    }
   });
 }
-//VIP TEMPORARIO
-const res = await fetch("/api/vip/ativar", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bearer " + token
-  },
-  body: JSON.stringify({ modelo_id: modeloIdAtual })
-});
+
 
 const data = await res.json();
 
