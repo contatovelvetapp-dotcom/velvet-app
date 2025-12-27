@@ -138,18 +138,6 @@ if (btnVip) {
   });
 }
 
-
-const data = await res.json();
-
-if (data.success) {
-  alert("VIP ativado com sucesso 💜");
-  btnVip.textContent = "VIP ativo";
-  btnVip.disabled = true;
-} else {
-  alert(data.error || "Erro ao ativar VIP");
-}
-
-
 //     const res = await fetch("/api/vip/pix", {
 //       method: "POST",
 //       headers: {
