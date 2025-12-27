@@ -748,27 +748,31 @@ function salvarModelos(data) {
 async function salvarMensagemDB(msg) {
   await db.query(
     `
-    INSERT INTO messages (cliente, modelo, from_user, text)
+    INSERT INTO messages (cliente_id, modelo_id, from_user, text)
     VALUES ($1, $2, $3, $4)
     `,
-    [msg.cliente, msg.modelo, msg.from, msg.text]
+    [msg.clienteId, msg.modeloId, msg.from, msg.text]
   );
 }
 
-async function buscarHistoricoDB(cliente, modelo) {
+async function buscarHistoricoDB(clienteId, modeloId) {
   const result = await db.query(
     `
-    SELECT cliente, modelo, from_user AS from, text, created_at
+    SELECT
+      cliente_id AS "clienteId",
+      modelo_id  AS "modeloId",
+      from_user  AS "from",
+      text,
+      created_at
     FROM messages
-    WHERE cliente = $1 AND modelo = $2
+    WHERE cliente_id = $1 AND modelo_id = $2
     ORDER BY created_at ASC
     `,
-    [cliente, modelo]
+    [clienteId, modeloId]
   );
 
   return result.rows;
 }
-
 const FEED_FILE = "feed.json";
 
 async function marcarUnread(cliente, modelo) {
