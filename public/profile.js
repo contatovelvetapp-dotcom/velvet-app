@@ -110,25 +110,47 @@ if (btnVip) {
       alert("Modelo não identificada");
       return;
     }
-
-    const res = await fetch("/api/vip/pix", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify({ modelo_id: modeloIdAtual })
-    });
-
-    const data = await res.json();
-
-    if (data.pix) {
-      abrirModalPix(data.pix);
-    } else {
-      alert("Erro ao gerar pagamento VIP");
-    }
   });
 }
+//VIP TEMPORARIO
+const res = await fetch("/api/vip/ativar", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bearer " + token
+  },
+  body: JSON.stringify({ modelo_id: modeloIdAtual })
+});
+
+const data = await res.json();
+
+if (data.success) {
+  alert("VIP ativado com sucesso 💜");
+  btnVip.textContent = "VIP ativo";
+  btnVip.disabled = true;
+} else {
+  alert(data.error || "Erro ao ativar VIP");
+}
+
+
+//     const res = await fetch("/api/vip/pix", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: "Bearer " + token
+//       },
+//       body: JSON.stringify({ modelo_id: modeloIdAtual })
+//     });
+
+//     const data = await res.json();
+
+//     if (data.pix) {
+//       abrirModalPix(data.pix);
+//     } else {
+//       alert("Erro ao gerar pagamento VIP");
+//     }
+//   });
+// }
 
 
 // ===============================

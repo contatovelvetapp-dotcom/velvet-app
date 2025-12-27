@@ -1469,6 +1469,127 @@ app.get("/api/health/db", async (req, res) => {
   }
 });
 
+//ganhos
+app.get("/api/modelo/ganhos", authModelo, async (req, res) => {
+  const modeloId = req.user.id;
+
+  const result = await db.query(
+    `SELECT * FROM transactions
+     WHERE modelo_id = $1
+     ORDER BY created_at DESC`,
+    [modeloId]
+  );
+
+  res.json(result.rows);
+});
+
+//RELATORIO VENDAS
+// ===============================
+// DASHBOARD DE GANHOS DA MODELO
+// ===============================
+app.get("/api/modelo/dashboard-ganhos", authModelo, async (req, res) => {
+  try {
+    const modeloId = req.user.id;
+
+    // TOTAL GERAL
+    const totalResult = await db.query(
+      `SELECT COALESCE(SUM(ganho_modelo), 0) AS total
+       FROM transactions
+       WHERE modelo_id = $1`,
+      [modeloId]
+    );
+
+    // GANHOS POR MÊS
+    const mensalResult = await db.query(
+      `SELECT
+         TO_CHAR(created_at, 'YYYY-MM') AS label,
+         SUM(ganho_modelo) AS total
+       FROM transactions
+       WHERE modelo_id = $1
+       GROUP BY label
+       ORDER BY label`,
+      [modeloId]
+    );
+
+    // GANHOS POR DIA
+    const diarioResult = await db.query(
+      `SELECT
+         TO_CHAR(created_at, 'YYYY-MM-DD') AS label,
+         SUM(ganho_modelo) AS total
+       FROM transactions
+       WHERE modelo_id = $1
+       GROUP BY label
+       ORDER BY label`,
+      [modeloId]
+    );
+
+    // SALDO DISPONÍVEL (sem chargeback)
+    const saldoResult = await db.query(
+      `SELECT COALESCE(SUM(ganho_modelo), 0) AS saldo
+       FROM transactions
+       WHERE modelo_id = $1
+       AND (chargeback_status IS NULL OR chargeback_status = '')`,
+      [modeloId]
+    );
+
+    res.json({
+      total: totalResult.rows[0].total,
+      mensal: mensalResult.rows,
+      diario: diarioResult.rows,
+      saldoDisponivel: saldoResult.rows[0].saldo,
+      proximoPagamento: "05-Jan-2026"
+    });
+
+  } catch (err) {
+    console.error("Erro dashboard ganhos:", err);
+    res.status(500).json({ error: "Erro ao carregar ganhos" });
+  }
+});
+
+//VIP TEMPORARIO
+// ===============================
+// ⭐ ATIVAR VIP MANUAL (SEM PAGAMENTO)
+// ===============================
+app.post("/api/vip/ativar", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json({ error: "Apenas clientes" });
+    }
+
+    const { modelo_id } = req.body;
+    if (!modelo_id) {
+      return res.status(400).json({ error: "Modelo não identificada" });
+    }
+
+    // verifica se já existe VIP ativo
+    const existente = await db.query(`
+      SELECT id
+      FROM vip_assinaturas
+      WHERE cliente_id = $1
+        AND modelo_id = $2
+        AND status = 'ativa'
+    `, [req.user.id, modelo_id]);
+
+    if (existente.rowCount > 0) {
+      return res.json({ success: true, jaEraVip: true });
+    }
+
+    // cria VIP direto
+    await db.query(`
+      INSERT INTO vip_assinaturas
+        (cliente_id, modelo_id, status, inicio_em)
+      VALUES ($1,$2,'ativa',NOW())
+    `, [req.user.id, modelo_id]);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erro ativar VIP manual:", err);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+
 
 
 // ===============================
