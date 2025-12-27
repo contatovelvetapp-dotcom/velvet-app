@@ -9,6 +9,7 @@ const state = {
   modelos: [],
   modeloAtual: null
 };
+const modelosMeta = {};
 
 const lista = document.getElementById("listaModelos");
 const chatBox = document.getElementById("chatBox");
@@ -44,14 +45,17 @@ async function carregarModelos() {
   });
 
   const modelos = await res.json();
-  lista.innerHTML = "";
+  state.modelos = modelos;
 
-  modelos.forEach(nome => {
-    const li = document.createElement("li");
-    li.textContent = nome;
-    li.onclick = () => abrirChat(nome);
-    lista.appendChild(li);
+  state.modelos.forEach(nome => {
+    if (!modelosMeta[nome]) {
+      modelosMeta[nome] = {
+        naoLido: false
+      };
+    }
   });
+
+  renderListaModelos();
 }
 
 function abrirChat(nomeModelo) {
@@ -59,11 +63,15 @@ function abrirChat(nomeModelo) {
   modeloNome.textContent = nomeModelo;
   chatBox.innerHTML = "";
 
+  modelosMeta[nomeModelo].naoLido = false;
+  renderListaModelos();
+
   socket.emit("joinRoom", {
     cliente,
     modelo: nomeModelo
   });
 }
+
 
 sendBtn.onclick = () => {
   if (!state.modeloAtual) return;
@@ -96,6 +104,11 @@ function renderHistorico(msgs) {
 }
 
 function renderMensagem(msg) {
+  if (msg.from !== cliente && msg.modelo !== state.modeloAtual) {
+    modelosMeta[msg.modelo].naoLido = true;
+    renderListaModelos();
+  }
+
   if (msg.modelo !== state.modeloAtual) return;
 
   const div = document.createElement("div");
@@ -104,8 +117,34 @@ function renderMensagem(msg) {
 
   div.textContent = msg.text;
   chatBox.appendChild(div);
-
   chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+
+function renderListaModelos() {
+  lista.innerHTML = "";
+
+  const ordenados = [...state.modelos].sort((a, b) => {
+    const A = modelosMeta[a];
+    const B = modelosMeta[b];
+
+    if (A.naoLido !== B.naoLido) return A.naoLido ? -1 : 1;
+    return 0;
+  });
+
+  ordenados.forEach(nome => {
+    const meta = modelosMeta[nome];
+
+    const li = document.createElement("li");
+    li.onclick = () => abrirChat(nome);
+
+    li.textContent = meta.naoLido
+      ? `🔴 Não lida — ${nome}`
+      : nome;
+
+    lista.appendChild(li);
+  });
+}
+
 
 

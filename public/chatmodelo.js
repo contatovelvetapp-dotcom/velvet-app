@@ -9,6 +9,7 @@ const state = {
   clientes: [],
   clienteAtual: null
 };
+const clientesMeta = {};
 
 const lista = document.getElementById("listaClientes");
 const chatBox = document.getElementById("chatBox");
@@ -40,14 +41,17 @@ async function carregarClientesVip() {
 
   const clientes = await res.json();
   state.clientes = clientes.map(c => c.cliente);
-
   lista.innerHTML = "";
   state.clientes.forEach(c => {
-    const li = document.createElement("li");
-    li.textContent = c;
-    li.onclick = () => abrirChat(c);
-    lista.appendChild(li);
-  });
+    if (!clientesMeta[c]) {
+      clientesMeta[c] = {
+        novo: true,
+        naoLido: false,
+        ultimaMsgModeloEm: null
+      };
+    }
+  })
+   renderListaClientes();
 }
 
 function abrirChat(cliente) {
@@ -55,8 +59,14 @@ function abrirChat(cliente) {
   clienteNome.textContent = cliente;
   chatBox.innerHTML = "";
 
+  clientesMeta[cliente].novo = false;
+  clientesMeta[cliente].naoLido = false;
+
+  renderListaClientes();
+
   socket.emit("joinRoom", { cliente, modelo });
 }
+
 
 sendBtn.onclick = () => {
   if (!state.clienteAtual) return;
@@ -69,6 +79,9 @@ sendBtn.onclick = () => {
     modelo,
     text
   });
+
+  clientesMeta[state.clienteAtual].ultimaMsgModeloEm = Date.now();
+  renderListaClientes();
 
   input.value = "";
 };
@@ -83,10 +96,23 @@ input.addEventListener("keydown", (e) => {
 
 function renderHistorico(msgs) {
   chatBox.innerHTML = "";
+
+  if (msgs.length > 0 && state.clienteAtual) {
+    clientesMeta[state.clienteAtual].novo = false;
+    renderListaClientes();
+  }
+
   msgs.forEach(renderMensagem);
 }
 
+
+
 function renderMensagem(msg) {
+  if (msg.from !== modelo && msg.cliente !== state.clienteAtual) {
+    clientesMeta[msg.cliente].naoLido = true;
+    renderListaClientes();
+  }
+
   if (msg.cliente !== state.clienteAtual) return;
 
   const div = document.createElement("div");
@@ -94,3 +120,52 @@ function renderMensagem(msg) {
   div.textContent = msg.text;
   chatBox.appendChild(div);
 }
+
+
+
+function renderListaClientes() {
+  lista.innerHTML = "";
+
+const ordenados = [...state.clientes].sort((a, b) => {
+  const A = clientesMeta[a];
+  const B = clientesMeta[b];
+
+  // 1️⃣ Novo primeiro
+  if (A.novo !== B.novo) return A.novo ? -1 : 1;
+
+  // 2️⃣ Não lido depois
+  if (A.naoLido !== B.naoLido) return A.naoLido ? -1 : 1;
+
+  // 3️⃣ Última mensagem enviada pela modelo
+  const tA = A.ultimaMsgModeloEm || 0;
+  const tB = B.ultimaMsgModeloEm || 0;
+
+  return tB - tA;
+});
+
+  ordenados.forEach(cliente => {
+    const meta = clientesMeta[cliente];
+
+    const li = document.createElement("li");
+    li.onclick = () => abrirChat(cliente);
+
+    let label = cliente;
+    if (meta.novo) label = "🆕 Novo — " + label;
+    else if (meta.naoLido) label = "🔴 Não lido — " + label;
+
+    const hora = meta.ultimaMsgModeloEm
+      ? new Date(meta.ultimaMsgModeloEm).toLocaleTimeString("pt-PT", {
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      : "";
+
+    li.innerHTML = `
+      <span>${label}</span>
+      <small style="float:right; opacity:0.6">${hora}</small>
+    `;
+
+    lista.appendChild(li);
+  });
+}
+
