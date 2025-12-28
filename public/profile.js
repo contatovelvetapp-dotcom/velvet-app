@@ -1,3 +1,10 @@
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
+
+if (!token) {
+  window.location.href = "/index.html";
+  throw new Error("Não autenticado");
+}
 // ===============================
 // ELEMENTOS DO PERFIL
 // ===============================
@@ -5,38 +12,23 @@ const avatarImg  = document.getElementById("profileAvatar");
 const capaImg    = document.getElementById("profileCapa");
 const nomeEl     = document.getElementById("profileName");
 const profileBio = document.getElementById("profileBio");
-
 const inputAvatar = document.getElementById("inputAvatar");
 const inputCapa   = document.getElementById("inputCapa");
 const inputMedia  = document.getElementById("inputMedia");
 const listaMidias = document.getElementById("listaMidias");
-
 const btnChat = document.getElementById("btnChat");
 const btnVip  = document.getElementById("btnVip");
-
 const btnSalvarBio = document.getElementById("btnSalvarBio");
 const bioInput     = document.getElementById("bioInput");
+const modelo_id = localStorage.getItem("modelo_id");
 
-// ===============================
-// ESTADO GLOBAL
-// ===============================
-const token = localStorage.getItem("token"); // ✅ CORRETO
-const role  = localStorage.getItem("role");
-const modeloPublico = localStorage.getItem("modeloPerfil");
-
-let modeloIdAtual = null;
-
-let modo = "privado";
-if (role === "cliente" && modeloPublico) modo = "publico";
-
-// ===============================
-// GUARD TOKEN
-// ===============================
-if (!token) {
-  alert("Sessão expirada. Faça login novamente.");
-  window.location.href = "/";
-  throw new Error("Token ausente");
+const modo = role === "cliente" ? "publico" : "privado";
+if (modo === "publico" && !modelo_id) {
+  alert("Modelo não identificada.");
+  window.location.href = "/clientHome.html";
+  throw new Error("modelo_id ausente no perfil público");
 }
+
 
 // ===============================
 // INIT
@@ -80,21 +72,19 @@ async function carregarPerfil() {
   if (!res.ok) return;
 
   const modelo = await res.json();
-  localStorage.setItem("modeloId", modelo.id);
-  localStorage.setItem("modeloPerfil", modelo.nome);
+  localStorage.setItem("modelo_id", modelo.id);
 
   aplicarPerfilNoDOM(modelo);
 }
 
 async function carregarPerfilPublico() {
-  const res = await fetch(`/api/modelo/publico/${modeloPublico}`, {
+  const res = await fetch(`/api/modelo/publico/${modelo_id}`, {
     headers: { Authorization: "Bearer " + token }
   });
 
   if (!res.ok) return;
 
   const modelo = await res.json();
-  modeloIdAtual = modelo.id;
 
   aplicarPerfilNoDOM(modelo);
 
@@ -116,15 +106,16 @@ async function carregarPerfilPublico() {
 // CHAT
 // ===============================
 btnChat?.addEventListener("click", () => {
-  localStorage.setItem("chatModelo", nomeEl.textContent);
+  localStorage.setItem("modelo_id", modelo_id);
   window.location.href = "/chatcliente.html";
 });
+
 
 // ===============================
 // VIP
 // ===============================
 btnVip?.addEventListener("click", async () => {
-  if (!modeloIdAtual) {
+  if (!modelo_id) {
     alert("Modelo não identificada");
     return;
   }
@@ -135,7 +126,7 @@ btnVip?.addEventListener("click", async () => {
       "Content-Type": "application/json",
       Authorization: "Bearer " + token
     },
-    body: JSON.stringify({ modelo_id: modeloIdAtual })
+    body: JSON.stringify({ modelo_id })
   });
 
   const data = await res.json();
@@ -169,7 +160,7 @@ function carregarFeed() {
 function carregarFeedPublico() {
   if (!listaMidias) return;
 
-  fetch(`/api/modelo/${modeloPublico}/feed`, {
+  fetch(`/api/modelo/${modelo_id}/feed`, {
     headers: { Authorization: "Bearer " + token }
   })
     .then(r => r.json())

@@ -57,14 +57,11 @@ async function initUsuario() {
     console.log("✅ Usuário autenticado:", user.role, user.nome);
 
   } catch (e) {
-    console.warn("Sessão inválida, limpando");
-    localStorage.clear();
-    window.location.href = "/index.html";
-  }
+  console.warn("Sessão inválida no header");
+  localStorage.removeItem("role");
+  localStorage.removeItem("nome");
 }
-
-
-
+}
 
 // =========================================================
 // MENUS POR ROLE
@@ -134,19 +131,6 @@ function initHeaderMenu() {
     e.stopPropagation();
   });
 }
-
-function abrirConteudos() {
-  const role = localStorage.getItem("role");
-
-  if (role !== "modelo") {
-    alert("Acesso negado");
-    return;
-  }
-
-  window.location.href = "conteudos.html";
-}
-
-
 
 function ligarBotoesPerfilModelo() {
   const btnAvatar = document.getElementById("btnAlterarAvatar");

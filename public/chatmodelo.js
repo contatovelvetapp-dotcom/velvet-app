@@ -1,6 +1,10 @@
-// ===============================
-// CHAT MODELO — FINAL
-// ===============================
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
+
+if (!token || role !== "modelo") {
+  window.location.href = "/index.html";
+  throw new Error("Acesso negado");
+}
 
 const socket = io({
   transports: ["websocket"]
@@ -39,7 +43,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("joinChat", { cliente_id, modelo_id });
   socket.emit("getHistory", { cliente_id, modelo_id });
 
-  document.getElementById("sendBtn").onclick = enviarMensagem;
+  const sendBtn = document.getElementById("sendBtn");
+  const input   = document.getElementById("messageInput");
+  sendBtn.onclick = enviarMensagem;
+
+  input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    enviarMensagem();
+  }
+});
 });
 
 // ===============================
@@ -47,14 +59,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 async function carregarModelo() {
   const res = await fetch("/api/modelo/me", {
-    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    headers: { Authorization: "Bearer " + token }
   });
+
+  if (!res.ok) {
+    alert("Sessão expirada");
+    window.location.href = "/index.html";
+    throw new Error("Modelo inválida");
+  }
+
   const data = await res.json();
   modelo_id = data.id;
 }
 
 function carregarClienteAtual() {
-  cliente_id = localStorage.getItem("clienteChatAtivo");
+  cliente_id = localStorage.getItem("cliente_id");
+
+  if (!cliente_id) {
+    alert("Cliente não identificado. Selecione um chat.");
+    window.location.href = "/chatmodelo.html";
+    throw new Error("cliente_id ausente");
+  }
 }
 
 function enviarMensagem() {
@@ -62,6 +87,10 @@ function enviarMensagem() {
   const text = input.value.trim();
   if (!text) return;
 
+  if (!cliente_id || !modelo_id) {
+  alert("Erro de sessão. Recarregue a página.");
+  return;
+}
   socket.emit("sendMessage", {
     cliente_id,
     modelo_id,

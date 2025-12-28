@@ -220,8 +220,7 @@ function authModelo(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 🔥 GARANTA ISSO
-    if (decoded.role !== "modelo_id") {
+    if (decoded.role !== "modelo") {
       return res.status(403).json({ erro: "Apenas modelos" });
     }
 
@@ -248,7 +247,7 @@ function auth(req, res, next) {
 }
 
 function onlyModelo(req, res, next) {
-  if (!req.user || req.user.role !== "modelo_id") {
+  if (!req.user || req.user.role !== "modelo") {
     return res.status(403).json({ error: "Apenas modelos podem fazer upload" });
   }
   next();
@@ -461,11 +460,11 @@ io.on("connection", socket => {
  socket.on("disconnect", () => {
   if (!socket.user) return;
 
-  if (socket.user.role === "cliente_id") {
+  if (socket.user.role === "cliente") {
     delete onlineClientes[socket.user.id];
   }
 
-  if (socket.user.role === "modelo_id") {
+  if (socket.user.role === "modelo") {
     delete onlineModelos[socket.user.id];
   }
 });
@@ -494,7 +493,7 @@ app.get("/api/conteudos", auth, authModelo, async (req, res) => {
 
 
 app.get("/api/me", auth, (req, res) => {
-  if (req.user.role !== "modelo_id") {
+  if (req.user.role !== "modelo") {
     return res.json(req.user);
   }
 
@@ -534,7 +533,7 @@ app.get("/api/feed/me", auth, async (req, res) => {
 // 🌟 FEED OFICIAL DE MODELOS (CLIENTE)
 app.get("/api/feed/modelos", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 
@@ -559,7 +558,7 @@ app.get("/api/feed/modelos", auth, async (req, res) => {
 //ROTA CLIENTE PERFIL
 app.get("/api/modelo/publico/:nome", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 
@@ -592,7 +591,7 @@ app.get("/api/modelo/publico/:nome", auth, async (req, res) => {
 // 👀 FEED PÚBLICO DA MODELO (CLIENTE)
 app.get("/api/modelo/:nome/feed", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 
@@ -645,7 +644,7 @@ app.get("/api/modelo/me", auth, async (req, res) => {
 app.get("/api/modelos", auth, async (req, res) => {
   try {
     // 🔐 apenas clientes
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Acesso negado" });
     }
 
@@ -671,7 +670,7 @@ app.get("/api/modelos", auth, async (req, res) => {
 // 📄 BUSCAR DADOS DO CLIENTE
 app.get("/api/cliente/dados", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 
@@ -690,7 +689,7 @@ app.get("/api/cliente/dados", auth, async (req, res) => {
 // 💬 MODELOS COM CHAT (CLIENTE)
 app.get("/api/cliente/modelos", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json([]);
     }
 
@@ -760,7 +759,7 @@ app.get("/api/modelo/ganhos", authModelo, async (req, res) => {
 
 // 👤 IDENTIDADE DO CLIENTE (JWT)
 app.get("/api/cliente/me", auth, async (req, res) => {
-  if (req.user.role !== "cliente_id") {
+  if (req.user.role !== "cliente") {
     return res.status(403).json({ error: "Apenas cliente" });
   }
 
@@ -853,7 +852,7 @@ app.put("/api/modelo/bio", authModelo, async (req, res) => {
 // 📄 DADOS DO CLIENTE
 app.post("/api/cliente/dados", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 
@@ -909,7 +908,7 @@ app.post(
   upload.single("avatar"),
   async (req, res) => {
     try {
-      if (req.user.role !== "cliente_id") {
+      if (req.user.role !== "cliente") {
         return res.status(403).json({ error: "Apenas clientes" });
       }
 
@@ -957,7 +956,7 @@ app.post("/api/register", async (req, res) => {
 
     const userId = userResult.rows[0].id;
 
-    if (role === "modelo_id") {
+    if (role === "modelo") {
       const nomeModelo = nome || email.split("@")[0];
 
       await db.query(
@@ -968,7 +967,7 @@ app.post("/api/register", async (req, res) => {
 
     }
 
-    if (role === "cliente_id") {
+    if (role === "cliente") {
       await db.query(
   `INSERT INTO public.clientes (user_id, nome)
    VALUES ($1, $2)`,
@@ -1224,7 +1223,7 @@ app.post(
 // ⭐ VIP SIMPLES – ATIVAR NO CLICK
 app.post("/api/vip/ativar", auth, async (req, res) => {
   try {
-    if (req.user.role !== "cliente_id") {
+    if (req.user.role !== "cliente") {
       return res.status(403).json({ error: "Apenas clientes" });
     }
 

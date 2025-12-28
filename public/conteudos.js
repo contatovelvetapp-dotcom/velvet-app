@@ -1,15 +1,15 @@
-fetch("/api/rota-protegida", {
-  headers: {
-    "Authorization": "Bearer " + localStorage.getItem("token")
-  }
-});
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
 
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
+if (!token || role !== "modelo") {
+  window.location.href = "/index.html";
+  throw new Error("Acesso restrito à modelo");
 }
 
+function logout() {
+  localStorage.clear();
+  window.location.href = "/index.html";
+}
 
 // ===============================
 // 📦 CONTEÚDOS — MODELO (LIMPO)
@@ -41,9 +41,13 @@ async function carregarModelo() {
   });
 
   const user = await res.json();
-  modelo = user.nome;
-
-  console.log("📦 Conteúdos da modelo:", modelo);
+  if (user.role !== "modelo") {
+  alert("Acesso restrito à modelo");
+  window.location.href = "/index.html";
+  throw new Error("Usuário não é modelo");
+}
+  modelo = user.id;
+console.log("📦 Conteúdos da modelo:", user.nome);
 }
 
 // ---------- INPUT FILE ----------
@@ -95,7 +99,14 @@ async function listarConteudos() {
     }
   });
 
+  if (!res.ok) {
+    const texto = await res.text();
+    alert(texto);
+    return;
+  }
+
   const conteudos = await res.json();
+
   lista.innerHTML = "";
 
   if (!conteudos.length) {
@@ -115,10 +126,9 @@ async function listarConteudos() {
     card.innerHTML = `
       ${media}
       <button class="btn-excluir"
-  onclick="event.stopPropagation(); excluirConteudo('${c.id}')">
-  ✕
-</button>
-
+        onclick="event.stopPropagation(); excluirConteudo('${c.id}')">
+        ✕
+      </button>
     `;
 
     lista.appendChild(card);

@@ -1,6 +1,13 @@
 // ===============================
-// CHAT CLIENTE — FINAL
+// AUTH GUARD — CHAT CLIENTE
 // ===============================
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
+
+if (!token || role !== "cliente") {
+  window.location.href = "/index.html";
+  throw new Error("Acesso negado");
+}
 
 const socket = io({
   transports: ["websocket"]
@@ -39,28 +46,55 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("joinChat", { cliente_id, modelo_id });
   socket.emit("getHistory", { cliente_id, modelo_id });
 
-  document.getElementById("sendBtn").onclick = enviarMensagem;
+  const sendBtn = document.getElementById("sendBtn");
+  const input   = document.getElementById("messageInput");
+  sendBtn.onclick = enviarMensagem;
+
+  input.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    enviarMensagem();
+  }
 });
+});
+
 
 // ===============================
 // FUNÇÕES
 // ===============================
 async function carregarCliente() {
   const res = await fetch("/api/cliente/me", {
-    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    headers: { Authorization: "Bearer " + token }
   });
+
+  if (!res.ok) {
+    alert("Sessão expirada");
+    window.location.href = "/index.html";
+    throw new Error("Cliente inválido");
+  }
+
   const data = await res.json();
   cliente_id = data.id;
 }
 
 async function carregarModelo() {
-  modelo_id = localStorage.getItem("modeloSelecionado");
+  modelo_id = localStorage.getItem("modelo_id");
+
+  if (!modelo_id) {
+    alert("Modelo não identificada. Volte ao perfil.");
+    window.location.href = "/clientHome.html";
+    throw new Error("modelo_id ausente");
+  }
 }
 
 function enviarMensagem() {
   const input = document.getElementById("messageInput");
   const text = input.value.trim();
   if (!text) return;
+
+  if (!cliente_id || !modelo_id) {
+    alert("Erro de sessão. Recarregue a página.");
+    return;
+  }
 
   socket.emit("sendMessage", {
     cliente_id,

@@ -1,19 +1,19 @@
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-  window.location.href = "/";
+// ===============================
+// AUTH GUARD — CLIENT HOME
+// ===============================
+const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
+
+if (!token || role !== "cliente") {
+  window.location.href = "/index.html";
+  throw new Error("Acesso negado");
 }
 
-(function () {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+function logout() {
+  localStorage.clear();
+  window.location.href = "/index.html";
+}
 
-  if (!token || role !== "cliente") {
-    localStorage.clear();
-    window.location.replace("/index.html");
-    return;
-  }
-})();
 
 document.addEventListener("DOMContentLoaded", () => {
   const lista = document.getElementById("listaModelos");
@@ -53,16 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
             alt="${modelo.nome}">
         `;
 
-        card.addEventListener("click", () => {
-          localStorage.setItem("modeloPerfil", modelo.nome);
-          window.location.href = "profile.html";
-        });
+  card.addEventListener("click", () => {
+  localStorage.setItem("modelo_id", modelo.id);
+  window.location.href = "profile.html";
+  });
 
-        lista.appendChild(card);
-      });
-    })
-    .catch(err => {
-      console.error("Erro feed:", err);
-      lista.innerHTML = "<p>Erro ao carregar modelos</p>";
-    });
+
+  lista.appendChild(card);
+  });
+  })
+  .catch(err => {
+  console.error("Erro feed:", err);
+  lista.innerHTML = "<p>Erro ao carregar modelos</p>";
+  });
 });
