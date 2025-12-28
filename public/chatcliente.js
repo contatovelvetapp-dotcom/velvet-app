@@ -34,22 +34,24 @@ socket.on("chatHistory", mensagens => {
 
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
-  const minhaRole = localStorage.getItem("role"); // 'cliente'
+  const minhaRole = localStorage.getItem("role"); // cliente
 
-  // mensagem do próprio cliente → ignora
-  if (msg.sender === minhaRole) return;
-
-  // se o chat ativo é esse → renderiza
+  // se estou com o chat aberto
   if (
     chatAtivo &&
     msg.cliente_id === chatAtivo.cliente_id &&
     msg.modelo_id === chatAtivo.modelo_id
   ) {
     renderMensagem(msg);
-  } else {
+    return;
+  }
+
+  // só marca "não lida" se a mensagem NÃO foi enviada por mim
+  if (msg.sender !== minhaRole) {
     marcarNaoLida(msg);
   }
 });
+
 
 // ===============================
 // INIT
@@ -108,6 +110,17 @@ async function carregarListaModelos() {
 
     lista.appendChild(li);
   });
+  const unreadRes = await fetch("/api/chat/unread/cliente", {
+  headers: { Authorization: "Bearer " + token }
+});
+const unreadIds = await unreadRes.json();
+
+document.querySelectorAll("#listaModelos li").forEach(li => {
+  if (unreadIds.includes(Number(li.dataset.modeloId))) {
+    li.classList.add("nao-lida");
+  }
+});
+
 }
 
 async function carregarCliente() {
@@ -135,6 +148,12 @@ function enviarMensagem() {
     modelo_id,
     text
   });
+
+  // 🔥 renderiza localmente
+renderMensagem({
+  sender: "cliente",
+  text
+});
 
   input.value = "";
 }

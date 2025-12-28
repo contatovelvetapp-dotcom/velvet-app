@@ -31,10 +31,7 @@ socket.on("chatHistory", mensagens => {
 
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
-  const minhaRole = localStorage.getItem("role"); // 'modelo'
-
-  // mensagem da própria modelo → ignora
-  if (msg.sender === minhaRole) return;
+  const minhaRole = localStorage.getItem("role"); // modelo
 
   if (
     chatAtivo &&
@@ -42,10 +39,14 @@ socket.on("newMessage", msg => {
     msg.modelo_id === chatAtivo.modelo_id
   ) {
     renderMensagem(msg);
-  } else {
+    return;
+  }
+
+  if (msg.sender !== minhaRole) {
     marcarNaoLida(msg);
   }
 });
+
 
 // ===============================
 // INIT
@@ -128,6 +129,11 @@ function enviarMensagem() {
     modelo_id,
     text
   });
+
+renderMensagem({
+  sender: "cliente",
+  text
+});
 
   input.value = "";
 }

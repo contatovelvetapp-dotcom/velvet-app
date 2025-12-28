@@ -468,6 +468,7 @@ io.to(sala).emit("newMessage", {
   // 📜 HISTÓRICO DO CHAT
   // ===============================
   socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
+      await limparUnread(cliente_id, modelo_id);
       const result = await db.query(
         `SELECT * FROM messages
          WHERE cliente_id = $1 AND modelo_id= $2
@@ -731,6 +732,17 @@ app.get("/api/health/db", async (req, res) => {
     });
   }
 });
+
+app.get("/api/chat/unread/cliente", authCliente, async (req, res) => {
+  const ids = await buscarUnreadCliente(req.user.id);
+  res.json(ids);
+});
+
+app.get("/api/chat/unread/modelo", authModelo, async (req, res) => {
+  const ids = await buscarUnreadModelo(req.user.id);
+  res.json(ids);
+});
+
 
 //GANHOS
 app.get("/api/modelo/ganhos", authModelo, async (req, res) => {
