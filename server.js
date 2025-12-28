@@ -475,6 +475,7 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
 catch (err) {
   console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
 }
+});
 
 // ===============================
 // 📜 HISTÓRICO DO CHAT
@@ -514,7 +515,6 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
     console.error("❌ Erro getHistory:", err);
   }
   });
-});
 });
 // ===============================
 //ROTA GET
