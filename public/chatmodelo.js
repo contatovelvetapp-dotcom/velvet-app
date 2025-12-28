@@ -50,12 +50,15 @@ socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
 
       const badge = li.querySelector(".badge");
       badge.innerText = "Não lida";
-      li.querySelector(".badge").classList.remove("hidden");
+      badge.classList.remove("hidden");
     }
   });
 
 });
 
+socket.on("novoAssinante", ({ cliente_id, nome }) => {
+adicionarNovoClienteNaLista(cliente_id, nome);
+});
 // ===============================
 // INIT
 // ===============================
@@ -168,15 +171,9 @@ function enviarMensagem() {
   .find(li => Number(li.dataset.clienteId) === cliente_id);
 
 if (item) {
-  item.querySelector(".badge").classList.add("hidden");
-}
-
-
-if (item) {
   const badge = item.querySelector(".badge");
   badge.classList.add("hidden");
 }
-
 
   input.value = "";
 }
@@ -222,6 +219,11 @@ function atualizarStatusPorResponder(mensagens) {
 
   const badge = item.querySelector(".badge");
 
+  // 🔹 se estava como "Novo", deixa o histórico decidir
+  if (badge.innerText === "Novo") {
+    badge.classList.add("hidden");
+  }
+
   // ✅ última mensagem NÃO foi minha → por responder
   if (ultima.sender !== minhaRole) {
     badge.innerText = "Por responder";
@@ -233,4 +235,35 @@ function atualizarStatusPorResponder(mensagens) {
     badge.classList.add("hidden");
     item.classList.remove("nao-lida");
   }
+}
+
+function adicionarNovoClienteNaLista(cliente_id, nome) {
+  const lista = document.getElementById("listaClientes");
+
+  const existente = [...lista.querySelectorAll("li")]
+    .find(li => Number(li.dataset.clienteId) === cliente_id);
+
+  if (existente) return;
+
+  const li = document.createElement("li");
+  li.className = "chat-item novo nao-lida";
+  li.dataset.clienteId = cliente_id;
+
+  li.innerHTML = `
+    <span class="nome">${nome}</span>
+    <span class="badge">Novo</span>
+  `;
+
+  li.onclick = () => {
+    cliente_id = Number(li.dataset.clienteId);
+    chatAtivo = { cliente_id, modelo_id };
+
+    document.getElementById("clienteNome").innerText = nome;
+
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+    socket.emit("joinChat", { sala });
+    socket.emit("getHistory", { cliente_id, modelo_id });
+  };
+
+  lista.prepend(li);
 }

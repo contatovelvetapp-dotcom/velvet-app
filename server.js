@@ -1409,16 +1409,32 @@ app.post("/api/vip/ativar", auth, async (req, res) => {
       [req.user.id, modelo_id]
     );
 
-    if (jaVip.rowCount === 0) {
-      await db.query(
-        `
-        INSERT INTO vip_assinaturas
-          (cliente_id, modelo_id)
-        VALUES ($1, $2)
-        `,
-        [req.user.id, modelo_id]
-      );
-    }
+if (jaVip.rowCount === 0) {
+  await db.query(
+    `
+    INSERT INTO vip_assinaturas
+      (cliente_id, modelo_id)
+    VALUES ($1, $2)
+    `,
+    [req.user.id, modelo_id]
+  );
+
+  const clienteNomeResult = await db.query(
+    "SELECT nome FROM clientes WHERE user_id = $1",
+    [req.user.id]
+  );
+
+  const cliente_nome =
+    clienteNomeResult.rows[0]?.nome || "Novo cliente";
+
+  const sid = onlineModelos[modelo_id];
+  if (sid) {
+    io.to(sid).emit("novoAssinante", {
+      cliente_id: req.user.id,
+      nome: cliente_nome
+    });
+  }
+}
 
     res.json({ success: true });
 

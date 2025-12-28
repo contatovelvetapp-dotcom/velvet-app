@@ -181,6 +181,20 @@ html, body {
   border-radius: 12px;
 }
 
+.novo-badge {
+  background: #00c853;
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
+
+.chat-item.novo {
+  background: rgba(0, 200, 83, 0.08);
+}
+
+
 
 
 
