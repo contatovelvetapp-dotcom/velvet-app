@@ -173,43 +173,51 @@ if (item) {
 
 function renderMensagem(msg) {
   const chat = document.getElementById("chatBox");
+  if (!chat) return;
+
   const div = document.createElement("div");
 
-  const minhaRole = localStorage.getItem("role"); // 'cliente' ou 'modelo'
-  const classe =
+  const minhaRole = localStorage.getItem("role"); // cliente | modelo
+  div.className =
     msg.sender === minhaRole ? "msg msg-cliente" : "msg msg-modelo";
-
-  div.className = classe;
 
   // 📦 CONTEÚDO
   if (msg.tipo === "conteudo") {
 
-  // 🆓 CONTEÚDO GRATUITO
-  if (Number(msg.preco) === 0) {
-    div.innerHTML = `
-      <div class="chat-conteudo">
-        ${
-          msg.tipo_media === "video"
-            ? `<video src="${msg.url}" controls></video>`
-            : `<img src="${msg.url}" />`
-        }
-      </div>
-    `;
-  }
+    // 🆓 CONTEÚDO GRATUITO
+    if (Number(msg.preco) === 0 && msg.url) {
+      div.innerHTML = `
+        <div class="chat-conteudo">
+          ${
+            msg.tipo_media === "video"
+              ? `<video src="${msg.url}" controls></video>`
+              : `<img src="${msg.url}" />`
+          }
+        </div>
+      `;
+    }
 
-  // 🔒 CONTEÚDO PAGO
+    // 🔒 CONTEÚDO PAGO
+    else {
+      div.innerHTML = `
+        <div class="chat-conteudo bloqueado card-conteudo">
+          <img src="/assets/lock.png" />
+          <div class="valor-conteudo">€ ${msg.preco}</div>
+          <div class="conteudo-msg">Conteúdo bloqueado</div>
+        </div>
+      `;
+    }
+
+  } 
+  // 💬 TEXTO NORMAL
   else {
-    div.innerHTML = `
-      <div class="chat-conteudo bloqueado card-conteudo">
-        <img src="/assets/lock.png" />
-        <div class="valor-conteudo">€ ${msg.preco}</div>
-        <div class="conteudo-msg">Conteúdo bloqueado</div>
-      </div>
-    `;
+    div.textContent = msg.text;
   }
-  }
-}
 
+  // ✅ A LINHA QUE FALTAVA (ESSENCIAL)
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
 
 function marcarNaoLida(msg) {
   document.querySelectorAll("#listaModelos li").forEach(li => {
