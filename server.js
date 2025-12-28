@@ -96,7 +96,9 @@ async function buscarUnreadCliente(cliente_id) {
     `
     SELECT modelo_id
     FROM unread
-    WHERE cliente_id = $1 AND has_unread = true
+    WHERE cliente_id = $1
+    AND unread_for = 'cliente'
+    AND has_unread = true
     `,
     [cliente_id]
   );
@@ -108,7 +110,9 @@ async function buscarUnreadModelo(modelo_id) {
     `
     SELECT cliente_id
     FROM unread
-    WHERE modelo_id = $1 AND has_unread = true
+    WHERE modelo_id = $1
+    AND unread_for = 'modelo'
+    AND has_unread = true
     `,
     [modelo_id]
   );
@@ -444,14 +448,21 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
 
   const sala = `chat_${cliente_id}_${modelo_id}`;
   const sender = socket.user.role; // ✅ escopo correto
+  const unreadFor = sender === "cliente" ? "modelo" : "cliente";
 
   try {
     // 1️⃣ salva mensagem
-    await db.query(
-      `INSERT INTO messages (cliente_id, modelo_id, sender, text)
-       VALUES ($1, $2, $3, $4)`,
-      [cliente_id, modelo_id, sender, text]
-    );
+await db.query(
+  `
+  INSERT INTO unread (cliente_id, modelo_id, unread_for, has_unread)
+  VALUES ($1, $2, $3, true)
+  ON CONFLICT (cliente_id, modelo_id)
+  DO UPDATE SET
+    unread_for = EXCLUDED.unread_for,
+    has_unread = true
+  `,
+  [cliente_id, modelo_id, unreadFor]
+);
 
     // 2️⃣ marca como NÃO LIDA (persistente)
     await marcarUnread(cliente_id, modelo_id);
@@ -471,34 +482,44 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
     console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
   }
 });
-
-
-  // ===============================
-  // 📜 HISTÓRICO DO CHAT
-  // ===============================
-  socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
-      await limparUnread(cliente_id, modelo_id);
-      const result = await db.query(
-        `SELECT * FROM messages
-         WHERE cliente_id = $1 AND modelo_id= $2
-         ORDER BY created_at ASC`,
-        [cliente_id, modelo_id]
-      );
-
-      socket.emit("chatHistory", result.rows);
-  });
-
- socket.on("disconnect", () => {
+// ===============================
+// 📜 HISTÓRICO DO CHAT
+// ===============================
+socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   if (!socket.user) return;
 
-  if (socket.user.role === "cliente") {
-    delete onlineClientes[socket.user.id];
-  }
+  try {
+    // 1️⃣ Limpa "não lida" APENAS para quem abriu o chat
+    await db.query(
+      `
+      UPDATE unread
+      SET has_unread = false
+      WHERE cliente_id = $1
+        AND modelo_id = $2
+        AND unread_for = $3
+      `,
+      [cliente_id, modelo_id, socket.user.role]
+    );
 
-  if (socket.user.role === "modelo") {
-    delete onlineModelos[socket.user.id];
+    // 2️⃣ Busca histórico
+    const result = await db.query(
+      `
+      SELECT *
+      FROM messages
+      WHERE cliente_id = $1
+        AND modelo_id = $2
+      ORDER BY created_at ASC
+      `,
+      [cliente_id, modelo_id]
+    );
+
+    // 3️⃣ Envia histórico ao front
+    socket.emit("chatHistory", result.rows);
+
+  } catch (err) {
+    console.error("❌ Erro getHistory:", err);
   }
-});
+  });
 });
 // ===============================
 //ROTA GET
