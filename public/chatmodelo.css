@@ -529,4 +529,11 @@ html, body {
 }
 
 
+.msg .chat-conteudo {
+  margin: 0;                
+  width: 160px;              
+}
+
+
+
 
