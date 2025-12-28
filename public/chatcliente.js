@@ -40,10 +40,9 @@ socket.on("newMessage", msg => {
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
+  await carregarCliente();
   await carregarListaModelos();
-
-  socket.emit("getHistory", { cliente_id, modelo_id });
-
+  
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
   sendBtn.onclick = enviarMensagem;
@@ -83,7 +82,7 @@ async function carregarListaModelos() {
       modelo_id = m.modelo_id;
 
       document.getElementById("modeloNome").innerText = m.nome;
-      
+
       const sala = `chat_${cliente_id}_${modelo_id}`;
       socket.emit("joinChat", { sala });
       socket.emit("getHistory", { cliente_id, modelo_id });
@@ -92,6 +91,16 @@ async function carregarListaModelos() {
     lista.appendChild(li);
   });
 }
+
+async function carregarCliente() {
+  const res = await fetch("/api/cliente/me", {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  const data = await res.json();
+  cliente_id = data.id;
+}
+
 
 function enviarMensagem() {
   const input = document.getElementById("messageInput");

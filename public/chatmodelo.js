@@ -37,9 +37,8 @@ socket.on("newMessage", msg => {
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
+  await carregarModelo();   
   await carregarListaClientes();
-
-  socket.emit("getHistory", { cliente_id, modelo_id });
 
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
@@ -88,6 +87,15 @@ async function carregarListaClientes() {
     lista.appendChild(li);
   });
 }
+async function carregarModelo() {
+  const res = await fetch("/api/modelo/me", {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  const data = await res.json();
+  modelo_id = data.user_id ?? data.id;
+}
+
 
 function enviarMensagem() {
   const input = document.getElementById("messageInput");
