@@ -422,13 +422,11 @@ async function carregarConteudosModelo() {
       ? `<video src="${c.url}" muted></video>`
       : `<img src="${c.url}" />`;
 
-   div.onclick = () => {
-  document
-    .querySelectorAll(".preview-item")
-    .forEach(i => i.classList.remove("selected"));
-
-  div.classList.add("selected");
+   div.onclick = (e) => {
+  e.stopPropagation(); // não interfere com duplo clique
+  div.classList.toggle("selected");
 };
+
 
 // 🔍 DUPLO CLIQUE → abrir preview grande
 div.ondblclick = () => {
@@ -440,27 +438,35 @@ div.ondblclick = () => {
 }
  
 function confirmarEnvioConteudo() {
-  const selecionado = document.querySelector(".preview-item.selected");
-  if (!selecionado) {
-    alert("Selecione um conteúdo.");
+  const selecionados = [
+    ...document.querySelectorAll(".preview-item.selected")
+  ];
+
+  if (!selecionados.length) {
+    alert("Selecione ao menos um conteúdo.");
     return;
   }
 
-  const preco = Number(document.getElementById("precoConteudo").value || 0);
+  const preco = Number(
+    document.getElementById("precoConteudo").value || 0
+  );
 
-  socket.emit("sendConteudo", {
-    cliente_id,
-    modelo_id,
-    conteudo_id: selecionado.dataset.conteudoId,
-    preco
+  selecionados.forEach(item => {
+    socket.emit("sendConteudo", {
+      cliente_id,
+      modelo_id,
+      conteudo_id: item.dataset.conteudoId,
+      preco
+    });
   });
 
   fecharPopupConteudos();
 }
 
 function abrirPreviewConteudo(url, tipo) {
-  // Fecha o popup de conteúdos
   const popup = document.getElementById("popupConteudos");
+
+  // esconde o popup, mas NÃO destrói
   if (popup) popup.style.display = "none";
 
   let modal = document.getElementById("previewModal");
@@ -483,9 +489,13 @@ function abrirPreviewConteudo(url, tipo) {
 
     const fechar = () => {
       modal.classList.remove("open");
+
       const video = modal.querySelector("#previewVideo");
       video.pause();
       video.src = "";
+
+      // 🔥 VOLTA O POPUP AO ESTADO ANTERIOR
+      if (popup) popup.style.display = "block";
     };
 
     modal.querySelector(".preview-backdrop").onclick = fechar;
