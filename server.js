@@ -588,12 +588,10 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
   socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) => {
   if (!socket.user || socket.user.role !== "modelo") return;
 
-  if (!cliente_id || !modelo_id || !conteudo_id) return;
-
   const sala = `chat_${cliente_id}_${modelo_id}`;
 
   try {
-    // 1️⃣ SALVAR NO HISTÓRICO (messages)
+    // 1️⃣ salva no histórico
     await db.query(
       `
       INSERT INTO messages
@@ -603,21 +601,7 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
       [cliente_id, modelo_id, conteudo_id, preco]
     );
 
-    // 2️⃣ MARCAR COMO NÃO LIDA PARA O CLIENTE
-    await db.query(
-      `
-      INSERT INTO unread (cliente_id, modelo_id, unread_for, has_unread)
-      VALUES ($1, $2, 'cliente', true)
-      ON CONFLICT (cliente_id, modelo_id)
-      DO UPDATE SET
-        unread_for = 'cliente',
-        has_unread = true
-      `,
-      [cliente_id, modelo_id]
-    );
-
-    // 3️⃣ EMITIR EM TEMPO REAL
-    io.to(sala).emit("newMessage", {
+    const payload = {
       cliente_id,
       modelo_id,
       sender: "modelo",
@@ -625,15 +609,30 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
       conteudo_id,
       preco,
       created_at: new Date()
-    });
+    };
 
-    console.log("📦 Conteúdo enviado e salvo:", conteudo_id);
+    // 2️⃣ envia para QUEM ESTÁ NA SALA
+    io.to(sala).emit("newMessage", payload);
+
+    // 3️⃣ garante entrega à MODELO
+    const sidModelo = onlineModelos[modelo_id];
+    if (sidModelo) {
+      io.to(sidModelo).emit("newMessage", payload);
+    }
+
+    // 4️⃣ garante entrega ao CLIENTE
+    const sidCliente = onlineClientes[cliente_id];
+    if (sidCliente) {
+      io.to(sidCliente).emit("newMessage", payload);
+    }
+
+    console.log("📦 Conteúdo entregue (sala + sockets)");
 
   } catch (err) {
-    console.error("❌ Erro ao enviar conteúdo:", err);
+    console.error("❌ Erro sendConteudo:", err);
   }
   });
- 
+
 });
 
 // ===============================
