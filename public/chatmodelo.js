@@ -131,7 +131,7 @@ function enviarMensagem() {
   });
 
 renderMensagem({
-  sender: "cliente",
+  sender: "modelo",
   text
 });
 
