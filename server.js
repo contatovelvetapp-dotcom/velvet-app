@@ -1006,19 +1006,34 @@ app.get("/api/chat/modelo", authModelo, async (req, res) => {
     const { rows } = await db.query(`
       SELECT 
         c.user_id AS cliente_id,
-        c.nome
+        c.nome,
+
+        -- última mensagem enviada pela modelo
+        MAX(m.created_at)
+          FILTER (WHERE m.sender = 'modelo')
+          AS ultima_msg_modelo_ts
+
       FROM vip_assinaturas v
-      JOIN clientes c ON c.user_id = v.cliente_id
+      JOIN clientes c 
+        ON c.user_id = v.cliente_id
+
+      LEFT JOIN messages m 
+        ON m.cliente_id = c.user_id
+       AND m.modelo_id = $1
+
       WHERE v.modelo_id = $1
+
+      GROUP BY c.user_id, c.nome
+      ORDER BY ultima_msg_modelo_ts DESC NULLS LAST
     `, [modeloId]);
 
     res.json(rows);
+
   } catch (err) {
-    console.error("Erro chat modelo:", err);
-    res.status(500).json({ error: "Erro ao carregar chats" });
+    console.error("❌ Erro ao buscar chats da modelo:", err);
+    res.status(500).json({ error: "Erro ao buscar chats" });
   }
 });
-
 
 // ===============================
 // ROTA POST
