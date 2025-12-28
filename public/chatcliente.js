@@ -198,15 +198,25 @@ function renderMensagem(msg) {
     if ((msg.gratuito || Number(msg.preco) === 0 || msg.pago) && msg.url) {
 
       div.innerHTML = `
-        <div class="chat-conteudo livre">
-          ${
-            msg.tipo_media === "video"
-              ? `<video src="${msg.url}" controls playsinline></video>`
-              : `<img src="${msg.url}" />`
-          }
-        </div>
+      <div class="chat-conteudo livre" data-url="${msg.url}" data-tipo="${msg.tipo_media}">
+      ${
+      msg.tipo_media === "video"
+        ? `<video src="${msg.url}" muted></video>`
+        : `<img src="${msg.url}" />`
+      }
+      </div>
       `;
     }
+    const conteudoLivre = div.querySelector(".chat-conteudo.livre");
+
+if (conteudoLivre) {
+  conteudoLivre.addEventListener("click", () => {
+    abrirConteudo(
+      conteudoLivre.dataset.url,
+      conteudoLivre.dataset.tipo
+    );
+  });
+}
 
     // 🔒 BLOQUEADO (PAGO)
     else {
