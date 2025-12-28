@@ -257,24 +257,19 @@ html, body {
 /* ============================= */
 
 .chat-conteudo {
-  max-width: 160px;
-  background: #7B2CFF;
-  border-radius: 10px;
-  padding: 2px;
-  margin: 8px;
-  position: relative;
+  width: 70%;           /* ocupa o balão */
+  border-radius: 12px;
+  aspect-ratio: 1 / 1;   /* 🔥 ISSO resolve */
   overflow: hidden;
-  box-shadow: 0 0px 10px #7B2CFF;
+  box-shadow: 0 0 10px #7B2CFF;
 }
-
-/* imagem e vídeo */
 .chat-conteudo img,
 .chat-conteudo video {
   width: 100%;
-  max-height: 160px;
+  aspect-ratio: 1 / 1;   /* 🔥 ISSO resolve */
   object-fit: cover;
-  border-radius: 10px;
   display: block;
+  border-radius: 10px;
 }
 
 /* ============================= */
