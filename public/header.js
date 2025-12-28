@@ -155,6 +155,16 @@ function ligarBotoesPerfilModelo() {
   });
 }
 
+function abrirConteudos() {
+  const role = localStorage.getItem("role");
+
+  if (role !== "modelo") {
+    alert("Acesso restrito à modelo.");
+    return;
+  }
+
+  window.location.href = "/conteudos.html";
+}
 
 
 // =========================================================
