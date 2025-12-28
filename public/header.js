@@ -54,7 +54,7 @@ async function initUsuario() {
     localStorage.setItem("nome", user.nome);
 
 
-    console.log("✅ Usuário autenticado:", user.role, user.nome);
+    console.log("✅ Usuário autenticado:", role);
 
   } catch (e) {
   console.warn("Sessão inválida no header");

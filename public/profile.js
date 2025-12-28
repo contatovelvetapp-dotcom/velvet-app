@@ -20,7 +20,7 @@ const btnChat = document.getElementById("btnChat");
 const btnVip  = document.getElementById("btnVip");
 const btnSalvarBio = document.getElementById("btnSalvarBio");
 const bioInput     = document.getElementById("bioInput");
-const modelo_id = localStorage.getItem("modelo_id");
+let modelo_id = localStorage.getItem("modelo_id");
 
 const modo = role === "cliente" ? "publico" : "privado";
 if (modo === "publico" && !modelo_id) {
@@ -73,6 +73,7 @@ async function carregarPerfil() {
 
   const modelo = await res.json();
   localStorage.setItem("modelo_id", modelo.id);
+  modelo_id = modelo.id;
 
   aplicarPerfilNoDOM(modelo);
 }
