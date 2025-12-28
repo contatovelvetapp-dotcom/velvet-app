@@ -202,8 +202,8 @@ function renderMensagem(msg) {
       div.innerHTML = `
         <div class="chat-conteudo bloqueado card-conteudo">
           <img src="/assets/lock.png" />
-          <div class="valor-conteudo">€ ${msg.preco}</div>
-          <div class="conteudo-msg">Conteúdo bloqueado</div>
+          <div class="valor-conteudo">R$ ${msg.preco}</div>
+          <div class="conteudo-msg">Desbloquear</div>
         </div>
       `;
     }

@@ -315,8 +315,8 @@ html, body {
 
 /* card base */
 .chat-conteudo {
-  width: 220px;
-  height: 140px;
+  width: 150px;
+  height: 150px;
   border-radius: 16px;
   position: relative;
   overflow: hidden;
