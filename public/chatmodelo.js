@@ -466,7 +466,7 @@ function confirmarEnvioConteudo() {
 function abrirPreviewConteudo(url, tipo) {
   const popup = document.getElementById("popupConteudos");
 
-  // ❗ usa o MESMO sistema do resto da UI
+  // usa o MESMO sistema do resto da UI
   if (popup) popup.classList.add("hidden");
 
   let modal = document.getElementById("previewModal");
@@ -494,10 +494,16 @@ function abrirPreviewConteudo(url, tipo) {
       video.pause();
       video.src = "";
 
-      // 🔥 volta o popup SEM QUEBRAR layout
-      if (popup) popup.classList.remove("hidden");
+      if (popup) {
+        popup.classList.remove("hidden");
+
+        // 🔥 devolve foco ao popup
+        const inputPreco = document.getElementById("precoConteudo");
+        if (inputPreco) inputPreco.focus();
+      }
     };
 
+    // ✅ EVENTOS REGISTRADOS CORRETAMENTE
     modal.querySelector(".preview-backdrop").onclick = fechar;
     modal.querySelector(".preview-close").onclick = fechar;
   }
@@ -523,8 +529,3 @@ function abrirPreviewConteudo(url, tipo) {
 
   modal.classList.add("open");
 }
-
-
-
-
-
