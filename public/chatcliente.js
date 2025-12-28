@@ -82,9 +82,8 @@ async function carregarListaModelos() {
     li.onclick = () => {
       modelo_id = m.modelo_id;
 
-      document.getElementById("chatTitulo").innerText =
-        "Conversando com: " + m.nome;
-
+      document.getElementById("modeloNome").innerText = m.nome;
+      
       const sala = `chat_${cliente_id}_${modelo_id}`;
       socket.emit("joinChat", { sala });
       socket.emit("getHistory", { cliente_id, modelo_id });

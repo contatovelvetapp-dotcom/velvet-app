@@ -38,7 +38,7 @@ socket.on("newMessage", msg => {
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
   await carregarListaClientes();
-  
+
   socket.emit("getHistory", { cliente_id, modelo_id });
 
   const sendBtn = document.getElementById("sendBtn");
@@ -78,8 +78,7 @@ async function carregarListaClientes() {
     li.onclick = () => {
       cliente_id = c.cliente_id;
 
-      document.getElementById("chatTitulo").innerText =
-        "Conversando com: " + c.nome;
+      document.getElementById("clienteNome").innerText = c.nome;
 
       const sala = `chat_${cliente_id}_${modelo_id}`;
       socket.emit("joinChat", { sala });
