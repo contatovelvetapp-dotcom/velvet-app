@@ -173,51 +173,69 @@ if (item) {
 }
 
 function renderMensagem(msg) {
+  // 🔒 evita duplicação
   if (mensagensRenderizadas.has(msg.id)) return;
   mensagensRenderizadas.add(msg.id);
+
   const chat = document.getElementById("chatBox");
   if (!chat) return;
 
   const div = document.createElement("div");
 
-  const minhaRole = localStorage.getItem("role"); // cliente | modelo
-  div.className =
-    msg.sender === minhaRole ? "msg msg-cliente" : "msg msg-modelo";
+  const minhaRole = localStorage.getItem("role"); // "cliente" | "modelo"
 
-  // 📦 CONTEÚDO
+  // 📍 alinhamento correto
+  div.className =
+    msg.sender === minhaRole
+      ? "msg msg-cliente"
+      : "msg msg-modelo";
+
+  /* ===============================
+     📦 CONTEÚDO (IMAGEM / VÍDEO)
+  =============================== */
   if (msg.tipo === "conteudo") {
 
-    // 🆓 CONTEÚDO GRATUITO
+    // 🆓 GRATUITO
     if (Number(msg.preco) === 0 && msg.url) {
       div.innerHTML = `
-        <div class="chat-conteudo">
+        <div class="chat-conteudo livre">
           ${
             msg.tipo_media === "video"
-              ? `<video src="${msg.url}" controls></video>`
+              ? `<video src="${msg.url}" controls playsinline></video>`
               : `<img src="${msg.url}" />`
           }
         </div>
       `;
     }
 
-    // 🔒 CONTEÚDO PAGO
+    // 🔒 BLOQUEADO (PAGO)
     else {
       div.innerHTML = `
-        <div class="chat-conteudo bloqueado card-conteudo">
-          <img src="/assets/lock.png" />
-          <div class="valor-conteudo">R$ ${msg.preco}</div>
-          <div class="conteudo-msg">Desbloquear</div>
+        <div 
+          class="chat-conteudo bloqueado"
+          data-id="${msg.conteudo_id}"
+          data-preco="${msg.preco}"
+        >
+          <div class="blur-fundo"></div>
+
+          <div class="overlay-conteudo">
+            <img src="/assets/lock.png" class="lock-icon" />
+            <div class="valor-conteudo">R$ ${msg.preco}</div>
+            <div class="conteudo-msg">Desbloquear</div>
+          </div>
         </div>
       `;
     }
+  }
 
-  } 
-  // 💬 TEXTO NORMAL
+  /* ===============================
+     💬 TEXTO NORMAL
+  =============================== */
   else {
     div.textContent = msg.text;
   }
 
-  // ✅ A LINHA QUE FALTAVA (ESSENCIAL)
+  // ✅ ESSENCIAL: adiciona no chat
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
