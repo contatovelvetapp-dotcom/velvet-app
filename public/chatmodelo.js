@@ -71,19 +71,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
+  const btnConteudo = document.getElementById("btnEnviarConteudo");
+
   sendBtn.onclick = enviarMensagem;
 
   input.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    enviarMensagem();
-  }
+    if (e.key === "Enter") {
+      enviarMensagem();
+    }
+  });
 
-const btnConteudo = document.getElementById("btnEnviarConteudo");
-
-btnConteudo.onclick = () => {
-  abrirPopupConteudos();
-};
-});
+  // 🔥 AQUI — sempre ativo
+  btnConteudo.onclick = abrirPopupConteudos;
 });
 
 // ===============================
