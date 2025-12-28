@@ -104,7 +104,10 @@ async function carregarListaClientes() {
     li.dataset.clienteId = c.cliente_id;
 
     // ⏱ timestamp da última mensagem da MODELO
-    li.dataset.lastTime = c.ultima_msg_modelo_ts || 0;
+li.dataset.lastTime = c.ultima_msg_modelo_ts
+  ? new Date(c.ultima_msg_modelo_ts).getTime()
+  : 0;
+
 
     // 📌 status inicial vindo do backend
     // esperado: "novo" | "nao-lida" | "por-responder" | "normal"
