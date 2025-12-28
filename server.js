@@ -600,17 +600,24 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
       `,
       [cliente_id, modelo_id, conteudo_id, preco]
     );
+    const conteudoResult = await db.query(
+  "SELECT url, tipo FROM conteudos WHERE id = $1",
+  [conteudo_id]
+);
 
-    const payload = {
-      cliente_id,
-      modelo_id,
-      sender: "modelo",
-      tipo: "conteudo",
-      conteudo_id,
-      preco,
-      created_at: new Date()
-    };
+const conteudo = conteudoResult.rows[0];
 
+const payload = {
+  cliente_id,
+  modelo_id,
+  sender: "modelo",
+  tipo: "conteudo",
+  conteudo_id,
+  preco,
+  url: conteudo.url,
+  tipo_media: conteudo.tipo,
+  created_at: new Date()
+  };
     // 2️⃣ envia para QUEM ESTÁ NA SALA
     io.to(sala).emit("newMessage", payload);
 
