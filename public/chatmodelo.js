@@ -240,8 +240,8 @@ if (msg.tipo === "conteudo") {
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"
-            ? `<video src="${msg.url}" muted></video>`
-            : `<img src="${msg.url}" />`
+  ? `<video src="${msg.url}" muted playsinline preload="metadata"></video>`
+  : `<img src="${msg.url}" loading="lazy" />`
         }
       </div>
 
