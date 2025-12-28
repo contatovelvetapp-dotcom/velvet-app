@@ -68,6 +68,7 @@ const io = new Server(server, {
 //FUNCOES
 // ===============================
 async function marcarUnread(cliente_id, modelo_id) {
+   console.log("🔔 marcarUnread chamado:", cliente_id, modelo_id);
   await db.query(
     `
     INSERT INTO unread (cliente_id, modelo_id, has_unread)
