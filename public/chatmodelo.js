@@ -43,36 +43,22 @@ socket.on("newMessage", msg => {
   }
 });
 
-socket.on("unreadUpdate", ({ cliente_id }) => {
+socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
   document.querySelectorAll("#listaClientes li").forEach(li => {
     if (Number(li.dataset.clienteId) === cliente_id) {
-      setStatusChat(li, "nao-lida", "Não lida");
+      li.classList.add("nao-lida");
+
+      const badge = li.querySelector(".badge");
+      badge.innerText = "Não lida";
+      badge.classList.remove("hidden");
     }
   });
-  organizarListaChats();
+
 });
 
 socket.on("novoAssinante", ({ cliente_id, nome }) => {
 adicionarNovoClienteNaLista(cliente_id, nome);
-organizarListaChats();
 });
-
-socket.on("mensagensLidas", ({ cliente_id }) => {
-  // atualiza mensagens visuais (se estiver no chat aberto)
-  document.querySelectorAll(".msg.modelo").forEach(msg => {
-    msg.classList.add("lida");
-  });
-
-  // atualiza estado do chat na lista
-  const item = [...document.querySelectorAll(".chat-item")]
-    .find(li => Number(li.dataset.clienteId) === cliente_id);
-
-  if (item) {
-    setStatusChat(item, "visto", "✓✓");
-    organizarListaChats();
-  }
-});
-
 // ===============================
 // INIT
 // ===============================
@@ -111,21 +97,23 @@ async function carregarListaClientes() {
   }
 
   clientes.forEach(c => {
-const li = document.createElement("li");
-li.className = "chat-item";
-li.dataset.clienteId = c.cliente_id;
+    const li = document.createElement("li");
+    li.className = "chat-item";
+    li.dataset.clienteId = c.cliente_id;
 
-li.innerHTML = `
-  <span class="nome">${c.nome}</span>
-  <span class="badge hidden"></span>
-`;
-
-setStatusChat(li, "normal");
-
+    li.innerHTML = `
+      <span class="nome">${c.nome}</span>
+      <span class="badge hidden">Não lida</span>
+    `;
 
     li.onclick = () => {
       cliente_id = c.cliente_id;
       chatAtivo = { cliente_id, modelo_id };
+
+const badge = li.querySelector(".badge");
+
+li.classList.remove("nao-lida");
+
 
       document.getElementById("clienteNome").innerText = c.nome;
 
@@ -136,7 +124,6 @@ setStatusChat(li, "normal");
 
     lista.appendChild(li);
   });
-  organizarListaChats();
 }
 
 async function carregarModelo() {
@@ -159,10 +146,10 @@ async function aplicarUnreadModelo() {
 
   document.querySelectorAll("#listaClientes li").forEach(li => {
     if (unreadIds.includes(Number(li.dataset.clienteId))) {
-    setStatusChat(li, "nao-lida", "Não lida");
+      li.classList.add("nao-lida");
+      li.querySelector(".badge").classList.remove("hidden");
     }
   });
-  organizarListaChats();
 }
 
 function enviarMensagem() {
@@ -184,12 +171,11 @@ function enviarMensagem() {
   .find(li => Number(li.dataset.clienteId) === cliente_id);
 
 if (item) {
-  setStatusChat(item, "normal");
+  const badge = item.querySelector(".badge");
+  badge.classList.add("hidden");
 }
 
   input.value = "";
-  
-  organizarListaChats();
 }
 
 function renderMensagem(msg) {
@@ -205,6 +191,15 @@ function renderMensagem(msg) {
 
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+}
+
+function marcarNaoLida(msg) {
+  document.querySelectorAll("#listaClientes li").forEach(li => {
+    if (Number(li.dataset.clienteId) === msg.cliente_id) {
+      li.classList.add("nao-lida");
+      li.querySelector(".badge").classList.remove("hidden");
+    }
+  });
 }
 
 function atualizarStatusPorResponder(mensagens) {
@@ -224,15 +219,22 @@ function atualizarStatusPorResponder(mensagens) {
 
   const badge = item.querySelector(".badge");
 
+  // 🔹 se estava como "Novo", deixa o histórico decidir
+  if (badge.innerText === "Novo") {
+    badge.classList.add("hidden");
+  }
+
   // ✅ última mensagem NÃO foi minha → por responder
   if (ultima.sender !== minhaRole) {
-  setStatusChat(item, "por-responder", "Por responder");
+    badge.innerText = "Por responder";
+    badge.classList.remove("hidden");
+    item.classList.remove("nao-lida");
   }
   // ✅ última mensagem foi minha → limpa tudo
   else {
-    setStatusChat(item, "visto", "✓");
+    badge.classList.add("hidden");
+    item.classList.remove("nao-lida");
   }
-  organizarListaChats();
 }
 
 function adicionarNovoClienteNaLista(cliente_id, nome) {
@@ -244,15 +246,13 @@ function adicionarNovoClienteNaLista(cliente_id, nome) {
   if (existente) return;
 
   const li = document.createElement("li");
-li.className = "chat-item";
-li.dataset.clienteId = cliente_id;
+  li.className = "chat-item novo nao-lida";
+  li.dataset.clienteId = cliente_id;
 
-li.innerHTML = `
-  <span class="nome">${nome}</span>
-  <span class="badge hidden"></span>
-`;
-
-setStatusChat(li, "novo", "Novo");
+  li.innerHTML = `
+    <span class="nome">${nome}</span>
+    <span class="badge">Novo</span>
+  `;
 
   li.onclick = () => {
     cliente_id = Number(li.dataset.clienteId);
@@ -267,46 +267,3 @@ setStatusChat(li, "novo", "Novo");
 
   lista.prepend(li);
 }
-
-function organizarListaChats() {
-  const lista = document.getElementById("listaClientes");
-  if (!lista) return;
-
-  const itens = [...lista.querySelectorAll(".chat-item")];
-
-  const prioridade = {
-    "novo": 1,
-    "nao-lida": 2,
-    "por-responder": 3,
-    "visto": 4,
-    "normal": 5
-  };
-
-  itens.sort((a, b) => {
-    const pa = prioridade[a.dataset.status || "normal"];
-    const pb = prioridade[b.dataset.status || "normal"];
-    return pa - pb;
-  });
-
-  itens.forEach(li => lista.appendChild(li));
-}
-
-function setStatusChat(li, status, textoBadge = null) {
-  // limpa qualquer estado anterior
-  li.dataset.status = status;
-
-  const badge = li.querySelector(".badge");
-  if (!badge) return;
-
-  // limpa visual
-  badge.classList.add("hidden");
-  badge.innerText = "";
-
-  // aplica novo estado visual
-  if (textoBadge) {
-    badge.innerText = textoBadge;
-    badge.classList.remove("hidden");
-  }
-}
-
-
