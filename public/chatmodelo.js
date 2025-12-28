@@ -52,6 +52,7 @@ socket.on("newMessage", msg => {
 document.addEventListener("DOMContentLoaded", async () => {
   await carregarModelo();   
   await carregarListaClientes();
+  await aplicarUnreadModelo();
 
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
@@ -119,6 +120,20 @@ async function carregarModelo() {
   modelo_id = data.user_id ?? data.id;
 }
 
+async function aplicarUnreadModelo() {
+  const res = await fetch("/api/chat/unread/modelo", {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  const unreadIds = await res.json();
+
+  document.querySelectorAll("#listaClientes li").forEach(li => {
+    if (unreadIds.includes(Number(li.dataset.clienteId))) {
+      li.classList.add("nao-lida");
+      li.querySelector(".badge").classList.remove("hidden");
+    }
+  });
+}
 
 function enviarMensagem() {
   const input = document.getElementById("messageInput");

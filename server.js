@@ -431,7 +431,8 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
     console.log("❌ Socket sem usuário");
     return;
   }
-   // 🔒 AJUSTE 2 — SEGURANÇA REAL (COLOCA AQUI 👇)
+
+  // 🔒 segurança
   if (socket.user.role === "cliente" && socket.user.id !== cliente_id) return;
   if (socket.user.role === "modelo"  && socket.user.id !== modelo_id) return;
 
@@ -441,28 +442,35 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
   }
 
   const sala = `chat_${cliente_id}_${modelo_id}`;
+  const sender = socket.user.role; // ✅ escopo correto
 
   try {
-    const sender = socket.user.role; // 'cliente' ou 'modelo'
-await db.query(
-  `INSERT INTO messages (cliente_id, modelo_id, sender, text)
-   VALUES ($1, $2, $3, $4)`,
-  [cliente_id, modelo_id, sender, text]
-);
+    // 1️⃣ salva mensagem
+    await db.query(
+      `INSERT INTO messages (cliente_id, modelo_id, sender, text)
+       VALUES ($1, $2, $3, $4)`,
+      [cliente_id, modelo_id, sender, text]
+    );
 
-    console.log("💾 Mensagem salva:", sala);
-io.to(sala).emit("newMessage", {
-  cliente_id,
-  modelo_id,
-  sender,
-  text,
-  created_at: new Date()
-});
+    // 2️⃣ marca como NÃO LIDA (persistente)
+    await marcarUnread(cliente_id, modelo_id);
+
+    // 3️⃣ envia evento em tempo real
+    io.to(sala).emit("newMessage", {
+      cliente_id,
+      modelo_id,
+      sender,
+      text,
+      created_at: new Date()
+    });
+
+    console.log("💾 Mensagem salva e unread marcado:", sala);
 
   } catch (err) {
     console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
   }
 });
+
 
   // ===============================
   // 📜 HISTÓRICO DO CHAT
