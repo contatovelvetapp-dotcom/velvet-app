@@ -14,13 +14,18 @@ function logout() {
   window.location.href = "/index.html";
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const lista = document.getElementById("listaModelos");
   const token = localStorage.getItem("token");
 
   if (!lista) {
-    console.error("listaModelos não encontrada");
+    console.error("❌ listaModelos não encontrada no DOM");
+    return;
+  }
+
+  if (!token) {
+    console.error("❌ Token ausente");
+    window.location.href = "/index.html";
     return;
   }
 
@@ -30,15 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
     .then(res => {
-      if (!res.ok) throw new Error("Erro ao carregar feed");
+      if (!res.ok) {
+        throw new Error("Erro ao carregar feed de modelos");
+      }
       return res.json();
     })
     .then(modelos => {
-      console.log("📥 Modelos:", modelos);
+      console.log("📥 Modelos recebidos:", modelos);
 
       lista.innerHTML = "";
 
-      if (!modelos || modelos.length === 0) {
+      if (!Array.isArray(modelos) || modelos.length === 0) {
         lista.innerHTML = "<p>Nenhuma modelo disponível</p>";
         return;
       }
@@ -50,24 +57,31 @@ document.addEventListener("DOMContentLoaded", () => {
         card.innerHTML = `
           <img
             src="${modelo.avatar || "/assets/avatarDefault.png"}"
-            alt="${modelo.nome}">
+            alt="${modelo.nome || "Modelo"}">
         `;
 
- card.addEventListener("click", () => {
-  if (!modelo.id) {
-    console.error("Modelo sem id:", modelo);
-    return;
-  }
+        card.addEventListener("click", () => {
+          // 🔑 contrato de ID (backend antigo ou novo)
+          const modeloId = modelo.id ?? modelo.user_id;
 
-  localStorage.setItem("modelo_id", modelo.id);
-  window.location.href = "profile.html";
-});
+          if (!modeloId) {
+            console.error("❌ Modelo sem id:", modelo);
+            alert("Erro ao abrir perfil da modelo.");
+            return;
+          }
 
-  lista.appendChild(card);
-  });
-  })
-  .catch(err => {
-  console.error("Erro feed:", err);
-  lista.innerHTML = "<p>Erro ao carregar modelos</p>";
-  });
+          // 🔒 garante que nunca gravamos 'undefined'
+          localStorage.setItem("modelo_id", modeloId.toString());
+
+          window.location.href = "profile.html";
+        });
+
+        // ➕ adiciona o card ao DOM
+        lista.appendChild(card);
+      });
+    })
+    .catch(err => {
+      console.error("❌ Erro no feed de modelos:", err);
+      lista.innerHTML = "<p>Erro ao carregar modelos</p>";
+    });
 });
