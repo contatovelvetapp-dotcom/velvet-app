@@ -106,10 +106,10 @@ async function carregarListaModelos() {
   `;
 
 li.onclick = () => {
-  modelo_id = m.modelo_id;              // ✅ DEFINE O MODELO
+  modelo_id = m.modelo_id;              
   chatAtivo = { cliente_id, modelo_id };
 
-  document.getElementById("clienteNome").innerText = m.nome;
+  document.getElementById("modeloNome").innerText = m.nome;
 
   li.dataset.status = "normal";
   atualizarBadgeComTempo?.(li);
