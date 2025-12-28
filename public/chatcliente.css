@@ -393,15 +393,18 @@ html, body {
 /* ===============================
    MODAL DE CONTEÚDO (CLIENTE)
 ================================ */
-
 .modal-conteudo {
   position: fixed;
   inset: 0;
   z-index: 99999;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  padding-top: 80px; /* 🔥 empurra para baixo do header */
 }
+
 
 .modal-conteudo.hidden {
   display: none;
@@ -417,23 +420,26 @@ html, body {
 .modal-box {
   position: relative;
   z-index: 2;
+
   max-width: 90vw;
   max-height: 90vh;
 
-  background: #000;
+  background: transparent;   /* 🔥 remove o preto */
+  padding: 0;                /* 🔥 remove moldura */
   border-radius: 18px;
-  padding: 12px;
 
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 60px rgba(93,36,190,0.45);
 }
+
 
 .modal-box img,
 .modal-box video {
-  max-width: 80vw;
+  max-width: 90vw;
   max-height: 80vh;
-  border-radius: 12px;
+  border-radius: 16px;
   display: block;
 }
+
 
 .modal-fechar {
   position: absolute;
