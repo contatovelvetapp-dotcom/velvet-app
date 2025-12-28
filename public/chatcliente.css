@@ -450,6 +450,10 @@ html, body {
   font-size: 16px;
 }
 
+.chat-conteudo.livre {
+  cursor: pointer;
+}
+
 
 
 

@@ -191,42 +191,58 @@ function renderMensagem(msg) {
       : "msg msg-modelo";
 
   /* ===============================
-     📦 CONTEÚDO (IMAGEM / VÍDEO)
-  =============================== */
-  if (msg.tipo === "conteudo") {
+   📦 CONTEÚDO (IMAGEM / VÍDEO)
+=============================== */
+if (msg.tipo === "conteudo") {
 
-    if ((msg.gratuito || Number(msg.preco) === 0 || msg.pago) && msg.url) {
+  // ✅ CONTEÚDO LIBERADO (GRÁTIS OU PAGO)
+  if ((msg.gratuito || Number(msg.preco) === 0 || msg.pago) && msg.url) {
 
-      div.innerHTML = `
-        <div class="chat-conteudo livre">
-          ${
-            msg.tipo_media === "video"
-              ? `<video src="${msg.url}" controls playsinline></video>`
-              : `<img src="${msg.url}" />`
-          }
-        </div>
-      `;
-    }
+    div.innerHTML = `
+      <div 
+        class="chat-conteudo livre" 
+        data-url="${msg.url}" 
+        data-tipo="${msg.tipo_media}"
+      >
+        ${
+          msg.tipo_media === "video"
+            ? `<video src="${msg.url}" muted></video>`
+            : `<img src="${msg.url}" />`
+        }
+      </div>
+    `;
 
-    // 🔒 BLOQUEADO (PAGO)
-    else {
-      div.innerHTML = `
-        <div 
-          class="chat-conteudo bloqueado"
-          data-id="${msg.conteudo_id}"
-          data-preco="${msg.preco}"
-        >
-          <div class="blur-fundo"></div>
+    const conteudoLivre = div.querySelector(".chat-conteudo.livre");
 
-          <div class="overlay-conteudo">
-            <img src="/assets/lock.png" class="lock-icon" />
-            <div class="valor-conteudo">R$ ${msg.preco}</div>
-            <div class="conteudo-msg">Desbloquear</div>
-          </div>
-        </div>
-      `;
-    }
+    conteudoLivre.addEventListener("click", () => {
+      abrirConteudo(
+        conteudoLivre.dataset.url,
+        conteudoLivre.dataset.tipo
+      );
+    });
+
   }
+
+  // 🔒 CONTEÚDO BLOQUEADO (PAGO)
+  else {
+
+    div.innerHTML = `
+      <div 
+        class="chat-conteudo bloqueado"
+        data-id="${msg.conteudo_id}"
+        data-preco="${msg.preco}"
+      >
+        <div class="blur-fundo"></div>
+
+        <div class="overlay-conteudo">
+          <img src="/assets/lock.png" class="lock-icon" />
+          <div class="valor-conteudo">R$ ${msg.preco}</div>
+          <div class="conteudo-msg">Desbloquear</div>
+        </div>
+      </div>
+    `;
+  }
+}
 
   /* ===============================
      💬 TEXTO NORMAL
