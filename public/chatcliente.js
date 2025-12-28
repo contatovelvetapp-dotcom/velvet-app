@@ -36,7 +36,7 @@ socket.on("chatHistory", mensagens => {
 socket.on("newMessage", msg => {
   const minhaRole = localStorage.getItem("role"); // cliente
 
-  // se estou com o chat aberto
+  // se a mensagem é do chat aberto → renderiza
   if (
     chatAtivo &&
     msg.cliente_id === chatAtivo.cliente_id &&
@@ -46,12 +46,11 @@ socket.on("newMessage", msg => {
     return;
   }
 
-  // só marca "não lida" se a mensagem NÃO foi enviada por mim
+  // se veio da modelo e NÃO é o chat aberto → não lida
   if (msg.sender !== minhaRole) {
     marcarNaoLida(msg);
   }
 });
-
 
 // ===============================
 // INIT
@@ -148,12 +147,6 @@ function enviarMensagem() {
     modelo_id,
     text
   });
-
-  // 🔥 renderiza localmente
-renderMensagem({
-  sender: "cliente",
-  text
-});
 
   input.value = "";
 }

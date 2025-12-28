@@ -48,6 +48,7 @@ socket.on("newMessage", msg => {
 });
 
 
+
 // ===============================
 // INIT
 // ===============================
@@ -129,11 +130,6 @@ function enviarMensagem() {
     modelo_id,
     text
   });
-
-renderMensagem({
-  sender: "modelo",
-  text
-});
 
   input.value = "";
 }
