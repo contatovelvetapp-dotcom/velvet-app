@@ -20,13 +20,13 @@ const btnChat = document.getElementById("btnChat");
 const btnVip  = document.getElementById("btnVip");
 const btnSalvarBio = document.getElementById("btnSalvarBio");
 const bioInput     = document.getElementById("bioInput");
-let modelo_id = localStorage.getItem("modelo_id");
 
-const modo = role === "cliente" ? "publico" : "privado";
-if (modo === "publico" && !modelo_id) {
-  alert("Modelo não identificada.");
-  window.location.href = "/clientHome.html";
-  throw new Error("modelo_id ausente no perfil público");
+
+let modelo_id = localStorage.getItem("modelo_id");
+if (modo === "publico" && (!modelo_id || modelo_id === "undefined")) {
+    alert("Modelo não identificada.");
+    window.location.href = "/clientHome.html";
+    throw new Error("modelo_id ausente no perfil público");
 }
 
 

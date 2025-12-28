@@ -53,11 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
             alt="${modelo.nome}">
         `;
 
-  card.addEventListener("click", () => {
+ card.addEventListener("click", () => {
+  if (!modelo.id) {
+    console.error("Modelo sem id:", modelo);
+    return;
+  }
+
   localStorage.setItem("modelo_id", modelo.id);
   window.location.href = "profile.html";
-  });
-
+});
 
   lista.appendChild(card);
   });
