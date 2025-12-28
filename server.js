@@ -865,13 +865,12 @@ app.get("/api/chat/cliente", authCliente, async (req, res) => {
 
     const { rows } = await db.query(`
       SELECT 
-        m.id   AS modelo_id,
+        m.user_id AS modelo_id,
         m.nome,
         m.avatar
-      FROM assinaturas a
-      JOIN modelos m ON m.id = a.modelo_id
-      WHERE a.cliente_id = $1
-        AND a.status = 'ativa'
+      FROM vip_assinaturas v
+      JOIN modelos m ON m.user_id = v.modelo_id
+      WHERE v.cliente_id = $1
     `, [clienteId]);
 
     res.json(rows);
@@ -881,7 +880,8 @@ app.get("/api/chat/cliente", authCliente, async (req, res) => {
   }
 });
 
-// ===============================
+
+/// ===============================
 // CHAT — LISTA PARA MODELO
 // ===============================
 app.get("/api/chat/modelo", authModelo, async (req, res) => {
@@ -890,12 +890,11 @@ app.get("/api/chat/modelo", authModelo, async (req, res) => {
 
     const { rows } = await db.query(`
       SELECT 
-        c.id   AS cliente_id,
+        c.user_id AS cliente_id,
         c.nome
-      FROM assinaturas a
-      JOIN clientes c ON c.id = a.cliente_id
-      WHERE a.modelo_id = $1
-        AND a.status = 'ativa'
+      FROM vip_assinaturas v
+      JOIN clientes c ON c.user_id = v.cliente_id
+      WHERE v.modelo_id = $1
     `, [modeloId]);
 
     res.json(rows);
