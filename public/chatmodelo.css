@@ -492,8 +492,8 @@ html, body {
 }
 /* ===== CONTEÚDO NO CHAT DA MODELO ===== */
 .chat-conteudo .conteudo-media {
-  width: 100%;
-  height: 160px;
+  width: 150px;
+  height: 150px;
 }
 
 .chat-conteudo .conteudo-media img,

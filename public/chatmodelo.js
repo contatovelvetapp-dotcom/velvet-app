@@ -224,15 +224,30 @@ function renderMensagem(msg) {
     msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
 
 if (msg.tipo === "conteudo") {
-  let statusClasse = "nao-visto";
-  let statusTexto  = "Não visto";
 
-  if (msg.pago) {
-    statusClasse = "pago";
-    statusTexto = "Pago";
-  } else if (msg.visto) {
+  const gratuito = Number(msg.preco) === 0;
+
+  let statusClasse = "nao-visto";
+  let mostrarInfo = false;
+  let statusTexto = "";
+  let valorTexto  = "";
+
+  // 🆓 GRATUITO → só verde (visto)
+  if (gratuito) {
     statusClasse = "visto";
-    statusTexto = "Visto";
+  }
+
+  // 💰 PAGO
+  else if (msg.pago) {
+    statusClasse = "pago";
+    mostrarInfo = true;
+    statusTexto = "Pago";
+    valorTexto  = `€ ${msg.preco}`;
+  }
+
+  // 👁️ visto mas não pago (caso exista depois)
+  else if (msg.visto) {
+    statusClasse = "visto";
   }
 
   div.innerHTML = `
@@ -240,18 +255,24 @@ if (msg.tipo === "conteudo") {
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"
-  ? `<video src="${msg.url}" muted playsinline preload="metadata"></video>`
-  : `<img src="${msg.url}" loading="lazy" />`
+            ? `<video src="${msg.url}" muted playsinline preload="metadata"></video>`
+            : `<img src="${msg.url}" loading="lazy" />`
         }
       </div>
 
-      <div class="conteudo-info">
-        <span class="status-cliente">${statusTexto}</span>
-        <div class="valor-conteudo">€ ${msg.preco}</div>
-      </div>
+      ${
+        mostrarInfo
+          ? `
+            <div class="conteudo-info">
+              <span class="status-cliente">${statusTexto}</span>
+              <div class="valor-conteudo">${valorTexto}</div>
+            </div>
+          `
+          : ``
+      }
     </div>
-    `;
-   }
+  `;
+}
     // 💬 TEXTO NORMAL
     else {
     div.textContent = msg.text;
