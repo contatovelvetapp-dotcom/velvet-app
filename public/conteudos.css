@@ -185,3 +185,12 @@ h1 {
   cursor: pointer;
   z-index: 10000000;
 }
+
+/* ============================================
+   SEPARADOR
+============================================ */
+.separator {
+    border: none;
+    border-top: 1px solid #e5e5e5;
+    margin: 30px 0;
+}
