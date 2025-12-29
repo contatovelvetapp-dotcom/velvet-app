@@ -634,24 +634,24 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
 
     const gratuito = Number(preco) === 0;
 
-    // 3️⃣ PAYLOAD CONSISTENTE
-    const payload = {
-      id: messageId,              // 🔥 ESSENCIAL
-      cliente_id,
-      modelo_id,
-      sender: "modelo",
-      tipo: "conteudo",
-      conteudo_id,
-      preco,
-      url: conteudo.url,
-      tipo_media: conteudo.tipo,
-      visto: false,
-      gratuito,
-      pago: !gratuito,
-      created_at: new Date()
-    };
-    
- io.to(sala).emit("newMessage", payload);
+// 🔒 cliente só recebe URL se gratuito
+const payload = {
+  id: messageId,
+  cliente_id,
+  modelo_id,
+  sender: "modelo",
+  tipo: "conteudo",
+  conteudo_id,
+  preco,
+  url: gratuito ? conteudo.url : null, // 🔥 BLOQUEIO REAL
+  tipo_media: conteudo.tipo,
+  visto: false,
+  gratuito,
+  pago: false,
+  created_at: new Date()
+};
+
+io.to(sala).emit("newMessage", payload);
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
