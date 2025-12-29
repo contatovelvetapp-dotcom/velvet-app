@@ -491,18 +491,21 @@ html, body {
   color: #999;
 }
 /* ===== CONTEÚDO NO CHAT DA MODELO ===== */
+
+.chat-conteudo {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
 .chat-conteudo .conteudo-media {
-  width: 150px;
-  height: 150px;
+  background: transparent;
 }
 
 .chat-conteudo .conteudo-media img,
 .chat-conteudo .conteudo-media video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  background: transparent;
 }
+
 
 /* info abaixo da mídia */
 .chat-conteudo .conteudo-info {
@@ -512,16 +515,17 @@ html, body {
 }
 
 /* estados */
+/* CINZA — não visto */
 .chat-conteudo.nao-visto {
   background: #e0e0e0;
-  opacity: 0.9;
 }
 
+/* VERDE — visto ou pago */
 .chat-conteudo.visto,
 .chat-conteudo.pago {
   background: #00c878;
-  border: 2px solid #00c878;
 }
+
 
 /* status badge */
 .status-cliente {
