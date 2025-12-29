@@ -467,118 +467,58 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
 
     const messageId = result.rows[0].id;
 
-    // ===============================
-    // 2️⃣ VER QUEM ESTÁ NA SALA
-    // ===============================
-    const room = io.sockets.adapter.rooms.get(sala);
+   // ===============================
+// EMITIR EVENTOS (SEM HEURÍSTICA)
+// ===============================
 
-    // ===============================
-    // 3️⃣ MARCAR NÃO LIDA (SÓ SE CHAT FECHADO)
-    // ===============================
-    const sidCliente = onlineClientes[cliente_id];
-    const sidModelo  = onlineModelos[modelo_id];
+// 1️⃣ sala (chat aberto)
+io.to(sala).emit("newMessage", {
+  id: messageId,
+  cliente_id,
+  modelo_id,
+  sender,
+  text,
+  created_at
+});
 
-    const clienteFora = sidCliente && !room?.has(sidCliente);
-    const modeloFora  = sidModelo  && !room?.has(sidModelo);
+// 2️⃣ cliente (sempre)
+const sidCliente = onlineClientes[cliente_id];
+if (sidCliente) {
+  io.to(sidCliente).emit("newMessage", {
+    id: messageId,
+    cliente_id,
+    modelo_id,
+    sender,
+    text,
+    created_at
+  });
+}
 
-    if (
-      (unreadFor === "cliente" && clienteFora) ||
-      (unreadFor === "modelo"  && modeloFora)
-    ) {
-      await db.query(
-        `
-        INSERT INTO unread (cliente_id, modelo_id, unread_for, has_unread)
-        VALUES ($1, $2, $3, true)
-        ON CONFLICT (cliente_id, modelo_id)
-        DO UPDATE SET
-          unread_for = EXCLUDED.unread_for,
-          has_unread = true
-        `,
-        [cliente_id, modelo_id, unreadFor]
-      );
-    }
+// 3️⃣ modelo (sempre)
+const sidModelo = onlineModelos[modelo_id];
+if (sidModelo) {
+  io.to(sidModelo).emit("newMessage", {
+    id: messageId,
+    cliente_id,
+    modelo_id,
+    sender,
+    text,
+    created_at
+  });
+}
 
-    // ===============================
-    // 4️⃣ EMITIR PARA CHAT ABERTO
-    // ===============================
-    io.to(sala).emit("newMessage", {
-      id: messageId,
-      cliente_id,
-      modelo_id,
-      sender,
-      text,
-      created_at
-    });
-
-    // ===============================
-    // 5️⃣ EMITIR PARA CHAT FECHADO
-    // ===============================
-    if (clienteFora) {
-      io.to(sidCliente).emit("newMessage", {
-        id: messageId,
-        cliente_id,
-        modelo_id,
-        sender,
-        text,
-        created_at
-      });
-
-      io.to(sidCliente).emit("unreadUpdate", {
-        cliente_id,
-        modelo_id,
-        unread: unreadFor === "cliente"
-      });
-    }
-
-    if (modeloFora) {
-      io.to(sidModelo).emit("newMessage", {
-        id: messageId,
-        cliente_id,
-        modelo_id,
-        sender,
-        text,
-        created_at
-      });
-
-      io.to(sidModelo).emit("unreadUpdate", {
-        cliente_id,
-        modelo_id,
-        unread: unreadFor === "modelo"
-      });
-    }
-
-    // ===============================
-    // 6️⃣ META UPDATE (SÓ ENVOLVIDOS)
-    // ===============================
-    io.to(sala).emit("chatMetaUpdate", {
-      cliente_id,
-      modelo_id,
-      sender,
-      created_at
-    });
-
-    if (clienteFora) {
-      io.to(sidCliente).emit("chatMetaUpdate", {
-        cliente_id,
-        modelo_id,
-        sender,
-        created_at
-      });
-    }
-
-    if (modeloFora) {
-      io.to(sidModelo).emit("chatMetaUpdate", {
-        cliente_id,
-        modelo_id,
-        sender,
-        created_at
-      });
-    }
+// 4️⃣ meta update (sempre)
+io.emit("chatMetaUpdate", {
+  cliente_id,
+  modelo_id,
+  sender,
+  created_at
+});
 
   } catch (err) {
     console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
   }
-  
+
  });
 
  // 📜 HISTÓRICO DO CHAT
