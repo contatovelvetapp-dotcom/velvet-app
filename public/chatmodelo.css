@@ -489,7 +489,7 @@ html, body {
 .chat-conteudo {
   width: 160px;
   height: 160px;
-  border-radius: 16px;
+  border-radius: 0px;
   overflow: hidden;
   position: relative;
 }
@@ -626,6 +626,21 @@ html, body {
   color: #7B2CFF;
   font-weight: 600;
 }
+
+/* ===============================
+   💜 NOME DA MODELO — ROXO VELVET (FIX DEFINITIVO)
+=============================== */
+
+.chat-header,
+.chat-header * {
+  color: var(--velvet-roxo);
+}
+
+.chat-header #chatNome {
+  color: var(--velvet-roxo) !important;
+  font-weight: 600;
+}
+
 
 
 
