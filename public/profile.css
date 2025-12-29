@@ -612,8 +612,3 @@ body.role-modelo .only-modelo {
 body.role-cliente .only-cliente {
   display: inline-flex !important;
 }
-
-.btnExcluirMidia {
-  position: relative;
-  z-index: 3;
-}
