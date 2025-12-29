@@ -700,17 +700,21 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
       pago: !gratuito,
       created_at: new Date()
     };
+    
+ // 1️⃣ envia para a sala (chat aberto)
+ io.to(sala).emit("newMessage", payload);
 
-    // 4️⃣ ENVIA EM TEMPO REAL
-    io.to(sala).emit("newMessage", payload);
+ // 2️⃣ envia DIRETO para o cliente (lista em tempo real)
+ const sidCliente = onlineClientes[cliente_id];
+ if (sidCliente) {
+  io.to(sidCliente).emit("newMessage", payload);
+ }
 
-    const sidModelo = onlineModelos[modelo_id];
-    if (sidModelo) io.to(sidModelo).emit("newMessage", payload);
-
-    const sidCliente = onlineClientes[cliente_id];
-    if (sidCliente) io.to(sidCliente).emit("newMessage", payload);
-
-    console.log("📦 Conteúdo enviado com ID:", messageId);
+ // 3️⃣ envia DIRETO para a modelo (lista em tempo real)
+ const sidModelo = onlineModelos[modelo_id];
+ if (sidModelo) {
+  io.to(sidModelo).emit("newMessage", payload);
+ }
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
