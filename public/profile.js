@@ -257,6 +257,27 @@ inputCapa?.addEventListener("change", async () => {
   }
 });
 
+inputCapa?.addEventListener("change", async () => {
+    const file = inputCapa.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append("capa", file);
+
+    const res = await fetch("/uploadCapa", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      body: fd
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      capaImg.src = data.url; // 🔥 atualiza na hora
+    }
+  });
+
 btnSalvarBio?.addEventListener("click", async () => {
   const bio = bioInput.value.trim();
   if (!bio) return;
