@@ -360,7 +360,9 @@ else if (msg.visto) {
 }
 
   div.innerHTML = `
-    <div class="chat-conteudo ${statusClasse}">
+  <div
+  class="chat-conteudo ${statusClasse}"
+  data-id="${msg.conteudo_id}">
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"
