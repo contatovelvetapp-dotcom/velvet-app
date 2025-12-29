@@ -481,32 +481,9 @@ html, body {
 }
 
 .chat-conteudo {
-  border-radius: 14px;
-  overflow: hidden;
-
-  /* 🔥 limita tamanho da bolha */
-  max-width: 220px;
-}
-
-/* container da mídia */
-.chat-conteudo .conteudo-media {
-  width: 100%;
-  aspect-ratio: 2 / 2;
-  overflow: hidden;
-  height: 100%;
-  object-fit: cover; 
+  width: 160px;
+  height: 160px;
   border-radius: 16px;
-  display: block;
-}
-
-/* imagem / vídeo */
-.chat-conteudo .conteudo-media img,
-.chat-conteudo .conteudo-media video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; 
-  border-radius: 16px;
-  display: block;
 }
 
 /* estados */
@@ -574,7 +551,6 @@ html, body {
 .msg-cliente:has(.chat-conteudo) {
   align-self: flex-end;   /* cliente */
 }
-
 
 
 
