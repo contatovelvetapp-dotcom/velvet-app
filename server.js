@@ -624,13 +624,19 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
     );
 
     // avisa a MODELO em tempo real
-    const sidModelo = onlineModelos[modelo_id];
-    if (sidModelo) {
-      io.to(sidModelo).emit("conteudoVisto", {
-        message_id,
-        visto: true
-      });
-    }
+// envia direto para a modelo
+if (sidModelo) {
+  io.to(sidModelo).emit("conteudoVisto", {
+    message_id,
+    visto: true
+  });
+}
+
+// 🔥 envia também para a sala do chat
+io.to(`chat_${cliente_id}_${modelo_id}`).emit("conteudoVisto", {
+  message_id,
+  visto: true
+});
 
     console.log("👁️ Conteúdo marcado como visto:", message_id);
 
