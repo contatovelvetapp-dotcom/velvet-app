@@ -396,7 +396,8 @@ document.getElementById("fecharModal")?.addEventListener("click", () => {
 async function excluirMidia(id, card) {
   if (!confirm("Excluir esta mídia?")) return;
 
-  const res = await fetch(`/api/conteudos/${id}`, {
+  const res = await fetch(`/api/midias/${id}`, {
+
     method: "DELETE",
     headers: {
       Authorization: "Bearer " + token

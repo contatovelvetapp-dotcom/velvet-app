@@ -1478,12 +1478,52 @@ app.post(
   uploadConteudo
 );
 
+// ===============================
+// 🗑 EXCLUIR MIDIA (PERFIL MODELO)
+// ===============================
 app.delete(
-  "/api/conteudos/:id",
+  "/api/midias/:id",
   auth,
   authModelo,
-  excluirConteudo
+  async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const result = await db.query(
+        "SELECT url FROM midias WHERE id = $1 AND user_id = $2",
+        [id, req.user.id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Mídia não encontrada" });
+      }
+
+      const url = result.rows[0].url;
+
+      // 🔥 remove do Cloudinary
+      const publicId = url
+        .split("/")
+        .slice(-2)
+        .join("/")
+        .replace(/\.[^/.]+$/, "");
+
+      await cloudinary.uploader.destroy(publicId);
+
+      // 🗑 remove do banco
+      await db.query(
+        "DELETE FROM midias WHERE id = $1 AND user_id = $2",
+        [id, req.user.id]
+      );
+
+      res.json({ success: true });
+
+    } catch (err) {
+      console.error("Erro ao excluir mídia:", err);
+      res.status(500).json({ error: "Erro interno" });
+    }
+  }
 );
+
 
 app.post(
   "/uploadMidia",
