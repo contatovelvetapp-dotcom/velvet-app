@@ -18,6 +18,21 @@ html, body {
 /* =========================
    PÁGINA PRINCIPAL
 ========================= */
+.chat-header strong {
+  color: #7B2CFF;               /* 💜 roxo Velvet */
+  font-weight: 600;
+}
+
+#tituloConversas {
+  font-size: 20px;
+  font-weight: 600;
+  color: #7B2CFF;               /* 💜 roxo Velvet */
+}
+
+#tituloConversas span {
+  font-weight: 700;
+}
+
 
 .pagina-chat {
   height: 100%;
@@ -271,7 +286,7 @@ html, body {
 
   font-size: 14px;
   font-weight: 600;
-  color: #020216;
+  color: #7B2CFF;
 }
 
 /* botão */
