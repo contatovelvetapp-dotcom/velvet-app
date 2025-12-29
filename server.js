@@ -435,99 +435,154 @@ socket.on("joinChat", ({ sala }) => {
 
 // 💬 ENVIAR MENSAGEM (ÚNICO)
 socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
-  if (!socket.user) {
-    console.log("❌ Socket sem usuário");
-    return;
-  }
-
-  // 🔒 segurança por role
-  if (socket.user.role === "cliente" && socket.user.id !== cliente_id) return;
-  if (socket.user.role === "modelo"  && socket.user.id !== modelo_id) return;
-
-  if (!cliente_id || !modelo_id || !text) {
-    console.log("❌ sendMessage inválido", { cliente_id, modelo_id, text });
-    return;
-  }
-
-  const sala = `chat_${cliente_id}_${modelo_id}`;
-  const sender = socket.user.role;               // "cliente" | "modelo"
-  const unreadFor = sender === "cliente" ? "modelo" : "cliente";
-
   try {
-    // 1️⃣ SALVA NO BANCO E RETORNA ID 🔥
-const result = await db.query(`
-  INSERT INTO messages
-    (cliente_id, modelo_id, sender, tipo, text)
-  VALUES ($1, $2, $3, 'texto', $4)
-  RETURNING id
-`, 
-[cliente_id, modelo_id, sender, text]);
+    if (!socket.user) return;
 
-const messageId = result.rows[0].id;
+    // 🔒 segurança por role
+    if (socket.user.role === "cliente" && socket.user.id !== cliente_id) return;
+    if (socket.user.role === "modelo"  && socket.user.id !== modelo_id) return;
 
-    // 2️⃣ MARCA COMO NÃO LIDA PARA QUEM NÃO ENVIOU
-    await db.query(
+    if (!cliente_id || !modelo_id || !text) {
+      console.log("❌ sendMessage inválido", { cliente_id, modelo_id, text });
+      return;
+    }
+
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+    const sender = socket.user.role; // cliente | modelo
+    const unreadFor = sender === "cliente" ? "modelo" : "cliente";
+    const created_at = new Date();
+
+    // ===============================
+    // 1️⃣ SALVAR MENSAGEM
+    // ===============================
+    const result = await db.query(
       `
-      INSERT INTO unread (cliente_id, modelo_id, unread_for, has_unread)
-      VALUES ($1, $2, $3, true)
-      ON CONFLICT (cliente_id, modelo_id)
-      DO UPDATE SET
-        unread_for = EXCLUDED.unread_for,
-        has_unread = true
+      INSERT INTO messages
+        (cliente_id, modelo_id, sender, tipo, text)
+      VALUES ($1, $2, $3, 'texto', $4)
+      RETURNING id
       `,
-      [cliente_id, modelo_id, unreadFor]
+      [cliente_id, modelo_id, sender, text]
     );
 
-    // 3️⃣ AVISO DE NÃO LIDA (TEMPO REAL)
-    if (unreadFor === "modelo") {
-      const sidModelo = onlineModelos[modelo_id];
-      if (sidModelo) {
-        io.to(sidModelo).emit("unreadUpdate", {
-          cliente_id,
-          modelo_id,
-          unread: true
-        });
-      }
+    const messageId = result.rows[0].id;
+
+    // ===============================
+    // 2️⃣ VER QUEM ESTÁ NA SALA
+    // ===============================
+    const room = io.sockets.adapter.rooms.get(sala);
+
+    // ===============================
+    // 3️⃣ MARCAR NÃO LIDA (SÓ SE CHAT FECHADO)
+    // ===============================
+    const sidCliente = onlineClientes[cliente_id];
+    const sidModelo  = onlineModelos[modelo_id];
+
+    const clienteFora = sidCliente && !room?.has(sidCliente);
+    const modeloFora  = sidModelo  && !room?.has(sidModelo);
+
+    if (
+      (unreadFor === "cliente" && clienteFora) ||
+      (unreadFor === "modelo"  && modeloFora)
+    ) {
+      await db.query(
+        `
+        INSERT INTO unread (cliente_id, modelo_id, unread_for, has_unread)
+        VALUES ($1, $2, $3, true)
+        ON CONFLICT (cliente_id, modelo_id)
+        DO UPDATE SET
+          unread_for = EXCLUDED.unread_for,
+          has_unread = true
+        `,
+        [cliente_id, modelo_id, unreadFor]
+      );
     }
 
-    if (unreadFor === "cliente") {
-      const sidCliente = onlineClientes[cliente_id];
-      if (sidCliente) {
-        io.to(sidCliente).emit("unreadUpdate", {
-          cliente_id,
-          modelo_id,
-          unread: true
-        });
-      }
-    }
-
-    // 4️⃣ ENVIA MENSAGEM EM TEMPO REAL (COM ID) ✅
+    // ===============================
+    // 4️⃣ EMITIR PARA CHAT ABERTO
+    // ===============================
     io.to(sala).emit("newMessage", {
-      id: messageId,          // 🔥 ESSENCIAL
+      id: messageId,
       cliente_id,
       modelo_id,
       sender,
       text,
-      created_at: new Date()
+      created_at
     });
 
-    console.log("💾 Mensagem salva e enviada:", sala);
+    // ===============================
+    // 5️⃣ EMITIR PARA CHAT FECHADO
+    // ===============================
+    if (clienteFora) {
+      io.to(sidCliente).emit("newMessage", {
+        id: messageId,
+        cliente_id,
+        modelo_id,
+        sender,
+        text,
+        created_at
+      });
 
-   io.emit("chatMetaUpdate", {
-   cliente_id,
-   modelo_id,
-   sender,
-   created_at: new Date()
-   });
+      io.to(sidCliente).emit("unreadUpdate", {
+        cliente_id,
+        modelo_id,
+        unread: unreadFor === "cliente"
+      });
+    }
 
+    if (modeloFora) {
+      io.to(sidModelo).emit("newMessage", {
+        id: messageId,
+        cliente_id,
+        modelo_id,
+        sender,
+        text,
+        created_at
+      });
+
+      io.to(sidModelo).emit("unreadUpdate", {
+        cliente_id,
+        modelo_id,
+        unread: unreadFor === "modelo"
+      });
+    }
+
+    // ===============================
+    // 6️⃣ META UPDATE (SÓ ENVOLVIDOS)
+    // ===============================
+    io.to(sala).emit("chatMetaUpdate", {
+      cliente_id,
+      modelo_id,
+      sender,
+      created_at
+    });
+
+    if (clienteFora) {
+      io.to(sidCliente).emit("chatMetaUpdate", {
+        cliente_id,
+        modelo_id,
+        sender,
+        created_at
+      });
+    }
+
+    if (modeloFora) {
+      io.to(sidModelo).emit("chatMetaUpdate", {
+        cliente_id,
+        modelo_id,
+        sender,
+        created_at
+      });
+    }
 
   } catch (err) {
     console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
   }
-});
+  
+ });
 
-// 📜 HISTÓRICO DO CHAT
-socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
+ // 📜 HISTÓRICO DO CHAT
+ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   if (!socket.user) return;
 
   try {
