@@ -39,13 +39,15 @@ socket.on("newMessage", msg => {
   }
 });
 
-socket.on("conteudoVisto", ({ cliente_id, conteudo_id }) => {
-  document
-    .querySelectorAll(`.chat-conteudo[data-id="${conteudo_id}"]`)
-    .forEach(el => {
-      el.classList.remove("nao-visto");
-      el.classList.add("visto");
-    });
+socket.on("conteudoVisto", ({ message_id }) => {
+  const el = document.querySelector(
+    `.chat-conteudo[data-id="${message_id}"]`
+  );
+
+  if (el) {
+    el.classList.remove("nao-visto");
+    el.classList.add("visto");
+  }
 });
 
 
@@ -343,9 +345,10 @@ let valorTexto  = "";
 let statusClasse = msg.visto ? "visto" : "nao-visto";
 
   div.innerHTML = `
-  <div
+<div
   class="chat-conteudo ${statusClasse}"
-  data-id="${msg.conteudo_id}">
+  data-id="${msg.id}">
+
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"

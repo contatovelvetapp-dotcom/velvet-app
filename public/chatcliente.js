@@ -214,7 +214,7 @@ const chat = document.getElementById("chatBox");
 
       div.innerHTML = `
       <div class="chat-conteudo livre"
-     data-id="${msg.conteudo_id}"
+      data-id="${msg.id}"
      data-url="${msg.url}"
      data-tipo="${msg.tipo_media}">
       ${
@@ -240,6 +240,7 @@ if (conteudo) {
 
     // 🔔 SEMPRE marca como visto (pago OU gratuito)
     socket.emit("conteudoVisto", {
+      message_id: msg.id,
       cliente_id,
       modelo_id,
       conteudo_id: msg.conteudo_id

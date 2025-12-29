@@ -433,8 +433,6 @@ socket.on("joinChat", ({ sala }) => {
   console.log("🟪 Entrou na sala:", sala);
 });
 
-
-// 💬 ENVIAR MENSAGEM (ÚNICO)
 // 💬 ENVIAR MENSAGEM (ÚNICO)
 socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
   if (!socket.user) {
@@ -457,16 +455,15 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
 
   try {
     // 1️⃣ SALVA NO BANCO E RETORNA ID 🔥
-    const result = await db.query(
-      `
-      INSERT INTO messages (cliente_id, modelo_id, sender, text)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id
-      `,
-      [cliente_id, modelo_id, sender, text]
-    );
+const result = await db.query(`
+  INSERT INTO messages
+    (cliente_id, modelo_id, sender, tipo, text)
+  VALUES ($1, $2, $3, 'texto', $4)
+  RETURNING id
+`, 
+[cliente_id, modelo_id, sender, text]);
 
-    const messageId = result.rows[0].id;
+const messageId = result.rows[0].id;
 
     // 2️⃣ MARCA COMO NÃO LIDA PARA QUEM NÃO ENVIOU
     await db.query(
@@ -610,23 +607,46 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
   }
   });
 
-  socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) => {
+  // 👁️ CONTEÚDO VISTO PELO CLIENTE
+socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
+  try {
+    if (!message_id || !cliente_id || !modelo_id) {
+      console.log("❌ conteudoVisto inválido", {
+        message_id, cliente_id, modelo_id
+      });
+      return;
+    }
+
+    // marca a mensagem como vista
+    await db.query(
+      `UPDATE messages SET visto = true WHERE id = $1`,
+      [message_id]
+    );
+
+    // avisa a MODELO em tempo real
+    const sidModelo = onlineModelos[modelo_id];
+    if (sidModelo) {
+      io.to(sidModelo).emit("conteudoVisto", {
+        message_id,
+        visto: true
+      });
+    }
+
+    console.log("👁️ Conteúdo marcado como visto:", message_id);
+
+  } catch (err) {
+    console.error("Erro conteudoVisto:", err);
+  }
+  });
+
+
+ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) => {
   if (!socket.user || socket.user.role !== "modelo") return;
 
   const sala = `chat_${cliente_id}_${modelo_id}`;
 
   try {
-    // 1️⃣ salva no histórico
-    await db.query(
-      `
-      INSERT INTO messages
-        (cliente_id, modelo_id, sender, tipo, conteudo_id, preco)
-      VALUES ($1, $2, 'modelo', 'conteudo', $3, $4)
-      `,
-      [cliente_id, modelo_id, conteudo_id, preco]
-    );
-
-    // 2️⃣ busca conteúdo (SEGURANÇA)
+    // 1️⃣ BUSCA CONTEÚDO
     const conteudoResult = await db.query(
       "SELECT url, tipo FROM conteudos WHERE id = $1 AND user_id = $2",
       [conteudo_id, modelo_id]
@@ -636,67 +656,56 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
       console.warn("⚠️ Conteúdo não encontrado:", conteudo_id);
       return;
     }
+
+    const conteudo = conteudoResult.rows[0];
+
+    // 2️⃣ SALVA MENSAGEM E RETORNA ID 🔥
+    const insertResult = await db.query(
+      `
+      INSERT INTO messages
+        (cliente_id, modelo_id, sender, tipo, conteudo_id, preco, visto)
+      VALUES ($1, $2, 'modelo', 'conteudo', $3, $4, false)
+      RETURNING id
+      `,
+      [cliente_id, modelo_id, conteudo_id, preco]
+    );
+
+    const messageId = insertResult.rows[0].id;
+
     const gratuito = Number(preco) === 0;
 
-const payload = {
-  cliente_id,
-  modelo_id,
-  sender: "modelo",
-  tipo: "conteudo",
-  conteudo_id,
-  preco,
-  url: conteudo.url,
-  tipo_media: conteudo.tipo,
-  visto: false,
+    // 3️⃣ PAYLOAD CONSISTENTE
+    const payload = {
+      id: messageId,              // 🔥 ESSENCIAL
+      cliente_id,
+      modelo_id,
+      sender: "modelo",
+      tipo: "conteudo",
+      conteudo_id,
+      preco,
+      url: conteudo.url,
+      tipo_media: conteudo.tipo,
+      visto: false,
+      gratuito,
+      pago: !gratuito,
+      created_at: new Date()
+    };
 
-  gratuito,
-  pago: !gratuito, // ✅ CORRETO
-  
-
-  created_at: new Date()
-};
-
-
-    // 3️⃣ envia para sala
+    // 4️⃣ ENVIA EM TEMPO REAL
     io.to(sala).emit("newMessage", payload);
 
-    // 4️⃣ garante entrega direta
     const sidModelo = onlineModelos[modelo_id];
     if (sidModelo) io.to(sidModelo).emit("newMessage", payload);
 
     const sidCliente = onlineClientes[cliente_id];
     if (sidCliente) io.to(sidCliente).emit("newMessage", payload);
 
-    console.log("📦 Conteúdo entregue (sala + sockets)");
+    console.log("📦 Conteúdo enviado com ID:", messageId);
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
   }
   });
-  socket.on("conteudoVisto", async ({ cliente_id, modelo_id, conteudo_id }) => {
-  try {
-    // marca no banco
-    await db.query(`
-      UPDATE messages
-      SET visto = true
-      WHERE cliente_id = $1
-        AND modelo_id = $2
-        AND conteudo_id = $3
-    `, [cliente_id, modelo_id, conteudo_id]);
-
-    // avisa a modelo em tempo real
-    const sidModelo = onlineModelos[modelo_id];
-    if (sidModelo) {
-      io.to(sidModelo).emit("conteudoVisto", {
-        cliente_id,
-        conteudo_id
-      });
-    }
-  } catch (err) {
-    console.error("Erro marcar conteudo visto:", err);
-  }
-  });
-
 
 });
 
