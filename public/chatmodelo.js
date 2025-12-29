@@ -39,10 +39,6 @@ socket.on("newMessage", msg => {
   }
 });
 
-socket.on("chatMetaUpdate", data => {
-  atualizarListaComMeta(data);
-});
-
 socket.on("conteudoVisto", ({ message_id }) => {
   const el = document.querySelector(
     `.chat-conteudo[data-id="${message_id}"]`
@@ -52,18 +48,10 @@ socket.on("conteudoVisto", ({ message_id }) => {
     el.classList.remove("nao-visto");
     el.classList.add("visto");
   }
-});
-
-socket.on("mensagensLidas", ({ cliente_id }) => {
-  const li = [...document.querySelectorAll("#listaClientes li")]
-    .find(el => Number(el.dataset.clienteId) === cliente_id);
-
-  if (!li) return;
-
-  li.dataset.status = "normal";
-  li.querySelector(".badge").classList.add("hidden");
-
-  organizarListaClientes();
+    forEach(el => {
+      el.classList.remove("nao-visto");
+      el.classList.add("visto");
+    });
 });
 
 
@@ -110,31 +98,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 // FUNÇÕES
 // ===============================
-function atualizarListaComMeta({ cliente_id, modelo_id, sender, created_at }) {
-  const minhaRole = localStorage.getItem("role");
-
-  const li = [...document.querySelectorAll(".chat-item")]
-    .find(el =>
-      minhaRole === "cliente"
-        ? Number(el.dataset.modeloId) === modelo_id
-        : Number(el.dataset.clienteId) === cliente_id
-    );
-
-  if (!li) return;
-
-  // horário
-  li.dataset.lastTime = new Date(created_at).getTime();
-
-  // status
-  if (sender !== minhaRole) {
-    li.dataset.status = "por-responder";
-    li.querySelector(".badge").innerText = "Por responder";
-    li.querySelector(".badge").classList.remove("hidden");
-  }
-
-  organizarListaClientes?.();
-  organizarListaModelos?.();
-}
 
 async function carregarListaClientes() {
   const res = await fetch("/api/chat/modelo", {
@@ -386,10 +349,9 @@ let valorTexto  = "";
 let statusClasse = msg.visto ? "visto" : "nao-visto";
 
   div.innerHTML = `
-<div
+  <div
   class="chat-conteudo ${statusClasse}"
-  data-id="${msg.id}">
-
+  data-id="${msg.conteudo_id}">
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"
@@ -718,10 +680,3 @@ function abrirPreviewConteudo(url, tipo) {
 
   modal.classList.add("open");
 }
-
-setInterval(() => {
-  document
-    .querySelectorAll(".chat-item")
-    .forEach(li => atualizarBadgeComTempo(li));
-}, 60000); // a cada 1 min
-
