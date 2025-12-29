@@ -230,6 +230,11 @@ if (conteudoLivre) {
       conteudoLivre.dataset.url,
       conteudoLivre.dataset.tipo
     );
+     socket.emit("conteudoVisto", {
+    cliente_id,
+    modelo_id,
+    conteudo_id: msg.conteudo_id
+  });
   });
 }
 

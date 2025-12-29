@@ -670,6 +670,30 @@ const payload = {
     console.error("❌ Erro sendConteudo:", err);
   }
   });
+  socket.on("conteudoVisto", async ({ cliente_id, modelo_id, conteudo_id }) => {
+  try {
+    // marca no banco
+    await db.query(`
+      UPDATE messages
+      SET visto = true
+      WHERE cliente_id = $1
+        AND modelo_id = $2
+        AND conteudo_id = $3
+    `, [cliente_id, modelo_id, conteudo_id]);
+
+    // avisa a modelo em tempo real
+    const sidModelo = onlineModelos[modelo_id];
+    if (sidModelo) {
+      io.to(sidModelo).emit("conteudoVisto", {
+        cliente_id,
+        conteudo_id
+      });
+    }
+  } catch (err) {
+    console.error("Erro marcar conteudo visto:", err);
+  }
+  });
+
 
 });
 

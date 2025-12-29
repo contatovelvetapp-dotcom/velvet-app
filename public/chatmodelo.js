@@ -39,6 +39,14 @@ socket.on("newMessage", msg => {
   }
 });
 
+socket.on("conteudoVisto", ({ cliente_id, conteudo_id }) => {
+  document
+    .querySelectorAll(`.chat-conteudo[data-id="${conteudo_id}"]`)
+    .forEach(el => {
+      el.classList.remove("nao-visto");
+      el.classList.add("visto");
+    });
+});
 
 
 socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
