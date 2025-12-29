@@ -41,19 +41,25 @@ socket.on("chatMetaUpdate", data => {
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
 
-  // 1️⃣ Atualiza lista SEMPRE
+  // 🔁 lista sempre atualiza
   atualizarItemListaComNovaMensagem(msg);
 
-  // 2️⃣ Se for o chat ativo, renderiza
-if (
-  chatAtivo &&
-  Number(msg.cliente_id) === Number(chatAtivo.cliente_id) &&
-  Number(msg.modelo_id) === Number(chatAtivo.modelo_id)
-  ) {
-  renderMensagem(msg);
- }
+  // 🔥 se a mensagem é MINHA, renderiza direto
+  if (msg.sender === "cliente") {
+    renderMensagem(msg);
+    return;
+  }
 
+  // 🔥 se veio da modelo, renderiza se for o chat atual
+  if (
+    chatAtivo &&
+    Number(msg.cliente_id) === Number(chatAtivo.cliente_id) &&
+    Number(msg.modelo_id) === Number(chatAtivo.modelo_id)
+  ) {
+    renderMensagem(msg);
+  }
 });
+
 
 socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
   document.querySelectorAll("#listaModelos li").forEach(li => {
