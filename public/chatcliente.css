@@ -143,9 +143,9 @@ html, body {
   position: relative;
 }
 
-/* 🔮 MODELO (ESQUERDA) */
+/* 🔮 MODELO */
 .msg-modelo {
-  align-self: flex-start;
+  align-self: flex-end;
   background: #eceaf0;
   color: #020216;
   margin: 6px 8px;
@@ -153,9 +153,9 @@ html, body {
   box-shadow: 0 2px 8px rgba(123,44,255,0.25);
 }
 
-/* 💜 CLIENTE (DIREITA) */
+/* 💜 CLIENTE */
 .msg-cliente {
-  align-self: flex-end;
+  align-self: flex-start;
   background: linear-gradient(135deg, #7b2cff, #5d24be);
   color: #fff;
   margin: 6px 8px;

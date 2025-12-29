@@ -220,34 +220,34 @@ function renderMensagem(msg) {
   const div = document.createElement("div");
 
   div.className =
-    msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
+  msg.sender === "modelo"
+    ? "msg msg-modelo"   // 👉 direita
+    : "msg msg-cliente"; // 👉 esquerda
 
 if (msg.tipo === "conteudo") {
+  const preco = Number(msg.preco || 0);
+const gratuito = preco === 0;
 
-  const gratuito = Number(msg.preco) === 0;
+let statusClasse = "nao-visto";
+let mostrarInfo = false;
+let valorTexto  = "";
 
-  let statusClasse = "nao-visto";
-  let mostrarInfo = false;
-  let statusTexto = "";
-  let valorTexto  = "";
+// 🆓 GRATUITO → só verde, sem texto
+if (gratuito) {
+  statusClasse = "visto";
+}
 
-  // 🆓 GRATUITO → só verde (visto)
-  if (gratuito) {
-    statusClasse = "visto";
-  }
+// 💰 PAGO
+else if (msg.pago) {
+  statusClasse = "pago";
+  mostrarInfo = true;
+  valorTexto = `€ ${preco}`;
+}
 
-  // 💰 PAGO
-  else if (msg.pago) {
-    statusClasse = "pago";
-    mostrarInfo = true;
-    statusTexto = "Pago";
-    valorTexto  = `€ ${msg.preco}`;
-  }
-
-  // 👁️ visto mas não pago (caso exista depois)
-  else if (msg.visto) {
-    statusClasse = "visto";
-  }
+// 👁️ visto (caso exista depois)
+else if (msg.visto) {
+  statusClasse = "visto";
+}
 
   div.innerHTML = `
     <div class="chat-conteudo ${statusClasse}">

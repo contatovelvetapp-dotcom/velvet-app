@@ -631,7 +631,6 @@ socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
       console.warn("⚠️ Conteúdo não encontrado:", conteudo_id);
       return;
     }
-
     const gratuito = Number(preco) === 0;
 
 const payload = {
@@ -644,12 +643,12 @@ const payload = {
   url: conteudo.url,
   tipo_media: conteudo.tipo,
 
-  // 🔥 estado correto
-  pago: gratuito,
   gratuito,
+  pago: !gratuito, // ✅ CORRETO
 
   created_at: new Date()
 };
+
 
     // 3️⃣ envia para sala
     io.to(sala).emit("newMessage", payload);

@@ -182,13 +182,11 @@ function renderMensagem(msg) {
   const div = document.createElement("div");
 
   const minhaRole = localStorage.getItem("role"); // "cliente" | "modelo"
-
-  // 📍 alinhamento correto
   div.className =
-    msg.sender === minhaRole
-      ? "msg msg-cliente"
-      : "msg msg-modelo";
-
+  msg.sender === "modelo"
+    ? "msg msg-modelo"   // 👉 direita
+    : "msg msg-cliente"; // 👉 esquerda
+    
   /* ===============================
      📦 CONTEÚDO (IMAGEM / VÍDEO)
   =============================== */
