@@ -37,12 +37,14 @@ socket.on("chatHistory", mensagens => {
 
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
-  // sempre renderiza se for deste cliente
-  if (msg.cliente_id === cliente_id) {
+  if (
+    chatAtivo &&
+    msg.cliente_id === chatAtivo.cliente_id &&
+    msg.modelo_id === chatAtivo.modelo_id
+  ) {
     renderMensagem(msg);
   }
 });
-
 
 socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
   document.querySelectorAll("#listaModelos li").forEach(li => {
@@ -64,6 +66,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarCliente();
   await carregarListaModelos();
 
+    if (modelo_id) {
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+    socket.emit("joinChat", { sala });
+    socket.emit("getHistory", { cliente_id, modelo_id });
+  }
+  
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
   sendBtn.onclick = enviarMensagem;
@@ -86,7 +94,6 @@ async function carregarListaModelos() {
 
   const modelos = await res.json();
   const lista = document.getElementById("listaModelos");
-
   lista.innerHTML = "";
 
   if (!modelos.length) {
@@ -94,24 +101,33 @@ async function carregarListaModelos() {
     return;
   }
 
+  const unreadRes = await fetch("/api/chat/unread/cliente", {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const unreadIds = await unreadRes.json();
+
   modelos.forEach(m => {
-   const li = document.createElement("li");
-   li.className = "chat-item";
-   li.dataset.modeloId = m.modelo_id;
-   
-   li.innerHTML = `
-  <span class="nome">${m.nome}</span>
-  <span class="badge hidden">Não lida</span>
-  `;
+    const li = document.createElement("li");
+    li.className = "chat-item";
+    li.dataset.modeloId = m.modelo_id;
+
+    const temNaoLida = unreadIds.includes(m.modelo_id);
+
+    li.innerHTML = `
+      <span class="nome">${m.nome}</span>
+      <span class="badge ${temNaoLida ? "" : "hidden"}">Não lida</span>
+    `;
 
     li.onclick = () => {
       modelo_id = m.modelo_id;
       chatAtivo = { cliente_id, modelo_id };
-      const badge = li.querySelector(".badge");
 
-li.classList.remove("nao-lida");
-
+      mensagensRenderizadas.clear();
+      document.getElementById("chatBox").innerHTML = "";
       document.getElementById("modeloNome").innerText = m.nome;
+
+      li.querySelector(".badge")?.classList.add("hidden");
+      li.classList.remove("nao-lida");
 
       const sala = `chat_${cliente_id}_${modelo_id}`;
       socket.emit("joinChat", { sala });
@@ -120,18 +136,6 @@ li.classList.remove("nao-lida");
 
     lista.appendChild(li);
   });
-  const unreadRes = await fetch("/api/chat/unread/cliente", {
-  headers: { Authorization: "Bearer " + token }
-});
-const unreadIds = await unreadRes.json();
-
-document.querySelectorAll("#listaModelos li").forEach(li => {
-  if (unreadIds.includes(Number(li.dataset.modeloId))) {
-  li.classList.add("nao-lida");
-  li.querySelector(".badge").classList.remove("hidden");
-}
-});
-
 }
 
 async function carregarCliente() {
@@ -186,7 +190,7 @@ function renderMensagem(msg) {
   msg.sender === "modelo"
     ? "msg msg-modelo"   // 👉 direita
     : "msg msg-cliente"; // 👉 esquerda
-    
+
   /* ===============================
      📦 CONTEÚDO (IMAGEM / VÍDEO)
   =============================== */
