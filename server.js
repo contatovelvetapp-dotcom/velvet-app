@@ -1477,6 +1477,52 @@ app.post(
   upload.single("conteudo"),
   uploadConteudo
 );
+// ===============================
+// 🗑 EXCLUIR CONTEÚDO (MODELO)
+// ===============================
+app.delete(
+  "/api/conteudos/:id",
+  auth,
+  authModelo,
+  async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const result = await db.query(
+        `
+        SELECT url
+        FROM conteudos
+        WHERE id = $1 AND modelo_id = $2
+        `,
+        [id, req.user.id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Conteúdo não encontrado" });
+      }
+
+      const url = result.rows[0].url;
+
+      // 🔥 (opcional) remover do Cloudinary
+      // const publicId = ...
+      // await cloudinary.uploader.destroy(publicId);
+
+      await db.query(
+        `
+        DELETE FROM conteudos
+        WHERE id = $1 AND modelo_id = $2
+        `,
+        [id, req.user.id]
+      );
+
+      res.json({ success: true });
+
+    } catch (err) {
+      console.error("Erro ao excluir conteúdo:", err);
+      res.status(500).json({ error: "Erro interno" });
+    }
+  }
+);
 
 // ===============================
 // 🗑 EXCLUIR MIDIA (PERFIL MODELO)
