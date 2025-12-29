@@ -76,7 +76,7 @@ html, body {
 #listaClientes li {
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: #7d52d3;
+  background: #9a85bf;
   color: #fff;
   border-radius: 12px;
   cursor: pointer;
@@ -85,7 +85,7 @@ html, body {
 }
 
 #listaClientes li:hover {
-  background:#9a85bf;
+  background:#7d52d3;
 }
 
 /* =========================
