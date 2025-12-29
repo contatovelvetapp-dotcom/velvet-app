@@ -271,64 +271,62 @@ function renderMensagem(msg) {
   if (msg.tipo === "texto") {
     div.innerText = msg.text;
   }
-
-  // ===============================
-  // 📦 CONTEÚDO (imagem / vídeo)
-  // ===============================
   if (msg.tipo === "conteudo") {
 
-    // 🔓 CONTEÚDO LIBERADO
-    if (msg.url) {
-      div.innerHTML = `
-        <div class="chat-conteudo livre"
-             data-id="${msg.id}"
-             data-url="${msg.url}"
-             data-tipo="${msg.tipo_media}">
-          ${
-            msg.tipo_media === "video"
-              ? `<video src="${msg.url}" muted></video>`
-              : `<img src="${msg.url}" />`
-          }
-        </div>
-      `;
+  const liberado =
+    msg.gratuito === true ||
+    msg.pago === true ||
+    msg.visto === true;
 
-      const conteudo = div.querySelector(".chat-conteudo.livre");
-      conteudo.addEventListener("click", () => {
-        abrirConteudo(
-          conteudo.dataset.url,
-          conteudo.dataset.tipo
-        );
+  // 🔓 SÓ LIBERA SE A FLAG DISSER
+  if (liberado && msg.url) {
 
-        socket.emit("conteudoVisto", {
-          message_id: msg.id,
-          cliente_id,
-          modelo_id,
-          conteudo_id: msg.conteudo_id
-        });
+    div.innerHTML = `
+      <div class="chat-conteudo livre"
+           data-id="${msg.id}"
+           data-url="${msg.url}"
+           data-tipo="${msg.tipo_media}">
+        ${
+          msg.tipo_media === "video"
+            ? `<video src="${msg.url}" muted></video>`
+            : `<img src="${msg.url}" />`
+        }
+      </div>
+    `;
+
+    const conteudo = div.querySelector(".chat-conteudo.livre");
+
+    conteudo.addEventListener("click", () => {
+      abrirConteudo(conteudo.dataset.url, conteudo.dataset.tipo);
+
+      socket.emit("conteudoVisto", {
+        message_id: msg.id,
+        cliente_id,
+        modelo_id,
+        conteudo_id: msg.conteudo_id
       });
+    });
 
-    }
-    // 🔒 CONTEÚDO BLOQUEADO
-    else {
-      div.innerHTML = `
-        <div class="chat-conteudo bloqueado"
-             data-id="${msg.id}"
-             data-preco="${msg.preco}">
-          <div class="blur-fundo"></div>
-          <div class="overlay-conteudo">
-            <img src="/assets/lock.png" class="lock-icon" />
-            <div class="valor-conteudo">R$ ${msg.preco}</div>
-            <div class="conteudo-msg">Conteúdo bloqueado</div>
-          </div>
-        </div>
-      `;
-    }
   }
+  // 🔒 BLOQUEADO (SEMPRE)
+  else {
 
-  chat.appendChild(div);
+    div.innerHTML = `
+      <div class="chat-conteudo bloqueado"
+           data-id="${msg.id}"
+           data-preco="${msg.preco}">
+        <div class="blur-fundo"></div>
+        <div class="overlay-conteudo">
+          <img src="/assets/lock.png" class="lock-icon" />
+          <div class="valor-conteudo">R$ ${msg.preco}</div>
+          <div class="conteudo-msg">Conteúdo bloqueado</div>
+        </div>
+      </div>
+    `;
+  }
 }
-
-
+}
+  
 function marcarNaoVisto(msg) {
   document.querySelectorAll("#listaModelos li").forEach(li => {
     if (Number(li.dataset.modeloId) === msg.modelo_id) {
