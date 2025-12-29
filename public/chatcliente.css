@@ -17,28 +17,22 @@ html, body {
                'Helvetica Neue', Arial, sans-serif;
 }
 
-:root {
-  --velvet-main: #7B2CFF;
-  --velvet-dark: #5D24BE;
-  --velvet-soft: #EFE5FF;
-
-  --text-dark: #1f1f2e;
-  --text-light: #ffffff;
-  --text-muted: #6b6b85;
-}
-
-
 /* =========================
    PÁGINA PRINCIPAL
 ========================= */
-.chat-header strong,
-.painel-header,
-#tituloConversas {
-  color: var(--velvet-main);
+.chat-header strong {
+  color: #7B2CFF;               /* 💜 roxo Velvet */
+  font-weight: 600;
 }
-.text-muted {
-  color: var(--text-muted);
-  font-size: 12px;
+
+#tituloConversas {
+  font-size: 20px;
+  font-weight: 600;
+  color: #7B2CFF;               /* 💜 roxo Velvet */
+}
+
+#tituloConversas span {
+  font-weight: 700;
 }
 
 .pagina-chat {
@@ -153,46 +147,37 @@ html, body {
 /* =========================
    MENSAGENS (WHATSAPP STYLE)
 ========================= */
+
 .msg {
   max-width: 70%;
-  padding: 9px 14px;
-  border-radius: 16px;
-
+  padding: 8px 12px;
+  border-radius: 14px;
   font-size: 13px;
-  line-height: 1.45;
-
+  line-height: 1.4;
   width: fit-content;
   word-wrap: break-word;
-
-  color: var(--text-dark);
+  position: relative;
 }
-
 
 /* 🔮 MODELO */
 .msg-modelo {
   align-self: flex-start;
-  background: var(--velvet-soft);
-  color: var(--text-dark);
+  background: #7d52d3;
+  color: #000;
   margin: 6px 8px;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 3px 10px rgba(123, 44, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(123,44,255,0.25);
 }
-
 
 /* 💜 CLIENTE */
 .msg-cliente {
   align-self: flex-end;
-  background: linear-gradient(
-    135deg,
-    var(--velvet-main),
-    var(--velvet-dark)
-  );
-  color: var(--text-light);
+  background: #9a85bf;
+  color: #000;
   margin: 6px 8px;
   border-bottom-right-radius: 4px;
-  box-shadow: 0 4px 14px rgba(123, 44, 255, 0.45);
+  box-shadow: 0 2px 10px rgba(123,44,255,0.45);
 }
-
 
 /* ITEM NORMAL */
 .chat-item {
@@ -208,12 +193,17 @@ html, body {
 
 /* NÃO LIDA */
 .chat-item.nao-lida {
-  background: var(--velvet-soft);
+  background: #efe5ff;
+  font-weight: 600;
 }
 
+/* BADGE */
 .chat-item .badge {
-  background: var(--velvet-main);
+  background: #7B2CFF;
   color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 
