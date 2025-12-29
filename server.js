@@ -543,7 +543,7 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   if (!socket.user) return;
 
   try {
-    // 1️⃣ Limpa "não visto" APENAS para quem abriu o chat
+    // 1️⃣ limpa não-visto
     await db.query(
       `
       UPDATE unread
@@ -555,52 +555,51 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
       [cliente_id, modelo_id, socket.user.role]
     );
 
-    // 2️⃣ Busca histórico
-const result = await db.query(
-  `
-  SELECT
-    m.id,
-    m.cliente_id,
-    m.modelo_id,
-    m.sender,
-    m.tipo,
-    m.text,
-    m.preco,
-    m.conteudo_id,
-    m.visto,  
-    m.created_at,
+    // 2️⃣ histórico com regra por role
+    const result = await db.query(
+      `
+      SELECT
+        m.id,
+        m.cliente_id,
+        m.modelo_id,
+        m.sender,
+        m.tipo,
+        m.text,
+        m.preco,
+        m.conteudo_id,
+        m.visto,
+        m.created_at,
 
-    CASE
-  WHEN m.preco = 0 OR m.visto = true
-  THEN c.url
-  ELSE NULL
-  END AS url,
+        CASE
+          WHEN $3 = 'modelo'
+            THEN c.url
+          WHEN m.preco = 0 OR m.visto = true
+            THEN c.url
+          ELSE NULL
+        END AS url,
 
-  c.tipo AS tipo_media,
+        c.tipo AS tipo_media,
 
-  (m.preco = 0) AS gratuito,
-  (m.visto = true) AS pago
+        (m.preco = 0) AS gratuito,
+        (m.visto = true) AS pago
 
+      FROM messages m
+      LEFT JOIN conteudos c
+        ON c.id = m.conteudo_id
+      WHERE m.cliente_id = $1
+        AND m.modelo_id = $2
+      ORDER BY m.created_at ASC
+      `,
+      [cliente_id, modelo_id, socket.user.role] // 🔥 ESSENCIAL
+    );
 
-  FROM messages m
-  LEFT JOIN conteudos c
-    ON c.id = m.conteudo_id
-
-  WHERE m.cliente_id = $1
-    AND m.modelo_id = $2
-
-  ORDER BY m.created_at ASC
-  `,
-  [cliente_id, modelo_id]
-);
-
-    // 3️⃣ Envia histórico ao front
+    // 3️⃣ envia histórico
     socket.emit("chatHistory", result.rows);
 
   } catch (err) {
     console.error("❌ Erro getHistory:", err);
   }
-  });
+});
 
   // 👁️ CONTEÚDO VISTO PELO CLIENTE
 socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
