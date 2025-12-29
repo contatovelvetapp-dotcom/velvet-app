@@ -570,11 +570,16 @@ const result = await db.query(
     m.visto,  
     m.created_at,
 
-    c.url,
-    c.tipo AS tipo_media,
+    CASE
+  WHEN m.preco = 0 OR m.visto = true
+  THEN c.url
+  ELSE NULL
+  END AS url,
 
-    (m.preco = 0) AS gratuito,
-    (m.visto = true) AS pago
+  c.tipo AS tipo_media,
+
+  (m.preco = 0) AS gratuito,
+  (m.visto = true) AS pago
 
 
   FROM messages m

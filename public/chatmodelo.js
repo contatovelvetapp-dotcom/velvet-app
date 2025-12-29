@@ -33,10 +33,11 @@ socket.on("chatHistory", mensagens => {
 
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
-  if (msg.modelo_id === modelo_id) {
-    renderMensagem(msg);
-    atualizarStatusPorResponder([msg]);
-  }
+  if (!cliente_id) return;
+  if (Number(msg.cliente_id) !== Number(cliente_id)) return;
+
+  renderMensagem(msg);
+  atualizarStatusPorResponder([msg]);
 });
 
 socket.on("conteudoVisto", ({ message_id }) => {
