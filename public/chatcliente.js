@@ -176,11 +176,11 @@ if (item) {
 }
 
 function renderMensagem(msg) {
-  // 🔒 evita duplicação
-  if (mensagensRenderizadas.has(msg.id)) return;
-  mensagensRenderizadas.add(msg.id);
+const msgKey = msg.id ?? `${msg.sender}-${msg.created_at}`;
+if (mensagensRenderizadas.has(msgKey)) return;
 
-  const chat = document.getElementById("chatBox");
+mensagensRenderizadas.add(msgKey);
+const chat = document.getElementById("chatBox");
   if (!chat) return;
 
   const div = document.createElement("div");
