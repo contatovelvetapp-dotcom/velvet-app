@@ -168,7 +168,6 @@ html, body {
 
 /* BADGE */
 .chat-item .badge {
-  background: #7B2CFF;
   color: #fff;
   margin-left: auto;    
   white-space: nowrap;
