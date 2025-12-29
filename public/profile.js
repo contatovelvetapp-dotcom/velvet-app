@@ -203,6 +203,60 @@ function iniciarBioPopup() {
   btnFecharPopup.onclick = () => popupBio.classList.add("hidden");
 }
 
+// ===============================
+// UPLOAD AVATAR
+// ===============================
+inputAvatar?.addEventListener("change", async () => {
+  const file = inputAvatar.files[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("avatar", file);
+
+  const res = await fetch("/uploadAvatar", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    body: fd
+  });
+
+  const data = await res.json();
+
+  if (data.url) {
+    avatarImg.src = data.url; // 🔥 atualiza na hora
+  } else {
+    alert("Erro ao atualizar avatar");
+  }
+});
+
+// ===============================
+// UPLOAD CAPA
+// ===============================
+inputCapa?.addEventListener("change", async () => {
+  const file = inputCapa.files[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("capa", file);
+
+  const res = await fetch("/uploadCapa", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    body: fd
+  });
+
+  const data = await res.json();
+
+  if (data.url) {
+    capaImg.src = data.url; // 🔥 atualiza na hora
+  } else {
+    alert("Erro ao atualizar capa");
+  }
+});
+
 btnSalvarBio?.addEventListener("click", async () => {
   const bio = bioInput.value.trim();
   if (!bio) return;
