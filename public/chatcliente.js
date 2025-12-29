@@ -34,9 +34,17 @@ socket.on("chatHistory", mensagens => {
   atualizarStatusPorResponder(mensagens);
 });
 
+socket.on("chatMetaUpdate", data => {
+  atualizarListaComMeta(data);
+});
 
 // 💬 NOVA MENSAGEM
 socket.on("newMessage", msg => {
+
+  // 1️⃣ Atualiza lista SEMPRE
+  atualizarItemListaComNovaMensagem(msg);
+
+  // 2️⃣ Se for o chat ativo, renderiza
   if (
     chatAtivo &&
     msg.cliente_id === chatAtivo.cliente_id &&
@@ -96,6 +104,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 // FUNÇÕES
 // ===============================
+function atualizarListaComMeta({ cliente_id, modelo_id, sender, created_at }) {
+  const minhaRole = localStorage.getItem("role");
+
+  const li = [...document.querySelectorAll(".chat-item")]
+    .find(el =>
+      minhaRole === "cliente"
+        ? Number(el.dataset.modeloId) === modelo_id
+        : Number(el.dataset.clienteId) === cliente_id
+    );
+
+  if (!li) return;
+
+  // horário
+  li.dataset.lastTime = new Date(created_at).getTime();
+
+  // status
+  if (sender !== minhaRole) {
+    li.dataset.status = "por-responder";
+    li.querySelector(".badge").innerText = "Por responder";
+    li.querySelector(".badge").classList.remove("hidden");
+  }
+
+  organizarListaClientes?.();
+  organizarListaModelos?.();
+}
+
 async function carregarListaModelos() {
   const res = await fetch("/api/chat/cliente", {
     headers: { Authorization: "Bearer " + token }
@@ -161,6 +195,27 @@ async function carregarCliente() {
   document.getElementById("clienteNomeTitulo").innerText = data.nome;
 
   socket.emit("loginCliente", cliente_id);
+}
+
+function atualizarItemListaComNovaMensagem(msg) {
+  const li = [...document.querySelectorAll("#listaModelos li")]
+    .find(el => Number(el.dataset.modeloId) === msg.modelo_id);
+
+  if (!li) return;
+
+  // status
+  li.dataset.status = "nao-lida";
+
+  // badge
+  const badge = li.querySelector(".badge");
+  badge.innerText = "Não lida";
+  badge.classList.remove("hidden");
+
+  // horário
+  li.dataset.lastTime = Date.now();
+
+  // reorder
+  organizarListaModelos?.();
 }
 
 
@@ -359,4 +414,11 @@ document.addEventListener("click", e => {
     fecharConteudo();
   }
 });
+
+setInterval(() => {
+  document
+    .querySelectorAll(".chat-item")
+    .forEach(li => atualizarBadgeComTempo(li));
+}, 60000); // a cada 1 min
+
 

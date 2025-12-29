@@ -513,6 +513,14 @@ const messageId = result.rows[0].id;
 
     console.log("💾 Mensagem salva e enviada:", sala);
 
+   io.emit("chatMetaUpdate", {
+   cliente_id,
+   modelo_id,
+   sender,
+   created_at: new Date()
+   });
+
+
   } catch (err) {
     console.error("🔥 ERRO AO SALVAR MENSAGEM:", err);
   }
