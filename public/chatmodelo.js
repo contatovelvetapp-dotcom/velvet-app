@@ -71,15 +71,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   sendBtn.onclick = enviarMensagem;
 
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      enviarMensagem();
-    }
+    input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // 🚫 impede quebra de linha
+    enviarMensagem();
+  }
   });
+});
 
   // 🔥 AQUI — sempre ativo
   btnConteudo.onclick = abrirPopupConteudos;
-});
 
 // ===============================
 // FUNÇÕES

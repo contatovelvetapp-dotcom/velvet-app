@@ -76,12 +76,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const input   = document.getElementById("messageInput");
   sendBtn.onclick = enviarMensagem;
 
-  input.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
+ input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // 🚫 impede quebra de linha
     enviarMensagem();
   }
 });
 });
+
 
 
 // ===============================
