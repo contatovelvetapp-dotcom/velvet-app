@@ -637,15 +637,69 @@ html, body {
 }
 
 .chat-header #chatNome {
-  color: var(--velvet-roxo) !important;
-  font-weight: 600;
+  color: #7B2CFF !important;
 }
 
+/* ===============================
+   💬 CHAT INPUT — IGUAL CHATCLIENTE
+=============================== */
 
+.chat-area {
+  position: relative;
+}
 
+/* barra fixa embaixo */
+.chat-input {
+  position: sticky;
+  bottom: 0;
 
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
+  padding: 12px;
+  margin-top: auto;
 
+  background: linear-gradient(
+    to top,
+    rgba(255,255,255,0.98),
+    rgba(255,255,255,0.92)
+  );
 
+  border-top: 1px solid #e2d9ff;
+  backdrop-filter: blur(6px);
+}
 
+/* input */
+#msgInput {
+  flex: 1;
+  height: 42px;
+  padding: 10px 16px;
 
+  border-radius: 22px;
+  border: 1px solid #b9a9e6;
+
+  font-size: 13px;
+  outline: none;
+}
+
+#msgInput:focus {
+  border-color: #7B2CFF;
+  box-shadow: 0 0 0 2px rgba(123,44,255,0.15);
+}
+
+/* botão enviar */
+#sendBtn {
+  height: 42px;
+  padding: 0 22px;
+
+  border-radius: 22px;
+  border: none;
+
+  background: linear-gradient(135deg, #7b2cff, #5d24be);
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
