@@ -492,7 +492,7 @@ html, body {
 /* container da mídia */
 .chat-conteudo .conteudo-media {
   width: 100%;
-  aspect-ratio: 2 / 2;
+  aspect-ratio: 5 / 2;
   overflow: hidden;
 }
 
@@ -561,6 +561,14 @@ html, body {
   padding: 0 !important;
   border-radius: 0 !important;
   max-width: unset !important;
+}
+
+.msg:has(.chat-conteudo) {
+  align-self: flex-start; /* modelo */
+}
+
+.msg-cliente:has(.chat-conteudo) {
+  align-self: flex-end;   /* cliente */
 }
 
 
