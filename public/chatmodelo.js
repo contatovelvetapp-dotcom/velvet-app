@@ -331,57 +331,35 @@ if (item) {
   input.value = "";
 }
 
-function renderMensagem(msg) {
-  const chat = document.getElementById("chatBox");
-  if (!chat) return;
-
-  const div = document.createElement("div");
-
-  div.className =
-    msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
-
 if (msg.tipo === "conteudo") {
-  const preco = Number(msg.preco || 0);
- const gratuito = preco === 0;
+  const bloqueado = msg.bloqueado === true;
+  const vendido   = msg.visto === true;
 
-let mostrarInfo = false;
-let valorTexto  = "";
-let statusClasse = msg.visto ? "visto" : "nao-visto";
+  let classeEstado = "nao-visto";
+  if (vendido) classeEstado = "visto";
+  if (bloqueado && !vendido) classeEstado = "bloqueado";
 
   div.innerHTML = `
-  <div
-<div
-  class="chat-conteudo ${statusClasse}"
-  data-id="${msg.id}">
+    <div class="chat-conteudo ${classeEstado}" data-id="${msg.id}">
       <div class="conteudo-media">
         ${
           msg.tipo_media === "video"
-            ? `<video src="${msg.url}" muted playsinline preload="metadata"></video>`
-            : `<img src="${msg.url}" loading="lazy" />`
+            ? `<video src="${msg.url}" muted></video>`
+            : `<img src="${msg.url}" />`
         }
       </div>
 
-      ${
-        mostrarInfo
-          ? `
-            <div class="conteudo-info">
-              <span class="status-cliente">${statusTexto}</span>
-              <div class="valor-conteudo">${valorTexto}</div>
-            </div>
-          `
-          : ``
-      }
+      <div class="conteudo-info">
+        ${
+          bloqueado && !vendido
+            ? `<span class="status-cliente">Bloqueado</span>`
+            : `<span class="status-cliente">Comprado</span>`
+        }
+        <div class="valor-conteudo">R$ ${msg.preco}</div>
+      </div>
     </div>
   `;
 }
-    // 💬 TEXTO NORMAL
-    else {
-    div.textContent = msg.text;
-    }
-
-   chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
 
 
 function atualizarStatusPorResponder(mensagens) {

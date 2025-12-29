@@ -511,6 +511,13 @@ const messageId = result.rows[0].id;
   created_at: new Date()
 });
 
+// 🔥 garante atualização imediata da modelo
+const sidModelo = onlineModelos[modelo_id];
+if (sidModelo) {
+  io.to(sidModelo).emit("newMessage", payload);
+}
+
+
  // 7️⃣ META UPDATE (status / horário)
  io.emit("chatMetaUpdate", {
   cliente_id,
@@ -635,7 +642,7 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
     const gratuito = Number(preco) === 0;
 
 // 🔒 cliente só recebe URL se gratuito
-const payload = {
+const payloadCliente = {
   id: messageId,
   cliente_id,
   modelo_id,
@@ -643,7 +650,7 @@ const payload = {
   tipo: "conteudo",
   conteudo_id,
   preco,
-  url: gratuito ? conteudo.url : null, // 🔥 BLOQUEIO REAL
+  url: gratuito ? conteudo.url : null, // 🔒 cliente
   tipo_media: conteudo.tipo,
   visto: false,
   gratuito,
@@ -651,7 +658,29 @@ const payload = {
   created_at: new Date()
 };
 
-io.to(sala).emit("newMessage", payload);
+const payloadModelo = {
+  id: messageId,
+  cliente_id,
+  modelo_id,
+  sender: "modelo",
+  tipo: "conteudo",
+  conteudo_id,
+  preco,
+  url: conteudo.url,          // 🔥 modelo SEMPRE vê
+  tipo_media: conteudo.tipo,
+  visto: false,
+  gratuito,
+  pago: false,
+  bloqueado: !gratuito,       // 🔥 flag clara
+  created_at: new Date()
+};
+
+io.to(sala).emit("newMessage", payloadCliente);
+
+const sidModelo = onlineModelos[modelo_id];
+if (sidModelo) {
+  io.to(sidModelo).emit("newMessage", payloadModelo);
+}
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
