@@ -192,7 +192,7 @@ html, body {
 }
 
 /* NÃO LIDA */
-.chat-item.nao-lida {
+.chat-item.nao-visto {
   background: #efe5ff;
   font-weight: 600;
 }

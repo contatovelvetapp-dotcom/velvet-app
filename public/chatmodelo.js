@@ -54,9 +54,9 @@ socket.on("conteudoVisto", ({ message_id }) => {
 socket.on("unreadUpdate", ({ cliente_id, modelo_id }) => {
   document.querySelectorAll("#listaClientes li").forEach(li => {
     if (Number(li.dataset.clienteId) === cliente_id) {
-      li.dataset.status = "nao-lida";
+      li.dataset.status = "nao-visto";
       const badge = li.querySelector(".badge");
-      badge.innerText = "Não lida";
+      badge.innerText = "Não visto";
       badge.classList.remove("hidden");
       
       organizarListaClientes();
@@ -121,12 +121,12 @@ async function carregarListaClientes() {
       : 0;
 
     // 📌 status vindo do backend
-    // esperado: "novo" | "nao-lida" | "por-responder" | "normal"
+    // esperado: "novo" | "nao-visto" | "por-responder" | "normal"
     li.dataset.status = c.status || "normal";
 
     li.innerHTML = `
       <span class="nome">${c.nome}</span>
-      <span class="badge hidden">Não lida</span>
+      <span class="badge hidden">Não visto</span>
       <span class="tempo"></span>
     `;
 
@@ -189,7 +189,7 @@ function organizarListaClientes() {
 
   const prioridade = {
     "novo": 1,
-    "nao-lida": 2,
+    "nao-visto": 2,
     "por-responder": 3,
     "normal": 4
   };
@@ -224,8 +224,8 @@ function atualizarBadgeComTempo(li) {
     badge.innerText = "Novo";
     badge.classList.remove("hidden");
   }
-  else if (status === "nao-lida") {
-    badge.innerText = "Não lida";
+  else if (status === "nao-visto") {
+    badge.innerText = "Não visto";
     badge.classList.remove("hidden");
   }
   else if (status === "por-responder") {
@@ -285,9 +285,9 @@ async function aplicarUnreadModelo() {
 
   document.querySelectorAll("#listaClientes li").forEach(li => {
     if (unreadIds.includes(Number(li.dataset.clienteId))) {
-    li.dataset.status = "nao-lida";
+    li.dataset.status = "nao-visto";
     const badge = li.querySelector(".badge");
-    badge.innerText = "Não lida";
+    badge.innerText = "Não visto";
     badge.classList.remove("hidden");
     }
   });
@@ -397,8 +397,8 @@ function atualizarStatusPorResponder(mensagens) {
   const badge = item.querySelector(".badge");
   let mudou = false;
 
-  // 🚫 nunca sobrepor "novo" ou "nao-lida"
-  if (item.dataset.status === "novo" || item.dataset.status === "nao-lida") {
+  // 🚫 nunca sobrepor "novo" ou "nao-visto"
+  if (item.dataset.status === "novo" || item.dataset.status === "nao-visto") {
     return;
   }
 
@@ -493,7 +493,7 @@ function organizarListaClientes() {
 
   const prioridadeStatus = {
     "novo": 1,
-    "nao-lida": 2,
+    "nao-visto": 2,
     "por-responder": 3,
     "normal": 4
   };
@@ -518,7 +518,7 @@ function atualizarBadgeComTempo(li) {
   const badge = li.querySelector(".badge");
   if (!badge) return;
 
-  // só mostra tempo se NÃO for novo / não lida / por responder
+  // só mostra tempo se NÃO for novo / não visto / por responder
   if (li.dataset.status === "normal") {
     const texto = formatarTempo(li.dataset.lastTime);
     if (texto) {

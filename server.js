@@ -439,7 +439,7 @@ socket.on("sendMessage", async ({ cliente_id, modelo_id, text }) => {
     console.log("❌ Socket sem usuário");
     return;
   }
-
+  
   // 🔒 segurança por role
   if (socket.user.role === "cliente" && socket.user.id !== cliente_id) return;
   if (socket.user.role === "modelo"  && socket.user.id !== modelo_id) return;
@@ -511,19 +511,6 @@ const messageId = result.rows[0].id;
   created_at: new Date()
 });
 
-// 5️⃣ ENVIA DIRETO PARA O CLIENTE (LISTA / CHAT FECHADO)
-const sidCliente = onlineClientes[cliente_id];
-if (sidCliente) {
-  io.to(sidCliente).emit("newMessage", {
-    id: messageId,
-    cliente_id,
-    modelo_id,
-    sender,
-    text,
-    created_at: new Date()
-  });
-}
-
  // 7️⃣ META UPDATE (status / horário)
  io.emit("chatMetaUpdate", {
   cliente_id,
@@ -542,7 +529,7 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   if (!socket.user) return;
 
   try {
-    // 1️⃣ Limpa "não lida" APENAS para quem abriu o chat
+    // 1️⃣ Limpa "não visto" APENAS para quem abriu o chat
     await db.query(
       `
       UPDATE unread
@@ -594,37 +581,6 @@ const result = await db.query(
     console.error("❌ Erro getHistory:", err);
   }
   });
-socket.on("mensagensLidas", async ({ cliente_id, modelo_id }) => {
-  try {
-    // 🔒 GARANTIA: só cliente pode marcar leitura
-    if (!socket.user || socket.user.role !== "cliente") {
-      return;
-    }
-
-    // marca como lidas APENAS mensagens da MODELO
-    await db.query(
-      `
-      UPDATE messages
-      SET lida = true
-      WHERE cliente_id = $1
-        AND modelo_id = $2
-        AND sender = 'modelo'
-        AND lida = false
-      `,
-      [cliente_id, modelo_id]
-    );
-
-    // 🔔 avisa a MODELO (✓✓)
-    const sid = onlineModelos[modelo_id];
-    if (sid) {
-      io.to(sid).emit("mensagensLidas", {
-        cliente_id
-      });
-    }
-  } catch (err) {
-    console.error("Erro ao marcar mensagens como lidas:", err);
-  }
-  });
 
   // 👁️ CONTEÚDO VISTO PELO CLIENTE
 socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
@@ -636,23 +592,6 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
       `UPDATE messages SET visto = true WHERE id = $1`,
       [message_id]
     );
-
-    // 2️⃣ BUSCA O SOCKET DA MODELO (🔥 FALTAVA ISSO)
-    const sidModelo = onlineModelos[modelo_id];
-
-    // 3️⃣ avisa a modelo (tempo real)
-    if (sidModelo) {
-      io.to(sidModelo).emit("conteudoVisto", {
-        message_id,
-        visto: true
-      });
-    }
-
-    // 4️⃣ (opcional, mas recomendado) envia para a sala
-    io.to(`chat_${cliente_id}_${modelo_id}`).emit("conteudoVisto", {
-      message_id,
-      visto: true
-    });
 
     console.log("👁️ Conteúdo marcado como visto:", message_id);
 
@@ -712,20 +651,7 @@ socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
       created_at: new Date()
     };
     
- // 1️⃣ envia para a sala (chat aberto)
  io.to(sala).emit("newMessage", payload);
-
- // 2️⃣ envia DIRETO para o cliente (lista em tempo real)
- const sidCliente = onlineClientes[cliente_id];
- if (sidCliente) {
-  io.to(sidCliente).emit("newMessage", payload);
- }
-
- // 3️⃣ envia DIRETO para a modelo (lista em tempo real)
- const sidModelo = onlineModelos[modelo_id];
- if (sidModelo) {
-  io.to(sidModelo).emit("newMessage", payload);
- }
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
@@ -1227,7 +1153,7 @@ app.put("/api/modelo/bio", authModelo, async (req, res) => {
     const { bio } = req.body;
 
     if (!bio || typeof bio !== "string") {
-      return res.status(400).json({ error: "Bio inválida" });
+      return res.status(400).json({ error: "Bio invávisto" });
     }
 
     await db.query(
@@ -1706,7 +1632,7 @@ app.post("/api/vip/ativar", auth, async (req, res) => {
 
     const { modelo_id } = req.body;
     if (!modelo_id) {
-      return res.status(400).json({ error: "Modelo inválida" });
+      return res.status(400).json({ error: "Modelo invávisto" });
     }
 
     // evita duplicar

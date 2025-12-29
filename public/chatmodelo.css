@@ -166,12 +166,6 @@ html, body {
   transition: background 0.2s;
 }
 
-/* NÃO LIDA */
-.chat-item.nao-lida {
-  background: #efe5ff;
-  font-weight: 600;
-}
-
 /* BADGE */
 .chat-item .badge {
   background: #7B2CFF;
@@ -198,10 +192,6 @@ html, body {
 
 .chat-item.novo {
   background: rgba(0, 200, 83, 0.08);
-}
-
-.msg.modelo.lida {
-  opacity: 0.6;
 }
 
 .chat-item[data-status="visto"] .badge {
@@ -516,15 +506,17 @@ html, body {
 }
 
 /* estados */
-/* CINZA — não visto */
+
 .chat-conteudo.nao-visto {
   background: #a19f9f79;
+  filter: grayscale(100%);
+  opacity: 0.55;
 }
 
-/* VERDE — visto ou pago */
-.chat-conteudo.visto,
-.chat-conteudo.pago {
-  background: #00c878;
+.chat-conteudo.visto {
+  filter: none;
+  opacity: 1;
+  box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.6);
 }
 
 /* preço */

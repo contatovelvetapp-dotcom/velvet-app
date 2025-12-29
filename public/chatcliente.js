@@ -47,7 +47,7 @@ socket.on("newMessage", msg => {
   // ✅ renderiza sempre no chat aberto
   renderMensagem(msg);
 
-  // ❗ SÓ marca "Não lida" se EU NÃO fui quem enviou
+  // ❗ SÓ marca "Não visto" se EU NÃO fui quem enviou
   if (msg.sender !== "cliente") {
     atualizarItemListaComNovaMensagem(msg);
   }
@@ -73,10 +73,10 @@ socket.on("unreadUpdate", ({ cliente_id, modelo_id, unread }) => {
 
   if (!li) return;
 
-  li.classList.add("nao-lida");
+  li.classList.add("nao-visto");
 
   const badge = li.querySelector(".badge");
-  badge.innerText = "Não lida";
+  badge.innerText = "Não visto";
   badge.classList.remove("hidden");
 });
 
@@ -161,11 +161,11 @@ async function carregarListaModelos() {
     li.className = "chat-item";
     li.dataset.modeloId = m.modelo_id;
 
-    const temNaoLida = unreadIds.includes(m.modelo_id);
+    const temNaoVisto = unreadIds.includes(m.modelo_id);
 
     li.innerHTML = `
       <span class="nome">${m.nome}</span>
-      <span class="badge ${temNaoLida ? "" : "hidden"}">Não lida</span>
+      <span class="badge ${temNaoVisto ? "" : "hidden"}">Não visto</span>
     `;
 
     li.onclick = () => {
@@ -180,7 +180,7 @@ async function carregarListaModelos() {
       }
 
       li.querySelector(".badge")?.classList.add("hidden");
-      li.classList.remove("nao-lida");
+      li.classList.remove("nao-visto");
 
       const sala = `chat_${cliente_id}_${modelo_id}`;
       socket.emit("joinChat", { sala });
@@ -206,7 +206,7 @@ async function carregarCliente() {
 
 function atualizarItemListaComNovaMensagem(msg) {
 
-  // 🚫 cliente NÃO marca Não lida para mensagens dele mesmo
+  // 🚫 cliente NÃO marca Não visto para mensagens dele mesmo
   if (msg.sender === "cliente") return;
 
   const li = [...document.querySelectorAll("#listaModelos li")]
@@ -214,10 +214,10 @@ function atualizarItemListaComNovaMensagem(msg) {
 
   if (!li) return;
 
-  li.dataset.status = "nao-lida";
+  li.dataset.status = "nao-visto";
 
   const badge = li.querySelector(".badge");
-  badge.innerText = "Não lida";
+  badge.innerText = "Não visto";
   badge.classList.remove("hidden");
 
   li.dataset.lastTime = Date.now();
@@ -341,10 +341,10 @@ if (conteudo) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function marcarNaoLida(msg) {
+function marcarNaoVisto(msg) {
   document.querySelectorAll("#listaModelos li").forEach(li => {
     if (Number(li.dataset.modeloId) === msg.modelo_id) {
-      li.classList.add("nao-lida");
+      li.classList.add("nao-visto");
       li.querySelector(".badge").classList.remove("hidden");
     }
   });
@@ -383,12 +383,12 @@ function atualizarStatusPorResponder(mensagens) {
   if (ultima.sender !== minhaRole) {
     badge.innerText = "Por responder";
     badge.classList.remove("hidden");
-    item.classList.remove("nao-lida");
+    item.classList.remove("nao-visto");
   }
   // ✅ última mensagem foi minha → limpa tudo
   else {
     badge.classList.add("hidden");
-    item.classList.remove("nao-lida");
+    item.classList.remove("nao-visto");
   }
 }
 
