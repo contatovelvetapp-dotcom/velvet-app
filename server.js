@@ -1492,7 +1492,7 @@ app.delete(
         `
         SELECT url
         FROM conteudos
-        WHERE id = $1 AND modelo_id = $2
+        WHERE id = $1 AND user_id = $2
         `,
         [id, req.user.id]
       );
@@ -1501,16 +1501,10 @@ app.delete(
         return res.status(404).json({ error: "Conteúdo não encontrado" });
       }
 
-      const url = result.rows[0].url;
-
-      // 🔥 (opcional) remover do Cloudinary
-      // const publicId = ...
-      // await cloudinary.uploader.destroy(publicId);
-
       await db.query(
         `
         DELETE FROM conteudos
-        WHERE id = $1 AND modelo_id = $2
+        WHERE id = $1 AND user_id = $2
         `,
         [id, req.user.id]
       );
