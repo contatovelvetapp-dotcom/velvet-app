@@ -128,60 +128,6 @@ h1 {
   transform: scale(1.1);
 }
 
-/* =========================
-   MODAL PREMIUM (FINAL)
-========================= */
-
-.modal-premium {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 80px; /* 🔥 evita ficar atrás do header */
-}
-
-.modal-premium.hidden {
-  display: none;
-}
-
-/* fundo escuro */
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
-}
-
-/* container central */
-.modal-container {
-  position: relative;
-  z-index: 1;
-  max-width: 92vw;
-  max-height: calc(100vh - 100px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: modalZoom 0.25s ease;
-}
-
-.modal-container img,
-.modal-container video {
-  width: auto;
-  height: auto;
-
-  /* 🔥 LIMITES CONFORTÁVEIS */
-  max-width: 100vh;    /* não ocupa tudo na horizontal */
-  max-height: 95vh;   /* não ocupa tudo na vertical */
-
-  object-fit: contain;  /* mostra a foto inteira */
-  aspect-ratio: auto !important;
-
-  border-radius: 18px;
-  background: #000;
-  box-shadow: 0 25px 70px rgba(0,0,0,0.7);
-}
 
 /* BOTÃO ESCOLHER FICHEIRO */
 .btn-file {
@@ -199,16 +145,43 @@ h1 {
   color: #fff;
 }
 
+.modalMidia {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9999999;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-/* animação */
-@keyframes modalZoom {
-  from {
-    transform: scale(0.92);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.modalMidia.hidden {
+  display: none;
+}
+
+.modalContentWrapper {
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalMidiaContent {
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #000;
+}
+
+.modalClose {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  font-size: 34px;
+  color: #fff;
+  cursor: pointer;
+  z-index: 10000000;
 }

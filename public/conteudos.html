@@ -54,16 +54,14 @@
 <div id="listaConteudos" class="grid-conteudos"></div>
 </section>
 </main>
-<!-- MODAL PREMIUM -->
-<div id="modalConteudo" class="modal-premium hidden">
-  <div class="modal-backdrop" onclick="fecharModal()"></div>
+<div id="modalMidia" class="modalMidia hidden">
+  <span id="fecharModal" class="modalClose">×</span>
 
-  <div class="modal-container">
-    <img id="modalImg" />
-    <video id="modalVideo" controls></video>
+  <div class="modalContentWrapper">
+    <img id="modalImg" class="modalMidiaContent" />
+    <video id="modalVideo" class="modalMidiaContent" controls></video>
   </div>
 </div>
-
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/auth.js"></script>

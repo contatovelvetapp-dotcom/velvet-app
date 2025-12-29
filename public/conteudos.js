@@ -124,8 +124,8 @@ async function listarConteudos() {
 
     const media =
       c.tipo === "video"
-        ? `<video src="${c.url}" muted onclick="abrirModal('${c.url}', 'video')"></video>`
-        : `<img src="${c.url}" onclick="abrirModal('${c.url}', 'imagem')"/>`;
+        ? `<video src="${c.url}" muted onclick="abrirModalMidia('${c.url}', true)"></video>`
+        : `<img src="${c.url}" onclick="abrirModalMidia('${c.url}', false)"/>`;
 
     card.innerHTML = `
       ${media}
@@ -166,31 +166,31 @@ async function excluirConteudo(id) {
   listarConteudos();
 }
 
-function abrirModal(url, tipo) {
-  const modal = document.getElementById("modalConteudo");
+function abrirModalMidia(url, isVideo) {
+  const modal = document.getElementById("modalMidia");
   const img = document.getElementById("modalImg");
   const video = document.getElementById("modalVideo");
 
-  modal.classList.remove("hidden");
+  img.style.display = "none";
+  video.style.display = "none";
 
-  if (tipo === "video") {
-    img.style.display = "none";
-    video.style.display = "block";
+  if (isVideo) {
     video.src = url;
+    video.style.display = "block";
     video.play();
   } else {
-    video.pause();
-    video.style.display = "none";
-    img.style.display = "block";
     img.src = url;
+    img.style.display = "block";
   }
+
+  modal.classList.remove("hidden");
 }
 
-function fecharModal() {
-  const modal = document.getElementById("modalConteudo");
+document.getElementById("fecharModal")?.addEventListener("click", () => {
+  const modal = document.getElementById("modalMidia");
   const video = document.getElementById("modalVideo");
 
-  modal.classList.add("hidden");
   video.pause();
   video.src = "";
-}
+  modal.classList.add("hidden");
+});
