@@ -71,15 +71,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   sendBtn.onclick = enviarMensagem;
 
-    input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault(); // 🚫 impede quebra de linha
-    enviarMensagem();
-  }
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      enviarMensagem();
+    }
   });
-   if (btnConteudo) {
-    btnConteudo.onclick = abrirPopupConteudos;
-  }
+
+  // 🔥 AQUI — sempre ativo
+  btnConteudo.onclick = abrirPopupConteudos;
 });
 
 // ===============================
@@ -127,7 +126,8 @@ li.dataset.lastTime = c.ultima_msg_modelo_ts
     li.onclick = () => {
       cliente_id = c.cliente_id;
       chatAtivo = { cliente_id, modelo_id };
-      document.getElementById("chatAvatar").src = c.avatar;
+
+      document.getElementById("clienteNome").innerText = c.nome;
 
       // 🧹 limpar badge visual
       const badge = li.querySelector(".badge");
@@ -220,9 +220,7 @@ function renderMensagem(msg) {
   const div = document.createElement("div");
 
   div.className =
-  msg.sender === "modelo"
-    ? "msg msg-modelo"   // 👉 direita
-    : "msg msg-cliente"; // 👉 esquerda
+    msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
 
 if (msg.tipo === "conteudo") {
   const preco = Number(msg.preco || 0);
