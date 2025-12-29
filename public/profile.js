@@ -333,14 +333,85 @@ function adicionarMidia(url) {
   card.className = "midiaCard";
 
   const ext = url.split(".").pop().toLowerCase();
-  const el = ["mp4","webm","ogg"].includes(ext)
-    ? Object.assign(document.createElement("video"), { src: url, controls: true })
-    : Object.assign(document.createElement("img"), { src: url });
+  const isVideo = ["mp4","webm","ogg"].includes(ext);
 
+  const el = document.createElement(isVideo ? "video" : "img");
+  el.src = url;
   el.className = "midiaThumb";
+
+  if (isVideo) el.muted = true;
+
+  // 🔥 ABRIR MODAL AO CLICAR
+  el.addEventListener("click", () => abrirModalMidia(url, isVideo));
+
   card.appendChild(el);
+
+  // 🗑 BOTÃO EXCLUIR (só modelo)
+  if (role === "modelo") {
+    const btnExcluir = document.createElement("button");
+    btnExcluir.className = "btnExcluirMidia";
+    btnExcluir.textContent = "Excluir";
+
+    btnExcluir.onclick = e => {
+      e.stopPropagation();
+      excluirMidia(url, card);
+    };
+
+    card.appendChild(btnExcluir);
+  }
+
   listaMidias.appendChild(card);
 }
+
+function abrirModalMidia(url, isVideo) {
+  const modal = document.getElementById("modalMidia");
+  const img = document.getElementById("modalImg");
+  const video = document.getElementById("modalVideo");
+
+  img.style.display = "none";
+  video.style.display = "none";
+
+  if (isVideo) {
+    video.src = url;
+    video.style.display = "block";
+    video.play();
+  } else {
+    img.src = url;
+    img.style.display = "block";
+  }
+
+  modal.classList.remove("hidden");
+}
+
+// FECHAR MODAL
+document.getElementById("fecharModal")?.addEventListener("click", () => {
+  const modal = document.getElementById("modalMidia");
+  const video = document.getElementById("modalVideo");
+
+  video.pause();
+  video.src = "";
+  modal.classList.add("hidden");
+});
+
+async function excluirMidia(url, card) {
+  if (!confirm("Excluir esta mídia?")) return;
+
+  const res = await fetch("/api/conteudos/excluir", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({ url })
+  });
+
+  if (res.ok) {
+    card.remove();
+  } else {
+    alert("Erro ao excluir mídia");
+  }
+}
+
 
 // ===============================
 // DOM PERFIL
