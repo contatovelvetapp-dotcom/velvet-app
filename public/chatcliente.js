@@ -222,19 +222,25 @@ const chat = document.getElementById("chatBox");
       </div>
       `;
     }
-    const conteudoLivre = div.querySelector(".chat-conteudo.livre");
+const conteudo = div.querySelector(".chat-conteudo");
 
-if (conteudoLivre) {
-  conteudoLivre.addEventListener("click", () => {
-    abrirConteudo(
-      conteudoLivre.dataset.url,
-      conteudoLivre.dataset.tipo
-    );
-     socket.emit("conteudoVisto", {
-    cliente_id,
-    modelo_id,
-    conteudo_id: msg.conteudo_id
-  });
+if (conteudo) {
+  conteudo.addEventListener("click", () => {
+
+    // abre sempre
+    if (conteudo.dataset.url) {
+      abrirConteudo(
+        conteudo.dataset.url,
+        conteudo.dataset.tipo
+      );
+    }
+
+    // 🔔 SEMPRE marca como visto (pago OU gratuito)
+    socket.emit("conteudoVisto", {
+      cliente_id,
+      modelo_id,
+      conteudo_id: msg.conteudo_id
+    });
   });
 }
 

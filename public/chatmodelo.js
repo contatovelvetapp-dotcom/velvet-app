@@ -336,28 +336,11 @@ function renderMensagem(msg) {
 
 if (msg.tipo === "conteudo") {
   const preco = Number(msg.preco || 0);
-const gratuito = preco === 0;
+ const gratuito = preco === 0;
 
-let statusClasse = "nao-visto";
 let mostrarInfo = false;
 let valorTexto  = "";
-
-// 🆓 GRATUITO → só verde, sem texto
-if (gratuito) {
-  statusClasse = "visto";
-}
-
-// 💰 PAGO
-else if (msg.pago) {
-  statusClasse = "pago";
-  mostrarInfo = true;
-  valorTexto = `€ ${preco}`;
-}
-
-// 👁️ visto (caso exista depois)
-else if (msg.visto) {
-  statusClasse = "visto";
-}
+let statusClasse = msg.visto ? "visto" : "nao-visto";
 
   div.innerHTML = `
   <div
