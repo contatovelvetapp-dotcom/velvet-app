@@ -276,7 +276,11 @@ function renderMensagem(msg) {
 =============================== */
 else if (msg.tipo === "pacote") {
 
-  const total = msg.quantidade;
+  const total =
+  msg.quantidade ??
+  msg.total ??
+  msg.qtd ??
+  0;
 
   div.innerHTML = `
     <div class="pacote-backstage cliente">

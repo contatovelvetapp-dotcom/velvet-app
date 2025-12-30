@@ -611,6 +611,31 @@ html, body {
   cursor: pointer;
 }
 
+/* 🔥 PACOTE NÃO É MENSAGEM */
+.msg:has(.pacote-backstage) {
+  background: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  max-width: unset !important;
+}
+/* 🔥 PACOTE COM BOTÃO IGUAL AO CONTEÚDO ÚNICO */
+.pacote-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(123,44,255,0.25),
+    rgba(123,44,255,0.45)
+  );
+}
+
 
 
 
