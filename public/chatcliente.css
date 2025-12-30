@@ -568,6 +568,16 @@ html, body {
   transform: scale(1.05);
 }
 
+.midia-item {
+  cursor: pointer;
+}
+
+.midia-item:hover {
+  transform: scale(1.03);
+  transition: 0.2s ease;
+}
+
+
 
 
 

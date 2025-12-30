@@ -286,14 +286,16 @@ else if (msg.tipo === "conteudo") {
       <div class="chat-conteudo livre premium" data-id="${msg.id}">
         <div class="pacote-grid">
           ${msg.midias.map(m => `
-            <div class="midia-item">
-              ${
-                m.tipo_media === "video"
-                  ? `<video src="${m.url}" muted></video>`
-                  : `<img src="${m.url}" />`
-              }
-            </div>
-          `).join("")}
+  <div class="midia-item"
+       onclick="abrirConteudo('${m.url}', '${m.tipo_media}')">
+    ${
+      m.tipo_media === "video"
+        ? `<video src="${m.url}" muted></video>`
+        : `<img src="${m.url}" />`
+    }
+  </div>
+`).join("")}
+
         </div>
       </div>
     `;
