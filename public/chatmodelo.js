@@ -347,28 +347,31 @@ function renderMensagem(msg) {
   div.className =
     msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
 
-  if (msg.tipo === "conteudo") {
+ if (msg.tipo === "conteudo") {
 
-    // 🔓 MODELO SEMPRE VÊ
-    div.innerHTML = `
-      <div class="chat-conteudo ${msg.visto ? "visto" : "nao-visto"}"
-           data-id="${msg.id}">
-        <div class="conteudo-media">
-          ${
-            msg.tipo_media === "video"
-              ? `<video src="${msg.url}" muted></video>`
-              : `<img src="${msg.url}" />`
-          }
-        </div>
+  const qtd = msg.quantidade ?? 1;
 
-        <div class="conteudo-info">
-          <div class="valor-conteudo">
-            R$ ${msg.preco ?? "0"}
-          </div>
-        </div>
+  div.innerHTML = `
+    <div class="chat-conteudo visto"
+         data-id="${msg.id}">
+      <div style="
+        width: 150px;
+        height: 150px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #7b2cff, #9d5cff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        text-align: center;
+      ">
+        ${qtd} mídia${qtd > 1 ? "s" : ""}
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
   /* ===============================
      💬 TEXTO NORMAL

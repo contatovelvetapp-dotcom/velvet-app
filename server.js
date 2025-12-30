@@ -399,58 +399,45 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
     const result = await db.query(
       `
       SELECT
-        m.id,
-        m.cliente_id,
-        m.modelo_id,
-        m.sender,
-        m.tipo,
-        m.text,
-        m.preco,
-        m.conteudo_id,
-        m.visto,
-        m.created_at,
+  m.id,
+  m.cliente_id,
+  m.modelo_id,
+  m.sender,
+  m.tipo,
+  m.preco,
+  m.visto,
+  m.created_at
+FROM messages m
+WHERE m.cliente_id = $1
+  AND m.modelo_id = $2
+ORDER BY m.created_at ASC
 
-        CASE
-          WHEN $3 = 'modelo'
-            THEN c.url
-          WHEN m.preco = 0 OR m.visto = true
-            THEN c.url
-          ELSE NULL
-        END AS url,
-
-        c.tipo AS tipo_media,
-
-        (m.preco = 0) AS gratuito,
-        (m.visto = true) AS pago
-
-      FROM messages m
-      LEFT JOIN conteudos c
-        ON c.id = m.conteudo_id
-      WHERE m.cliente_id = $1
-        AND m.modelo_id = $2
-      ORDER BY m.created_at ASC
       `,
       [cliente_id, modelo_id, socket.user.role]
     );
 
-    // 3️⃣ completa PACOTES (depois do SELECT)
     for (const msg of result.rows) {
-  if (msg.tipo === "pacote") {
-    const itens = await db.query(
-      `
+  if (msg.tipo === "conteudo") {
+    const itens = await db.query(`
       SELECT c.url, c.tipo
-      FROM conteudo_pacote_itens i
-      JOIN conteudos c ON c.id = i.conteudo_id
-      WHERE i.pacote_id = $1
-      `,
-      [msg.pacote_id]
-    );
+      FROM messages_conteudos mc
+      JOIN conteudos c ON c.id = mc.conteudo_id
+      WHERE mc.message_id = $1
+    `, [msg.id]);
 
     msg.quantidade = itens.rows.length;
-    msg.bloqueado  = !(msg.preco === 0);
+
+    if (socket.user.role === "modelo") {
+      msg.conteudos = itens.rows;
+    } else if (msg.preco === 0 || msg.visto === true) {
+      msg.conteudos = itens.rows;
+    } else {
+      msg.conteudos = null;
+    }
+
+    msg.bloqueado = !(msg.preco === 0 || msg.visto === true);
   }
 }
-
     // 4️⃣ envia histórico
     socket.emit("chatHistory", result.rows);
 
@@ -470,11 +457,13 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
     // 1️⃣ cria mensagem única
     const msgRes = await db.query(
       `
-      INSERT INTO messages (cliente_id, modelo_id, sender, tipo, created_at)
-      VALUES ($1, $2, 'modelo', 'conteudo', NOW())
-      RETURNING id
+      INSERT INTO messages
+  (cliente_id, modelo_id, sender, tipo, preco, visto, created_at)
+VALUES
+  ($1, $2, 'modelo', 'conteudo', $3, false, NOW())
+RETURNING id
       `,
-      [cliente_id, modelo_id]
+      [cliente_id, modelo_id, preco]
     );
 
     const message_id = msgRes.rows[0].id;
@@ -492,14 +481,17 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
 
     // 3️⃣ envia realtime (sem URLs para cliente)
     io.to(sala).emit("newMessage", {
-      id: message_id,
-      cliente_id,
-      modelo_id,
-      sender: "modelo",
-      tipo: "conteudo",
-      quantidade: conteudos_ids.length,
-      created_at: new Date()
-    });
+  id: message_id,
+  cliente_id,
+  modelo_id,
+  sender: "modelo",
+  tipo: "conteudo",
+  quantidade: conteudos_ids.length,
+  preco,
+  bloqueado: preco > 0,
+  created_at: new Date()
+});
+
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);

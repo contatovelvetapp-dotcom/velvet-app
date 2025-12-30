@@ -273,76 +273,83 @@ function renderMensagem(msg) {
   }
 
   /* ===============================
-     📦 PACOTE
+     📦 CONTEÚDO (1 ou N mídias)
   =============================== */
-  else if (msg.tipo === "pacote") {
+  else if (msg.tipo === "conteudo") {
 
-    // 🛡️ FALLBACK DE SEGURANÇA (UI)
-    if (!msg.quantidade || msg.quantidade <= 0) {
-      msg.quantidade = 1;
-    }
+    // 🛡️ fallback de segurança
+    const quantidade = msg.quantidade && msg.quantidade > 0
+      ? msg.quantidade
+      : 1;
 
-    const quantidade = msg.quantidade;
     const bloqueado = msg.bloqueado === true;
+    const preco = Number(msg.preco || 0);
 
-    // 🆓 PACOTE GRÁTIS / LIBERADO
-    if (!bloqueado) {
+    // 🆓 CONTEÚDO GRATUITO / LIBERADO
+    if (!bloqueado || preco === 0) {
+
       div.innerHTML = `
-        <div class="chat-conteudo livre premium pacote"
+        <div class="chat-conteudo livre premium"
              data-id="${msg.id}">
 
-          <div class="pacote-grid pacote-${quantidade}">
-            ${Array.from({ length: quantidade })
-              .map(() => `<div class="pacote-item"></div>`)
-              .join("")}
+          <div class="conteudo-preview">
+            <div class="conteudo-qtd">
+              ${quantidade} mídia${quantidade > 1 ? "s" : ""}
+            </div>
           </div>
 
-          <div class="pacote-livre-label">
-            Pacote liberado · ${quantidade} conteúdos
+          <div class="conteudo-livre-label">
+            Conteúdo liberado
           </div>
         </div>
       `;
 
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-      return;
+      // 👉 clique para abrir (implementamos depois)
+      div.querySelector(".chat-conteudo").onclick = () => {
+        console.log("Abrir conteúdo", msg.id);
+      };
     }
 
-    // 🔒 PACOTE BLOQUEADO
-    div.innerHTML = `
-      <div class="chat-conteudo bloqueado premium pacote"
-           data-id="${msg.id}"
-           data-preco="${msg.preco}">
+    // 🔒 CONTEÚDO BLOQUEADO
+    else {
+      div.innerHTML = `
+        <div class="chat-conteudo bloqueado premium"
+             data-id="${msg.id}"
+             data-preco="${preco}">
 
-        <div class="pacote-grid pacote-${quantidade}">
-          ${Array.from({ length: quantidade })
-            .map(() => `<div class="pacote-item"></div>`)
-            .join("")}
-        </div>
-
-        <div class="overlay-conteudo pacote-overlay">
-          <button class="btn-desbloquear">
-            <span class="btn-titulo">Desbloquear</span>
-            <span class="btn-sub">${quantidade} conteúdos</span>
-          </button>
-
-          <div class="valor-conteudo">
-            R$ ${Number(msg.preco).toFixed(2)}
+          <div class="conteudo-preview">
+            <div class="conteudo-qtd">
+              ${quantidade} mídia${quantidade > 1 ? "s" : ""}
+            </div>
           </div>
+
+          <div class="overlay-conteudo">
+            <button class="btn-desbloquear">
+              <span class="btn-titulo">Desbloquear</span>
+              <span class="btn-sub">
+                ${quantidade} mídia${quantidade > 1 ? "s" : ""}
+              </span>
+            </button>
+
+            <div class="valor-conteudo">
+              R$ ${preco.toFixed(2)}
+            </div>
+          </div>
+
         </div>
+      `;
 
-      </div>
-    `;
-
-    div.querySelector(".btn-desbloquear").onclick = () => {
-      console.log("Comprar pacote", msg.id);
-    };
+      div.querySelector(".btn-desbloquear").onclick = () => {
+        console.log("Comprar conteúdo", msg.id);
+      };
+    }
   }
 
   // ✅ adiciona no chat
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
+
 
   
 function marcarNaoVisto(msg) {
