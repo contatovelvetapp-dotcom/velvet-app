@@ -150,55 +150,6 @@ async function uploadConteudo(req, res) {
   }
 }
 
-async function excluirConteudo(req, res) {
-  const { id } = req.params;
-
-  try {
-    const result = await db.query(
-      "SELECT url FROM conteudos WHERE id = $1 AND user_id = $2",
-      [id, req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Conteúdo não encontrado" });
-    }
-
-    const url = result.rows[0].url;
-
-    const publicId = url
-      .split("/")
-      .slice(-2)
-      .join("/")
-      .replace(/\.[^/.]+$/, "");
-
-    await cloudinary.uploader.destroy(publicId);
-
-    await db.query(
-      "DELETE FROM conteudos WHERE id = $1 AND user_id = $2",
-      [id, req.user.id]
-    );
-
-    res.json({ success: true });
-
-  } catch (err) {
-    console.error("Erro excluir conteúdo:", err);
-    res.status(500).json({ error: "Erro ao excluir conteúdo" });
-  }
-}
-
-async function clienteEhVip(cliente_id, modelo_id) {
-  const result = await db.query(
-    `
-    SELECT 1
-    FROM vip_assinaturas
-    WHERE cliente_id = $1
-      AND modelo_id = $2
-    `,
-    [cliente_id, modelo_id]
-  );
-
-  return result.rowCount > 0;
-}
 function auth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -237,6 +188,7 @@ function authCliente(req, res, next) {
     return res.status(401).json({ error: "Token inválido" });
   }
 }
+
 function authModelo(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -267,123 +219,11 @@ function onlyModelo(req, res, next) {
 }
 
 
-function lerConteudos() {
-  if (!fs.existsSync(CONTEUDOS_FILE)) {
-    fs.writeFileSync(CONTEUDOS_FILE, JSON.stringify([]));
-  }
-  return JSON.parse(fs.readFileSync(CONTEUDOS_FILE, "utf8"));
-}
-
-function salvarConteudos(data) {
-  fs.writeFileSync(CONTEUDOS_FILE, JSON.stringify(data, null, 2));
-}
-
-function listarConteudos(req, res) {
-  const modelo_id = req.user.id;
-
-  const conteudos = lerConteudos().filter(
-    c => c.modelo_id === modelo_id
-  );
-
-  res.json(conteudos);
-}
-
 function lerModelos() {
   if (!fs.existsSync(MODELOS_FILE)) {
     fs.writeFileSync(MODELOS_FILE, JSON.stringify({}));
   }
   return JSON.parse(fs.readFileSync(MODELOS_FILE, "utf8"));
-}
-
-function salvarModelos(data) {
-  fs.writeFileSync(MODELOS_FILE, JSON.stringify(data, null, 2));
-}
-
-async function buscarHistoricoDB(cliente_id, modelo_id) {
-  const result = await db.query(
-    `
-    SELECT
-      cliente_id   AS "cliente_id",
-      modelo_id    AS "modelo_id",
-      from_user_id AS "from",
-      text,
-      created_at
-    FROM messages
-    WHERE cliente_id = $1 AND modelo_id = $2
-    ORDER BY created_at ASC
-    `,
-    [cliente_id, modelo_id]
-  );
-
-  return result.rows;
-}
-
-function readFeed() {
-  if (!fs.existsSync(FEED_FILE)) return [];
-  return JSON.parse(fs.readFileSync(FEED_FILE));
-}
-
-function saveFeed(feed) {
-  fs.writeFileSync(FEED_FILE, JSON.stringify(feed, null, 2));
-}
-
-function getRoom(cliente_id, modelo_id) {
-  return `chat_${cliente_id}_${modelo_id}`;
-}
-
-function readJSON(file, fallback = []) {
-    try {
-        if (!fs.existsSync(file)) return fallback;
-        return JSON.parse(fs.readFileSync(file, "utf8"));
-    } catch (err) {
-        console.error("Erro ao ler JSON:", file, err);
-        return fallback;
-    }
-}
-
-function readCompras() {
-  if (!fs.existsSync(COMPRAS_FILE)) return [];
-  return JSON.parse(fs.readFileSync(COMPRAS_FILE, "utf8"));
-}
-
-function saveCompras(data) {
-  fs.writeFileSync(COMPRAS_FILE, JSON.stringify(data, null, 2));
-}
-
-function isConteudoPago(cliente_id, modelo_id, conteudoId) {
-  const compras = readCompras();
-  return compras.some(
-    c =>
-      c.cliente_id=== cliente_id &&
-      c.modelo_id=== modelo_id &&
-      c.conteudoId === conteudoId &&
-      c.status === "pago"
-  );
-}
-
-function desbloquearConteudo(cliente_id, modelo_id, conteudoId) {
-  const compras = readCompras();
-
-  // 🔒 evita duplicar compra
-  const jaPago = compras.some(
-    c =>
-      c.cliente_id=== cliente_id &&
-      c.modelo_id === modelo_id &&
-      c.conteudoId === conteudoId &&
-      c.status === "pago"
-  );
-
-  if (!jaPago) {
-    compras.push({
-      cliente_id,
-      modelo_id,
-      conteudoId,
-      status: "pago",
-      data: Date.now()
-    });
-
-    saveCompras(compras);
-  }
 }
 // ===============================
 // SOCKET.IO – CHAT ESTÁVEL
@@ -679,100 +519,6 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
     console.error("❌ Erro sendConteudo:", err);
   }
  });
-
-socket.on("sendPacoteConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
-  if (!socket.user || socket.user.role !== "modelo") return;
-
-  const sala = `chat_${cliente_id}_${modelo_id}`;
-
-  try {
-    // 🔑 regra do pacote grátis
-    const gratuito = Number(preco) === 0;
-
-    // 1️⃣ cria pacote
-    const pacoteResult = await db.query(
-      `
-      INSERT INTO conteudo_pacotes (modelo_id, cliente_id, preco)
-      VALUES ($1, $2, $3)
-      RETURNING id
-      `,
-      [modelo_id, cliente_id, preco]
-    );
-
-    const pacote_id = pacoteResult.rows[0].id;
-
-    // 2️⃣ vincula conteúdos
-    for (const conteudo_id of conteudos_ids) {
-      await db.query(
-        `
-        INSERT INTO conteudo_pacote_itens (pacote_id, conteudo_id)
-        VALUES ($1, $2)
-        `,
-        [pacote_id, conteudo_id]
-      );
-    }
-
-    // 3️⃣ cria mensagem no chat
-    const msgResult = await db.query(
-      `
-      INSERT INTO messages
-  (cliente_id, modelo_id, sender, tipo, preco, visto, pacote_id)
-VALUES ($1, $2, 'modelo', 'pacote', $3, false, $4)
-RETURNING id
-      `,
-      [cliente_id, modelo_id, preco, pacote_id]
-    );
-
-    const messageId = msgResult.rows[0].id;
-
-    // 4️⃣ busca previews (SÓ PARA MODELO)
-    const conteudosResult = await db.query(
-      `
-      SELECT url, tipo
-      FROM conteudos
-      WHERE id = ANY($1)
-      `,
-      [conteudos_ids]
-    );
-
-    const conteudos = conteudosResult.rows;
-
-    // 🔒 / 🆓 CLIENTE (sem preview)
-    socket.to(sala).emit("newMessage", {
-      id: messageId,
-      cliente_id,
-      modelo_id,
-      sender: "modelo",
-      tipo: "pacote",
-      preco,
-      quantidade: conteudos_ids.length,
-      bloqueado: !gratuito,   // 🔥 agora respeita pacote grátis
-      gratuito,               // opcional (útil pro front)
-      created_at: new Date()
-    });
-
-    // 👩‍💻 MODELO (com preview, sempre liberado)
-    const sidModelo = onlineModelos[modelo_id];
-    if (sidModelo) {
-      io.to(sidModelo).emit("newMessage", {
-        id: messageId,
-        cliente_id,
-        modelo_id,
-        sender: "modelo",
-        tipo: "pacote",
-        preco,
-        quantidade: conteudos.length,
-        conteudos,              // 🔥 preview só para a modelo
-        bloqueado: false,
-        gratuito,
-        created_at: new Date()
-      });
-    }
-
-  } catch (err) {
-    console.error("❌ Erro sendPacoteConteudo:", err);
-  }
-});
 
 });
 // ===============================

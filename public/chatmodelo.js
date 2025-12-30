@@ -347,56 +347,7 @@ function renderMensagem(msg) {
   div.className =
     msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
 
-/* ===============================
-   📦 PACOTE DE CONTEÚDO
-=============================== */
-if (msg.tipo === "pacote") {
-  const total =
-    msg.quantidade ??
-    msg.conteudos?.length ??
-    0;
-
-  const thumbs =
-    Array.isArray(msg.conteudos)
-      ? msg.conteudos.slice(0, 6)
-      : [];
-
-  div.innerHTML = `
-    <div class="pacote-backstage ${msg.conteudos ? "modelo" : "cliente"}">
-
-      <div class="pacote-mosaic">
-        ${thumbs.map((c, i) => `
-          <div class="mosaic-item item-${i}">
-            ${
-              c.tipo === "video"
-                ? `<video src="${c.url}" muted></video>`
-                : `<img src="${c.url}" />`
-            }
-            ${
-              i === 5 && total > 6
-                ? `<div class="mais-itens">+${total - 5}</div>`
-                : ""
-            }
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="pacote-overlay">
-        <span class="pacote-texto">
-          desbloquear ${total} conteúdos
-        </span>
-        <span class="pacote-preco">
-          $ ${msg.preco}
-        </span>
-      </div>
-
-    </div>
-  `;
-}
-  /* ===============================
-     📦 CONTEÚDO
-  =============================== */
-  else if (msg.tipo === "conteudo") {
+  if (msg.tipo === "conteudo") {
 
     // 🔓 MODELO SEMPRE VÊ
     div.innerHTML = `
@@ -662,13 +613,6 @@ function confirmarEnvioConteudo() {
   // 🔥 GARANTE QUE A MODELO ESTÁ NA SALA
   const sala = `chat_${cliente_id}_${modelo_id}`;
   socket.emit("joinChat", { sala });
-
-  socket.emit("sendPacoteConteudo", {
-    cliente_id,
-    modelo_id,
-    conteudos_ids,
-    preco
-  });
 
   fecharPopupConteudos();
 }
