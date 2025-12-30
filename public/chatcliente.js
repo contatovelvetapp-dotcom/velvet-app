@@ -283,17 +283,12 @@ else if (msg.tipo === "pacote") {
   0;
 
   div.innerHTML = `
-    <div class="pacote-backstage cliente">
+    <div class="pacotecliente">
 
       <div class="pacote-fake-mosaic">
         <div></div><div></div><div></div>
         <div></div><div></div><div></div>
       </div>
-
-      <div class="pacote-overlay">
-        <span class="pacote-texto">
-          desbloquear ${total} conteúdos
-        </span>
 
         <button class="pacote-btn">
           Desbloquear · R$ ${msg.preco}

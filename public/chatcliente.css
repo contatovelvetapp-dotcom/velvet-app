@@ -548,10 +548,10 @@ html, body {
 }
 
 /* ===============================
-   📦 PACOTE BACKSTAGE — CLIENTE
+   📦 PACOTE CLIENTE
 =============================== */
 
-.pacote-backstage.cliente {
+.pacotecliente {
   width: 240px;
   height: 200px;
   border-radius: 16px;
@@ -577,7 +577,7 @@ html, body {
 }
 
 /* overlay inferior */
-.pacote-backstage.cliente .pacote-overlay {
+.pacote .pacote-overlay {
   position: absolute;
   inset: auto 0 0 0;
   padding: 12px;
@@ -612,7 +612,7 @@ html, body {
 }
 
 /* 🔥 PACOTE NÃO É MENSAGEM */
-.msg:has(.pacote-backstage) {
+.msg:has(.pacote) {
   background: none !important;
   padding: 0 !important;
   box-shadow: none !important;
