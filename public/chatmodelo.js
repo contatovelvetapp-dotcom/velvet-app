@@ -347,9 +347,15 @@ function renderMensagem(msg) {
    📦 PACOTE DE CONTEÚDO
 =============================== */
 if (msg.tipo === "pacote") {
+  const total =
+    msg.quantidade ??
+    msg.conteudos?.length ??
+    0;
 
-  const total = msg.quantidade || msg.conteudos?.length || 0;
-  const thumbs = msg.conteudos ? msg.conteudos.slice(0, 6) : [];
+  const thumbs =
+    Array.isArray(msg.conteudos)
+      ? msg.conteudos.slice(0, 6)
+      : [];
 
   div.innerHTML = `
     <div class="pacote-backstage ${msg.conteudos ? "modelo" : "cliente"}">

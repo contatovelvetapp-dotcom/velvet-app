@@ -554,6 +554,23 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
       `,
       [cliente_id, modelo_id, socket.user.role]
     );
+    for (const msg of result.rows) {
+  if (msg.tipo === "pacote") {
+    const itens = await db.query(
+      `
+      SELECT c.url, c.tipo
+      FROM conteudo_pacote_itens i
+      JOIN conteudos c ON c.id = i.conteudo_id
+      WHERE i.pacote_id = $1
+      `,
+      [msg.id]
+    );
+
+    msg.conteudos = itens.rows;
+    msg.quantidade = itens.rows.length;
+  }
+}
+
 
     // 2️⃣ histórico com regra por role
     const result = await db.query(
@@ -740,16 +757,15 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
       [conteudos_ids]
     );
 
-    io.to(socket.id).emit("newMessage", {
+io.to(sala).emit("newMessage", {
   id: messageId,
-  cliente_id,         
-  modelo_id,           
-  sender: "modelo",    
+  cliente_id,
+  modelo_id,
+  sender: "modelo",
   tipo: "pacote",
   preco,
   quantidade: conteudos_ids.length,
-  conteudos: conteudos.rows,
-  bloqueado: false,
+  bloqueado: true,
   created_at: new Date()
 });
 
