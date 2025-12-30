@@ -637,6 +637,11 @@ div.ondblclick = () => {
 }
  
 function confirmarEnvioConteudo() {
+  if (!cliente_id || !modelo_id) {
+    alert("Selecione um cliente primeiro.");
+    return;
+  }
+
   const selecionados = [
     ...document.querySelectorAll(".preview-item.selected")
   ];
@@ -654,6 +659,10 @@ function confirmarEnvioConteudo() {
     item => Number(item.dataset.conteudoId)
   );
 
+  // 🔥 GARANTE QUE A MODELO ESTÁ NA SALA
+  const sala = `chat_${cliente_id}_${modelo_id}`;
+  socket.emit("joinChat", { sala });
+
   socket.emit("sendPacoteConteudo", {
     cliente_id,
     modelo_id,
@@ -663,6 +672,7 @@ function confirmarEnvioConteudo() {
 
   fecharPopupConteudos();
 }
+
 
 function abrirPreviewConteudo(url, tipo) {
   const popup = document.getElementById("popupConteudos");
