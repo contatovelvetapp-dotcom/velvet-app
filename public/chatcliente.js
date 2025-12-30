@@ -319,14 +319,7 @@ function renderMensagem(msg) {
 
   <button class="btn-desbloquear">Desbloquear</button>
 </div>
-
-<div class="conteudo-info">
-  <span class="status-bloqueado">
-    🟢 ${msg.midias.length} mídia(s)
-  </span>
 </div>
-
-        </div>
       `;
     }
   }
