@@ -350,8 +350,9 @@ function renderMensagem(msg) {
   if (msg.tipo === "conteudo" && Array.isArray(msg.midias)) {
 
     div.innerHTML = `
-  <div class="chat-conteudo ${msg.visto ? "visto" : "bloqueado"}"
-       data-id="${msg.id}">
+<div class="chat-conteudo premium ${msg.visto ? "visto" : "bloqueado"}"
+     data-id="${msg.id}"
+     data-qtd="${msg.quantidade ?? msg.midias.length}">
 
     <!-- 📸 MÍDIA -->
     <div class="pacote-grid">

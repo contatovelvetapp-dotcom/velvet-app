@@ -279,7 +279,8 @@ function renderMensagem(msg) {
     if (liberado && Array.isArray(msg.midias)) {
       div.innerHTML = `
         <div class="chat-conteudo livre premium"
-             data-id="${msg.id}">
+     data-id="${msg.id}"
+     data-qtd="${msg.quantidade ?? msg.midias.length}">
           <div class="pacote-grid">
             ${msg.midias.map(m => `
               <div class="midia-item"
@@ -300,8 +301,9 @@ function renderMensagem(msg) {
     else {
       div.innerHTML = `
         <div class="chat-conteudo bloqueado premium"
-             data-id="${msg.id}"
-             data-preco="${msg.preco}">
+     data-id="${msg.id}"
+     data-preco="${msg.preco}"
+     data-qtd="${msg.quantidade ?? 1}">
           <div class="pacote-grid">
             ${Array(msg.quantidade ?? 1).fill("").map(() =>
               `<div class="midia-item placeholder"></div>`

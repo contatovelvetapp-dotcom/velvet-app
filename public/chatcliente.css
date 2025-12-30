@@ -601,49 +601,65 @@ html, body {
 }
 
 /* ===============================
-   📦 GRID QUADRADO DE MÍDIAS (CHAT)
+   💎 VELVET MEDIA CARD (INTELIGENTE)
 =============================== */
 
-/* o card vira container */
-.chat-conteudo {
-  display: flex;
-  flex-direction: column;
+.chat-conteudo.premium {
+  border-radius: 18px;
   overflow: hidden;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 12px 30px rgba(123,44,255,0.15);
 }
 
-/* grid principal */
-.pacote-grid {
+/* GRID BASE */
+.chat-conteudo.premium .pacote-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 🔥 4 por linha */
-  gap: 2px;
-
+  gap: 6px;
+  padding: 8px;
   width: 100%;
-  height: 100%;
-  background: #00000010; /* leve fundo */
+  box-sizing: border-box;
 }
 
-/* cada mídia = quadrado perfeito */
-.pacote-grid .midia-item {
-  width: 100%;
-  aspect-ratio: 1 / 1; /* 🔥 quadrado */
+/* quadrado premium */
+.chat-conteudo.premium .midia-item {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
   overflow: hidden;
-  border-radius: 0; /* ❌ sem arredondar */
   background: #eee;
-  position: relative;
 }
 
-/* imagem / vídeo preenche tudo */
-.pacote-grid .midia-item img,
-.pacote-grid .midia-item video {
+/* imagem / vídeo */
+.chat-conteudo.premium img,
+.chat-conteudo.premium video {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 🔥 preenche o quadrado */
+  object-fit: cover;
   display: block;
 }
 
-.pacote-grid {
-  gap: 3px;
-  background: #fff;
+/* ===============================
+   🔢 ADAPTAÇÃO POR QUANTIDADE
+=============================== */
+
+/* até 4 mídias → 2x2 */
+.chat-conteudo.premium[data-qtd="1"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="2"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="3"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="4"] .pacote-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* 5 a 8 mídias → 4x2 */
+.chat-conteudo.premium[data-qtd="5"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="6"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="7"] .pacote-grid,
+.chat-conteudo.premium[data-qtd="8"] .pacote-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* 9+ mídias → 4 por linha */
+.chat-conteudo.premium[data-qtd]:not([data-qtd="1"]):not([data-qtd="2"]):not([data-qtd="3"]):not([data-qtd="4"]):not([data-qtd="5"]):not([data-qtd="6"]):not([data-qtd="7"]):not([data-qtd="8"]) .pacote-grid {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 
