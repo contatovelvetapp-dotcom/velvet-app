@@ -600,37 +600,48 @@ h2 #modeloNome {
 .msg:has(.chat-conteudo) {
   align-self: flex-end; /* modelo */
 }
-
 /* ===============================
-   📦 GRID DE MÍDIAS NO CHAT
+   📦 GRID QUADRADO DE MÍDIAS (CHAT)
 =============================== */
 
+/* o card vira container */
+.chat-conteudo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* grid principal */
 .pacote-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 🔥 2 por linha */
-  gap: 4px;
+  grid-template-columns: repeat(4, 1fr); /* 🔥 4 por linha */
+  gap: 2px;
 
   width: 100%;
   height: 100%;
-  padding: 4px;
-  box-sizing: border-box;
+  background: #00000010; /* leve fundo */
 }
 
-/* cada miniatura */
+/* cada mídia = quadrado perfeito */
 .pacote-grid .midia-item {
   width: 100%;
-  aspect-ratio: 1 / 1;   /* quadrado */
+  aspect-ratio: 1 / 1; /* 🔥 quadrado */
   overflow: hidden;
-  border-radius: 10px;
-  position: relative;
+  border-radius: 0; /* ❌ sem arredondar */
   background: #eee;
+  position: relative;
 }
 
-/* imagem / vídeo */
+/* imagem / vídeo preenche tudo */
 .pacote-grid .midia-item img,
 .pacote-grid .midia-item video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* 🔥 preenche o quadrado */
   display: block;
 }
+.pacote-grid {
+  gap: 3px;
+  background: #fff;
+}
+
