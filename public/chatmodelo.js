@@ -348,52 +348,40 @@ function renderMensagem(msg) {
 =============================== */
 if (msg.tipo === "pacote") {
 
-  // 👩‍💻 MODELO (preview)
-  if (msg.conteudos && Array.isArray(msg.conteudos)) {
+  const total = msg.quantidade || msg.conteudos?.length || 0;
+  const thumbs = msg.conteudos ? msg.conteudos.slice(0, 6) : [];
 
-    div.innerHTML = `
-      <div class="pacote-conteudo modelo">
-        <div class="pacote-grid">
-          ${msg.conteudos.slice(0, 4).map(c => `
-            <div class="pacote-item">
-              ${
-                c.tipo === "video"
-                  ? `<video src="${c.url}" muted></video>`
-                  : `<img src="${c.url}" />`
-              }
-            </div>
-          `).join("")}
-        </div>
+  div.innerHTML = `
+    <div class="pacote-backstage ${msg.conteudos ? "modelo" : "cliente"}">
 
-        <div class="pacote-info">
-          <span class="pacote-label">
-            PACOTE · ${msg.conteudos.length} itens
-          </span>
-          <span class="pacote-preco">
-            R$ ${msg.preco}
-          </span>
-        </div>
+      <div class="pacote-mosaic">
+        ${thumbs.map((c, i) => `
+          <div class="mosaic-item item-${i}">
+            ${
+              c.tipo === "video"
+                ? `<video src="${c.url}" muted></video>`
+                : `<img src="${c.url}" />`
+            }
+            ${
+              i === 5 && total > 6
+                ? `<div class="mais-itens">+${total - 5}</div>`
+                : ""
+            }
+          </div>
+        `).join("")}
       </div>
-    `;
 
-  } 
-  // 👤 CLIENTE (bloqueado)
-  else {
-    div.innerHTML = `
-      <div class="pacote-conteudo cliente">
-        <div class="pacote-bloqueado">
-          <span class="pacote-label">
-            Pacote com ${msg.quantidade} conteúdos
-          </span>
-
-          <button class="btn-desbloquear">
-            Desbloquear · R$ ${msg.preco}
-          </button>
-        </div>
+      <div class="pacote-overlay">
+        <span class="pacote-texto">
+          desbloquear ${total} conteúdos
+        </span>
+        <span class="pacote-preco">
+          $ ${msg.preco}
+        </span>
       </div>
-    `;
-  }
 
+    </div>
+  `;
 }
   /* ===============================
      📦 CONTEÚDO

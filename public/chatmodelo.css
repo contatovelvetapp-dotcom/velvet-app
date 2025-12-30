@@ -572,84 +572,84 @@ h2 #modeloNome {
 }
 
 /* ===============================
-   📦 PACOTE DE CONTEÚDO
+   📦 PACOTE BACKSTAGE STYLE
 =============================== */
 
-.pacote-conteudo {
-  width: 220px;
+.pacote-backstage {
+  width: 240px;
   border-radius: 16px;
   overflow: hidden;
-  background: #f4efff;
-  box-shadow: 0 6px 18px rgba(123,44,255,0.25);
+  position: relative;
+  background: #eee;
 }
 
-/* GRID DE PREVIEW */
-.pacote-grid {
+/* Mosaico caótico */
+.pacote-mosaic {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  aspect-ratio: 1 / 1;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 80px;
+}
+
+.mosaic-item {
+  position: relative;
   overflow: hidden;
 }
 
-.pacote-item img,
-.pacote-item video {
+.mosaic-item img,
+.mosaic-item video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* INFO */
-.pacote-info {
-  padding: 10px;
+/* variação proposital */
+.item-0 {
+  grid-row: span 2;
+}
+
+.item-3 {
+  grid-column: span 2;
+}
+
+/* +N overlay */
+.mais-itens {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* overlay inferior */
+.pacote-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.85),
+    rgba(0,0,0,0)
+  );
+  padding: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.pacote-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #7B2CFF;
+.pacote-texto {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .pacote-preco {
-  font-size: 12px;
-  font-weight: 700;
-  color: #5d24be;
-}
-
-/* CLIENTE BLOQUEADO */
-.pacote-conteudo.cliente {
-  background: linear-gradient(135deg, #e9e2ff, #d4c6ff);
-}
-
-.pacote-bloqueado {
-  height: 100%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-}
-
-.pacote-bloqueado .btn-desbloquear {
-  background: linear-gradient(135deg, #7b2cff, #5d24be);
+  background: #7B2CFF;
   color: #fff;
-  border: none;
+  padding: 4px 10px;
   border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
 }
-
-
-
-
-
-
-
-
-
