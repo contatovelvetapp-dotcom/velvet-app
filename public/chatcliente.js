@@ -278,7 +278,7 @@ function renderMensagem(msg) {
 else if (msg.tipo === "conteudo") {
 
   const souCliente = true;
-  const liberado = msg.preco === 0 || msg.pago === true;
+ const liberado = !msg.bloqueado;
 
   // 🔓 LIBERADO (gratuito ou comprado)
   if (liberado && Array.isArray(msg.midias)) {

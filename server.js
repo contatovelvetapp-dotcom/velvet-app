@@ -340,33 +340,8 @@ const messageId = result.rows[0].id;
         });
       }
     }
-    
-    // 4️⃣ ENVIA MENSAGEM EM TEMPO REAL (CHAT ABERTO)
-// 🔎 buscar URLs das mídias
-const midiasRes = await db.query(`
-  SELECT url, tipo AS tipo_media
-  FROM conteudos
-  WHERE id = ANY($1)
-`, [conteudos_ids]);
 
-const midias = midiasRes.rows;
-
-// 🔥 ENVIO REALTIME COMPLETO
-io.to(sala).emit("newMessage", {
-  id: message_id,
-  cliente_id,
-  modelo_id,
-  sender: "modelo",
-  tipo: "conteudo",
-  preco,
-  pago: false,
-  midias,                    // 🔥 AQUI
-  quantidade: midias.length,
-  created_at: new Date()
-});
-
-
-const sidModelo = onlineModelos[modelo_id];
+ const sidModelo = onlineModelos[modelo_id];
 if (sidModelo) {
   io.to(sidModelo).emit("newMessage", {
     id: messageId,
@@ -399,19 +374,18 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   try {
     // 1️⃣ limpa NÃO LIDO apenas para quem está abrindo o chat
     await db.query(
-      `
-      UPDATE unread
-      SET has_unread = false
-      WHERE cliente_id = $1
-        AND modelo_id = $2
-        AND role = $3
-      `,
-      [
-        cliente_id,
-        modelo_id,
-        socket.user.role // 🔥 importantíssimo
-      ]
-    );
+   `UPDATE unread
+   SET has_unread = false
+   WHERE cliente_id = $1
+    AND modelo_id = $2
+    AND unread_for = $3
+   `,
+   [
+    cliente_id,
+    modelo_id,
+    socket.user.role   // 'cliente' | 'modelo'
+  ]
+ );
 
     // 2️⃣ busca histórico base
     const result = await db.query(
@@ -480,58 +454,77 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
   }
  });
 
- socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
+ // 📦 ENVIO DE CONTEÚDO (1 ou N mídias)
+socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
   if (!socket.user || socket.user.role !== "modelo") return;
 
-  if (!conteudos_ids || !conteudos_ids.length) return;
+  if (!Array.isArray(conteudos_ids) || conteudos_ids.length === 0) return;
 
   const sala = `chat_${cliente_id}_${modelo_id}`;
 
   try {
-    // 1️⃣ cria mensagem única
+    // 1️⃣ cria a mensagem principal (pacote)
     const msgRes = await db.query(
       `
       INSERT INTO messages
-  (cliente_id, modelo_id, sender, tipo, preco, visto, created_at)
-VALUES
-  ($1, $2, 'modelo', 'conteudo', $3, false, NOW())
-RETURNING id
+        (cliente_id, modelo_id, sender, tipo, preco, visto, created_at)
+      VALUES
+        ($1, $2, 'modelo', 'conteudo', $3, false, NOW())
+      RETURNING id
       `,
       [cliente_id, modelo_id, preco]
     );
 
-    const message_id = msgRes.rows[0].id;
+    const messageId = msgRes.rows[0].id;
 
-    // 2️⃣ associa N conteúdos
+    // 2️⃣ associa todas as mídias à mensagem
     for (const conteudo_id of conteudos_ids) {
       await db.query(
         `
         INSERT INTO messages_conteudos (message_id, conteudo_id)
         VALUES ($1, $2)
         `,
-        [message_id, conteudo_id]
+        [messageId, conteudo_id]
       );
     }
 
-    // 3️⃣ envia realtime (sem URLs para cliente)
-    io.to(sala).emit("newMessage", {
-  id: message_id,
-  cliente_id,
-  modelo_id,
-  sender: "modelo",
-  tipo: "conteudo",
-  quantidade: conteudos_ids.length,
-  preco,
-  bloqueado: preco > 0,
-  created_at: new Date()
-});
+    // 3️⃣ busca URLs + tipo das mídias (🔥 ESSENCIAL)
+    const midiasRes = await db.query(
+      `
+      SELECT
+        c.url,
+        c.tipo AS tipo_media
+      FROM conteudos c
+      WHERE c.id = ANY($1)
+      `,
+      [conteudos_ids]
+    );
 
+    const midias = midiasRes.rows;
+
+    // 4️⃣ envia realtime COMPLETO
+    // 🔓 modelo sempre vê tudo
+    // 🔒 cliente recebe bloqueado se preço > 0
+    io.to(sala).emit("newMessage", {
+      id: messageId,
+      cliente_id,
+      modelo_id,
+      sender: "modelo",
+      tipo: "conteudo",
+      preco,
+      quantidade: midias.length,
+      midias: midias,                 // 🔥 MODELO vê / CLIENTE será filtrado no front
+      bloqueado: Number(preco) > 0,   // 🔒 cliente decide pelo bloqueado
+      created_at: new Date()
+    });
 
   } catch (err) {
     console.error("❌ Erro sendConteudo:", err);
   }
  });
 
+
+ 
 });
 // ===============================
 //ROTA GET
