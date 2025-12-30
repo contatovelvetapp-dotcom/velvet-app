@@ -554,25 +554,8 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
       `,
       [cliente_id, modelo_id, socket.user.role]
     );
-    for (const msg of result.rows) {
-  if (msg.tipo === "pacote") {
-    const itens = await db.query(
-      `
-      SELECT c.url, c.tipo
-      FROM conteudo_pacote_itens i
-      JOIN conteudos c ON c.id = i.conteudo_id
-      WHERE i.pacote_id = $1
-      `,
-      [msg.id]
-    );
 
-    msg.conteudos = itens.rows;
-    msg.quantidade = itens.rows.length;
-  }
-}
-
-
-    // 2️⃣ histórico com regra por role
+    // 2️⃣ busca histórico
     const result = await db.query(
       `
       SELECT
@@ -607,32 +590,32 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
         AND m.modelo_id = $2
       ORDER BY m.created_at ASC
       `,
-      [cliente_id, modelo_id, socket.user.role] // 🔥 ESSENCIAL
+      [cliente_id, modelo_id, socket.user.role]
     );
 
-    // 3️⃣ envia histórico
+    // 3️⃣ completa PACOTES (depois do SELECT)
+    for (const msg of result.rows) {
+      if (msg.tipo === "pacote") {
+        const itens = await db.query(
+          `
+          SELECT c.url, c.tipo
+          FROM conteudo_pacote_itens i
+          JOIN conteudos c ON c.id = i.conteudo_id
+          WHERE i.pacote_id = $1
+          `,
+          [msg.id]
+        );
+
+        msg.conteudos = itens.rows;
+        msg.quantidade = itens.rows.length;
+      }
+    }
+
+    // 4️⃣ envia histórico
     socket.emit("chatHistory", result.rows);
 
   } catch (err) {
     console.error("❌ Erro getHistory:", err);
-  }
-});
-
-  // 👁️ CONTEÚDO VISTO PELO CLIENTE
-socket.on("conteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
-  try {
-    if (!message_id || !modelo_id) return;
-
-    // 1️⃣ marca como visto no banco
-    await db.query(
-      `UPDATE messages SET visto = true WHERE id = $1`,
-      [message_id]
-    );
-
-    console.log("👁️ Conteúdo marcado como visto:", message_id);
-
-  } catch (err) {
-    console.error("Erro conteudoVisto:", err);
   }
 });
 
@@ -738,36 +721,18 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
 
     const messageId = msgResult.rows[0].id;
 
-    // 4️⃣ payload cliente (SEM URL)
-    socket.to(sala).emit("newMessage", {
+    // 4️⃣ emite UMA vez para a sala (cliente + modelo)
+    io.to(sala).emit("newMessage", {
       id: messageId,
+      cliente_id,
+      modelo_id,
+      sender: "modelo",
       tipo: "pacote",
       preco,
       quantidade: conteudos_ids.length,
-      bloqueado: true
+      bloqueado: true,
+      created_at: new Date()
     });
-
-    // 5️⃣ payload modelo (COM preview)
-    const conteudos = await db.query(
-      `
-      SELECT url, tipo
-      FROM conteudos
-      WHERE id = ANY($1)
-      `,
-      [conteudos_ids]
-    );
-
-io.to(sala).emit("newMessage", {
-  id: messageId,
-  cliente_id,
-  modelo_id,
-  sender: "modelo",
-  tipo: "pacote",
-  preco,
-  quantidade: conteudos_ids.length,
-  bloqueado: true,
-  created_at: new Date()
-});
 
   } catch (err) {
     console.error("❌ Erro sendPacoteConteudo:", err);
@@ -775,8 +740,6 @@ io.to(sala).emit("newMessage", {
  });
 
 });
-
-
 // ===============================
 //ROTA GET
 // ===============================
