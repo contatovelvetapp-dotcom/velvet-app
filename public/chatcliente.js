@@ -310,7 +310,7 @@ function renderMensagem(msg) {
 
          <div class="conteudo-info">
   <span class="status-bloqueado">
-    🔒 ${msg.quantidade ?? 1} mídia(s)
+    ${msg.quantidade ?? 1} mídia(s)
   </span>
 
   <span class="preco-bloqueado">
