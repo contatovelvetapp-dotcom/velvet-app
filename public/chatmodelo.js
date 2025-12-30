@@ -372,11 +372,13 @@ function renderMensagem(msg) {
             ? `
               <div class="conteudo-info">
                 <span class="status-bloqueado">
-                  ${msg.visto ? "🟢 Vendido" : "🔒 Bloqueado"}
-                </span>
-                <span class="preco-bloqueado">
-                  R$ ${Number(msg.preco).toFixed(2)}
-                </span>
+  ${
+    msg.visto
+      ? `🟢 Vendido · ${msg.quantidade ?? msg.midias.length} mídia(s)`
+      : `🔒 ${msg.quantidade ?? msg.midias.length} mídia(s)`
+  }
+</span>
+
               </div>
             `
             : ""

@@ -308,13 +308,24 @@ function renderMensagem(msg) {
             ).join("")}
           </div>
 
-          <div class="conteudo-info">
-            <span class="status-bloqueado">🔒 Bloqueado</span>
-            <span class="preco-bloqueado">
-              R$ ${Number(msg.preco).toFixed(2)}
-            </span>
-            <button class="btn-desbloquear">Desbloquear</button>
-          </div>
+         <div class="conteudo-info">
+  <span class="status-bloqueado">
+    🔒 ${msg.quantidade ?? 1} mídia(s)
+  </span>
+
+  <span class="preco-bloqueado">
+    R$ ${Number(msg.preco).toFixed(2)}
+  </span>
+
+  <button class="btn-desbloquear">Desbloquear</button>
+</div>
+
+<div class="conteudo-info">
+  <span class="status-bloqueado">
+    🟢 ${msg.midias.length} mídia(s)
+  </span>
+</div>
+
         </div>
       `;
     }
