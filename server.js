@@ -679,7 +679,7 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
   }
  });
 
- socket.on("sendPacoteConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
+socket.on("sendPacoteConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
   if (!socket.user || socket.user.role !== "modelo") return;
 
   const sala = `chat_${cliente_id}_${modelo_id}`;
@@ -708,7 +708,7 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
       );
     }
 
-    // 3️⃣ cria mensagem ÚNICA no chat
+    // 3️⃣ cria mensagem no chat
     const msgResult = await db.query(
       `
       INSERT INTO messages
@@ -721,8 +721,20 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
 
     const messageId = msgResult.rows[0].id;
 
-    // 4️⃣ emite UMA vez para a sala (cliente + modelo)
-    io.to(sala).emit("newMessage", {
+    // 4️⃣ busca previews (SÓ PARA MODELO)
+    const conteudosResult = await db.query(
+      `
+      SELECT url, tipo
+      FROM conteudos
+      WHERE id = ANY($1)
+      `,
+      [conteudos_ids]
+    );
+
+    const conteudos = conteudosResult.rows;
+
+    // 🔒 CLIENTE (SEM PREVIEW)
+    socket.to(sala).emit("newMessage", {
       id: messageId,
       cliente_id,
       modelo_id,
@@ -734,10 +746,28 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
       created_at: new Date()
     });
 
+    // 👩‍💻 MODELO (COM PREVIEW)
+    const sidModelo = onlineModelos[modelo_id];
+    if (sidModelo) {
+      io.to(sidModelo).emit("newMessage", {
+        id: messageId,
+        cliente_id,
+        modelo_id,
+        sender: "modelo",
+        tipo: "pacote",
+        preco,
+        quantidade: conteudos.length,
+        conteudos,              // 🔥 agora vem
+        bloqueado: false,
+        created_at: new Date()
+      });
+    }
+
   } catch (err) {
     console.error("❌ Erro sendPacoteConteudo:", err);
   }
- });
+});
+
 
 });
 // ===============================
