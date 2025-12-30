@@ -653,3 +653,10 @@ h2 #modeloNome {
   font-size: 12px;
   font-weight: 600;
 }
+
+.msg:has(.pacote-backstage) {
+  background: none !important;
+  padding: 0 !important;
+  max-width: unset !important;
+}
+

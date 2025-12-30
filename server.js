@@ -741,13 +741,17 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudo_id, preco }) 
     );
 
     io.to(socket.id).emit("newMessage", {
-      id: messageId,
-      tipo: "pacote",
-      preco,
-      quantidade: conteudos_ids.length,
-      conteudos: conteudos.rows,
-      bloqueado: false
-    });
+  id: messageId,
+  cliente_id,         
+  modelo_id,           
+  sender: "modelo",    
+  tipo: "pacote",
+  preco,
+  quantidade: conteudos_ids.length,
+  conteudos: conteudos.rows,
+  bloqueado: false,
+  created_at: new Date()
+});
 
   } catch (err) {
     console.error("❌ Erro sendPacoteConteudo:", err);

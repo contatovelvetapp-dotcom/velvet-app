@@ -386,7 +386,7 @@ if (msg.tipo === "pacote") {
   /* ===============================
      📦 CONTEÚDO
   =============================== */
-  if (msg.tipo === "conteudo") {
+  else if (msg.tipo === "conteudo") {
 
     // 🔓 MODELO SEMPRE VÊ
     div.innerHTML = `
