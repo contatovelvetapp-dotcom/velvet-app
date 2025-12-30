@@ -272,31 +272,32 @@ function renderMensagem(msg) {
     div.innerText = msg.text;
   }
 
-  /* ===============================
-     📦 CONTEÚDO (1 ou N mídias)
-  =============================== */
+ /* ===============================
+   📦 CONTEÚDO (1 ou N mídias)
+=============================== */
 else if (msg.tipo === "conteudo") {
 
-  const souCliente = true;
- const liberado = !msg.bloqueado;
+  const liberado = !msg.bloqueado;
 
   // 🔓 LIBERADO (gratuito ou comprado)
   if (liberado && Array.isArray(msg.midias)) {
     div.innerHTML = `
-      <div class="chat-conteudo livre premium" data-id="${msg.id}">
+      <div class="chat-conteudo livre premium"
+           data-id="${msg.id}">
+
         <div class="pacote-grid">
           ${msg.midias.map(m => `
-  <div class="midia-item"
-       onclick="abrirConteudo('${m.url}', '${m.tipo_media}')">
-    ${
-      m.tipo_media === "video"
-        ? `<video src="${m.url}" muted></video>`
-        : `<img src="${m.url}" />`
-    }
-  </div>
-`).join("")}
-
+            <div class="midia-item"
+            onclick="abrirConteudo('${m.url}', '${m.tipo_media}', ${msg.id})">
+              ${
+                m.tipo_media === "video"
+                  ? `<video src="${m.url}" muted></video>`
+                  : `<img src="${m.url}" />`
+              }
+            </div>
+          `).join("")}
         </div>
+
       </div>
     `;
   }
@@ -307,26 +308,31 @@ else if (msg.tipo === "conteudo") {
       <div class="chat-conteudo bloqueado premium"
            data-id="${msg.id}"
            data-preco="${msg.preco}">
+
         <div class="pacote-grid">
           ${Array(msg.quantidade ?? 1).fill("").map(() =>
             `<div class="midia-item placeholder"></div>`
           ).join("")}
         </div>
 
-        <div class="overlay-conteudo">
-          <strong>${msg.quantidade ?? 1} mídia(s)</strong>
-          <div class="valor-conteudo">R$ ${Number(msg.preco).toFixed(2)}</div>
+        <!-- 🧾 INFO ABAIXO DA FOTO -->
+        <div class="conteudo-info">
+          <span class="status-bloqueado">🔒 Bloqueado</span>
+          <span class="preco-bloqueado">
+            R$ ${Number(msg.preco).toFixed(2)}
+          </span>
           <button class="btn-desbloquear">Desbloquear</button>
         </div>
+
       </div>
     `;
   }
 }
-  // ✅ adiciona no chat
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
 }
 
+/* ✅ adiciona no chat */
+chat.appendChild(div);
+chat.scrollTop = chat.scrollHeight;
 
   
 function marcarNaoVisto(msg) {
@@ -380,7 +386,7 @@ function atualizarStatusPorResponder(mensagens) {
   }
 }
 
-function abrirConteudo(url, tipo) {
+function abrirConteudo(url, tipo, messageId) {
   const modal = document.getElementById("modalConteudo");
   const midia = document.getElementById("modalMidia");
 
@@ -390,6 +396,13 @@ function abrirConteudo(url, tipo) {
       : `<img src="${url}" />`;
 
   modal.classList.remove("hidden");
+
+  // 👁️ MARCA COMO VISTO (🔥 ISSO DEIXA VERDE NA MODELO)
+  socket.emit("marcarConteudoVisto", {
+    message_id: messageId,
+    cliente_id,
+    modelo_id
+  });
 }
 
 function fecharConteudo() {

@@ -529,6 +529,34 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
   }
  });
 
+ // 👁️ CLIENTE VISUALIZOU CONTEÚDO
+socket.on("marcarConteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
+  if (!socket.user || socket.user.role !== "cliente") return;
+
+  try {
+    // 1️⃣ marca como visto no banco
+    await db.query(
+      `
+      UPDATE messages
+      SET visto = true
+      WHERE id = $1
+        AND cliente_id = $2
+        AND modelo_id = $3
+      `,
+      [message_id, cliente_id, modelo_id]
+    );
+
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+
+    // 2️⃣ avisa MODELO em tempo real
+    io.to(sala).emit("conteudoVisto", {
+      message_id
+    });
+
+  } catch (err) {
+    console.error("❌ Erro marcarConteudoVisto:", err);
+  }
+ });
 
 
 });

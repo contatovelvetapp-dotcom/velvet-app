@@ -347,43 +347,43 @@ function renderMensagem(msg) {
   div.className =
     msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
 
-if (msg.tipo === "conteudo" && Array.isArray(msg.midias)) {
+  if (msg.tipo === "conteudo" && Array.isArray(msg.midias)) {
 
-div.innerHTML = `
-  <div class="chat-conteudo ${msg.pago ? "visto" : "bloqueado"}"
-       data-id="${msg.id}">
+    div.innerHTML = `
+      <div class="chat-conteudo ${msg.visto ? "visto" : "bloqueado"}"
+           data-id="${msg.id}">
 
-    <!-- 📸 MÍDIA -->
-    <div class="pacote-grid">
-      ${msg.midias.map(m => `
-        <div class="midia-item">
-          ${
-            m.tipo_media === "video"
-              ? `<video src="${m.url}" muted></video>`
-              : `<img src="${m.url}" />`
-          }
+        <!-- 📸 MÍDIA -->
+        <div class="pacote-grid">
+          ${msg.midias.map(m => `
+            <div class="midia-item">
+              ${
+                m.tipo_media === "video"
+                  ? `<video src="${m.url}" muted></video>`
+                  : `<img src="${m.url}" />`
+              }
+            </div>
+          `).join("")}
         </div>
-      `).join("")}
-    </div>
 
-    <!-- 🧾 INFO ABAIXO DA FOTO -->
-    ${
-      msg.preco > 0
-        ? `
-          <div class="conteudo-info">
-            <span class="status-bloqueado">
-              ${msg.pago ? "🟢 Vendido" : "🔒 Bloqueado"}
-            </span>
-            <span class="preco-bloqueado">
-              R$ ${Number(msg.preco).toFixed(2)}
-            </span>
-          </div>
-        `
-        : ""
-    }
+        <!-- 🧾 INFO ABAIXO DA FOTO -->
+        ${
+          msg.preco > 0
+            ? `
+              <div class="conteudo-info">
+                <span class="status-bloqueado">
+                  ${msg.visto ? "🟢 Vendido" : "🔒 Bloqueado"}
+                </span>
+                <span class="preco-bloqueado">
+                  R$ ${Number(msg.preco).toFixed(2)}
+                </span>
+              </div>
+            `
+            : ""
+        }
 
-  </div>
-`;
+      </div>
+    `;
   }
 
   /* ===============================
