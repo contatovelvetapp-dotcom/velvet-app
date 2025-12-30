@@ -595,27 +595,22 @@ socket.on("getHistory", async ({ cliente_id, modelo_id }) => {
 
     // 3️⃣ completa PACOTES (depois do SELECT)
     for (const msg of result.rows) {
-      if (msg.tipo === "pacote") {
-        const itens = await db.query(
-          `
-          SELECT c.url, c.tipo
-          FROM conteudo_pacote_itens i
-          JOIN conteudos c ON c.id = i.conteudo_id
-          WHERE i.pacote_id = $1 [msg.pacote_id]
-
-          `,
-          [msg.id]
-        );
-
-        msg.quantidade = itens.rows.length;
-        msg.bloqueado = !(msg.preco === 0);
-      }
-    }
-    for (const msg of result.rows) {
   if (msg.tipo === "pacote") {
-    msg.bloqueado = !(msg.preco === 0 || msg.gratuito === true);
+    const itens = await db.query(
+      `
+      SELECT c.url, c.tipo
+      FROM conteudo_pacote_itens i
+      JOIN conteudos c ON c.id = i.conteudo_id
+      WHERE i.pacote_id = $1
+      `,
+      [msg.pacote_id]
+    );
+
+    msg.quantidade = itens.rows.length;
+    msg.bloqueado  = !(msg.preco === 0);
   }
 }
+
 
     // 4️⃣ envia histórico
     socket.emit("chatHistory", result.rows);
