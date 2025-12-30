@@ -548,8 +548,8 @@ html, body {
 
 /* botão */
 .chat-conteudo.bloqueado.premium .btn-desbloquear {
-  background: #fff;
-  color: #7B2CFF;
+  background: #7B2CFF;
+  color: #fff;
 
   border: none;
   border-radius: 999px;
@@ -584,9 +584,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-
-  background: linear-gradient(135deg, #7b2cff, #5d24be);
-  color: #fff;
+  color: #7B2CFF;
 
   font-size: 12px;
   font-weight: 500;
