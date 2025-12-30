@@ -612,7 +612,7 @@ h2 #modeloNome {
 .chat-conteudo.premium {
   width: auto !important;
   height: auto !important;
-  max-width: 260px;
+  max-width: 150px;
 
   padding: 10px;
   border-radius: 18px;
@@ -636,7 +636,7 @@ h2 #modeloNome {
 .chat-conteudo.premium[data-qtd="8"] .pacote-grid,
 .chat-conteudo.premium[data-qtd="9"] .pacote-grid,
 .chat-conteudo.premium[data-qtd="10"] .pacote-grid {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 /* 🔥 FORÇA QUADRADO (mata círculo) */
