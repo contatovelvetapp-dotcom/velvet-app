@@ -48,6 +48,17 @@ html, body {
 }
 
 /* =========================
+   LAYOUT GERAL
+========================= */
+
+.chat-layout {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  min-height: 0;
+}
+
+/* =========================
    PAINEL PADRÃO
 ========================= */
 
@@ -309,13 +320,13 @@ html, body {
 /* ===============================
    🔒 CONTEÚDO BLOQUEADO
 =============================== */
-body.role-cliente .chat-conteudo.bloqueado img,
-body.role-cliente .chat-conteudo.bloqueado video {
+.chat-conteudo.bloqueado img,
+.chat-conteudo.bloqueado video {
   filter: blur(18px) brightness(.7);
   transform: scale(1.08);
 }
 
-body.role-cliente .chat-conteudo.bloqueado::after {
+.chat-conteudo.bloqueado::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -323,7 +334,7 @@ body.role-cliente .chat-conteudo.bloqueado::after {
   z-index: 2;
 }
 
-body.role-cliente .chat-conteudo.bloqueado::before {
+.chat-conteudo.bloqueado::before {
   content: "🔒";
   position: absolute;
   top: 50%;
@@ -333,7 +344,7 @@ body.role-cliente .chat-conteudo.bloqueado::before {
   z-index: 3;
 }
 
- body.role-cliente .chat-conteudo.bloqueado * {
+.chat-conteudo.bloqueado * {
   pointer-events: none;
 }
 
