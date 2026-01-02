@@ -20,7 +20,8 @@ const modo = role === "cliente" ? "publico" : "privado";
 // ===============================
 // ELEMENTOS DO PERFIL
 // ===============================
-let modelo_id = localStorage.getItem("modelo_id");
+const params = new URLSearchParams(window.location.search);
+let modelo_id = params.get("modelo_id") || localStorage.getItem("modelo_id");
 
 
 const avatarImg  = document.getElementById("profileAvatar");
