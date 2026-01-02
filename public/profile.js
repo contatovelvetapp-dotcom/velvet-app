@@ -20,9 +20,14 @@ const modo = role === "cliente" ? "publico" : "privado";
 // ===============================
 // ELEMENTOS DO PERFIL
 // ===============================
-const params = new URLSearchParams(window.location.search);
-let modelo_id = params.get("modelo_id") || localStorage.getItem("modelo_id");
+let modelo_id = localStorage.getItem("modelo_id");
 
+// 🔒 Guard APENAS para perfil público
+if (modo === "publico" && (!modelo_id || modelo_id === "undefined")) {
+  alert("Modelo não identificada.");
+  window.location.href = "/clientHome.html";
+  throw new Error("modelo_id ausente no perfil público");
+}
 
 const avatarImg  = document.getElementById("profileAvatar");
 const capaImg    = document.getElementById("profileCapa");
@@ -84,40 +89,45 @@ async function carregarPerfil() {
   aplicarPerfilNoDOM(modelo);
 }
 
-function carregarFeedPublico() {
-  if (!listaMidias) return;
-  if (!modelo_id) {
-    console.error("❌ modelo_id ausente no feed público");
-    return;
+async function carregarPerfilPublico() {
+  const res = await fetch(`/api/modelo/publico/${modelo_id}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  if (!res.ok) return;
+
+  const modelo = await res.json();
+  localStorage.setItem("modelo_id", modelo.id);
+  modelo_id = modelo.id;
+
+  aplicarPerfilNoDOM(modelo);
+
+  // 🔐 VERIFICAR VIP
+  const vipRes = await fetch(`/api/vip/status/${modelo_id}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  let isVip = false;
+
+  if (vipRes.ok) {
+    const vipData = await vipRes.json();
+    if (vipData.vip) {
+      isVip = true;
+
+      if (btnVip) {
+        btnVip.textContent = "VIP ativo 💜";
+        btnVip.disabled = true;
+      }
+    }
   }
 
-  fetch(`/api/modelo/id/${modelo_id}/feed`, {
-    headers: {
-      Authorization: "Bearer " + token
-    }
-  })
-    .then(res => {
-      if (!res.ok) {
-        throw new Error("Erro ao carregar feed público");
-      }
-      return res.json();
-    })
-    .then(feed => {
-      listaMidias.innerHTML = "";
+  // ✅ 1️⃣ DEFINE VIP GLOBAL (ESSENCIAL)
+  window.__CLIENTE_VIP__ = isVip;
 
-      if (!Array.isArray(feed) || feed.length === 0) {
-        listaMidias.innerHTML = "<p style='opacity:.6'>Sem conteúdos ainda</p>";
-        return;
-      }
-
-      feed.forEach(item => {
-        adicionarMidia(item.id, item.url);
-      });
-    })
-    .catch(err => {
-      console.error("❌ Feed público erro:", err);
-    });
+  // ✅ 2️⃣ AGORA SIM carrega o feed
+  carregarFeedPublico();
 }
+
 
 // ===============================
 // CHAT
