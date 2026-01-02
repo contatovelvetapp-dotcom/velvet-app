@@ -30,7 +30,8 @@ body {
 .logo-app {
     height: 120px !important;     /* cabe dentro do header */
     max-height: 120px;
-    pointer-events: none;        /* 🔥 não rouba clique */
+    pointer-events: auto; 
+    cursor: pointer;
 }
 
 
