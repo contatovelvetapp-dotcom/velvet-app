@@ -686,23 +686,3 @@ html, body {
   height: 100%;
   object-fit: cover;
 }
-/* ==================================================
-   🔥 CORREÇÃO DEFINITIVA DE LARGURA
-   bloqueado = largura exata da mídia
-================================================== */
-
-/* a mídia define o tamanho real */
-.chat-conteudo {
-  width: fit-content !important;
-  max-width: none !important;
-}
-
-/* pacote NÃO limita largura */
-.chat-conteudo.premium {
-  max-width: none !important;
-}
-
-/* info herda exatamente a largura da mídia */
-.chat-conteudo .conteudo-info {
-  inline-size: 100%;
-}
