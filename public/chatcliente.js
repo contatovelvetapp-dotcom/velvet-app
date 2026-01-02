@@ -192,8 +192,8 @@ async function carregarListaModelos() {
 
     lista.appendChild(li);
   });
-   contarChatsNaoLidosCliente();
 }
+contarChatsNaoLidosCliente();
 
 async function carregarCliente() {
   const res = await fetch("/api/cliente/me", {
