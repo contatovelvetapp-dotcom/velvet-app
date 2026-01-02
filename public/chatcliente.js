@@ -274,55 +274,61 @@ function renderMensagem(msg) {
     div.innerText = msg.text;
   }
 
+  /* 📦 CONTEÚDO */
   else if (msg.tipo === "conteudo") {
 
-  const liberado = !msg.bloqueado;
-  const qtd = msg.quantidade ?? msg.midias?.length ?? 1;
+    const liberado = !msg.bloqueado;
 
-  div.innerHTML = `
-    <div class="chat-conteudo premium ${liberado ? "livre" : "bloqueado"}"
-         data-id="${msg.id}"
-         data-preco="${msg.preco}"
-         data-qtd="${qtd}">
-
-      <div class="conteudo-media">
-        <div class="pacote-grid">
-          ${
-            liberado && Array.isArray(msg.midias)
-              ? msg.midias.map(m => `
-                  <div class="midia-item"
-                       onclick="abrirConteudo('${m.url}', '${m.tipo_media}', ${msg.id})">
-                    ${
-                      m.tipo_media === "video"
-                        ? `<video src="${m.url}" muted></video>`
-                        : `<img src="${m.url}" />`
-                    }
-                  </div>
-                `).join("")
-              : Array(qtd).fill("").map(() =>
-                  `<div class="midia-item placeholder"></div>`
-                ).join("")
-          }
+    // 🔓 LIBERADO
+    if (liberado && Array.isArray(msg.midias)) {
+      div.innerHTML = `
+        <div class="chat-conteudo livre premium"
+     data-id="${msg.id}"
+     data-qtd="${msg.quantidade ?? msg.midias.length}">
+          <div class="pacote-grid">
+            ${msg.midias.map(m => `
+              <div class="midia-item"
+                   onclick="abrirConteudo('${m.url}', '${m.tipo_media}', ${msg.id})">
+                ${
+                  m.tipo_media === "video"
+                    ? `<video src="${m.url}" muted></video>`
+                    : `<img src="${m.url}" />`
+                }
+              </div>
+            `).join("")}
+          </div>
         </div>
-      </div>
+      `;
+    }
 
-      ${
-        liberado
-          ? ""
-          : `
-            <div class="conteudo-info">
-              <span class="status-bloqueado">${qtd} mídia(s)</span>
-              <span class="preco-bloqueado">
-                R$ ${Number(msg.preco).toFixed(2)}
-              </span>
-              <button class="btn-desbloquear">Desbloquear</button>
-            </div>
-          `
-      }
-    </div>
-  `;
-}
+    // 🔒 BLOQUEADO
+    else {
+      div.innerHTML = `
+        <div class="chat-conteudo bloqueado premium"
+     data-id="${msg.id}"
+     data-preco="${msg.preco}"
+     data-qtd="${msg.quantidade ?? 1}">
+          <div class="pacote-grid">
+            ${Array(msg.quantidade ?? 1).fill("").map(() =>
+              `<div class="midia-item placeholder"></div>`
+            ).join("")}
+          </div>
 
+         <div class="conteudo-info">
+  <span class="status-bloqueado">
+    ${msg.quantidade ?? 1} mídia(s)
+  </span>
+
+  <span class="preco-bloqueado">
+    R$ ${Number(msg.preco).toFixed(2)}
+  </span>
+
+  <button class="btn-desbloquear">Desbloquear</button>
+</div>
+</div>
+      `;
+    }
+  }
 
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;

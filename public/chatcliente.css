@@ -443,6 +443,50 @@ body.role-cliente .chat-conteudo.bloqueado * {
   object-fit: cover;
 }
 
+/* ==================================================
+   🔥 PATCH DEFINITIVO — CHAT CLIENTE
+   Remove conflitos de tamanho fixo
+================================================== */
+
+/* ❌ REMOVE altura fixa quando é pacote */
+.chat-conteudo.premium {
+  height: auto !important;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+/* 📦 área da mídia tem altura própria */
+.chat-conteudo .conteudo-media {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+/* 📦 grid nunca colapsa */
+.chat-conteudo .pacote-grid {
+  width: 100%;
+  height: 100%;
+}
+
+/* 📦 itens sempre visíveis */
+.chat-conteudo .midia-item {
+  width: 100%;
+  height: 100%;
+}
+
+/* ℹ️ info SEMPRE fora da área da mídia */
+.chat-conteudo .conteudo-info {
+  position: static;
+  margin-top: 8px;
+}
+
+/* ❌ NÃO centralizar conteúdo de pacote */
+.chat-conteudo.premium {
+  display: flex;
+  flex-direction: column;
+}
+
+
 
 
 /* MODELO SEMPRE VÊ LIVRE */
