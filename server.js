@@ -1032,6 +1032,36 @@ app.get("/api/cliente/:id", authModelo, async (req, res) => {
   }
 });
 
+// 👀 FEED PÚBLICO DA MODELO (CLIENTE) — POR ID (RECOMENDADO)
+app.get("/api/modelo/id/:id/feed", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "cliente") {
+      return res.status(403).json({ error: "Apenas clientes" });
+    }
+
+    const { id } = req.params;
+
+    const result = await db.query(`
+      SELECT
+        c.id,
+        c.url,
+        c.tipo,
+        c.preco,
+        c.criado_em
+      FROM conteudos c
+      WHERE c.user_id = $1
+      ORDER BY c.criado_em DESC
+    `, [id]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("Erro feed público por ID:", err);
+    res.status(500).json([]);
+  }
+});
+
+
 // ===============================
 // ROTA POST
 // ===============================

@@ -84,45 +84,40 @@ async function carregarPerfil() {
   aplicarPerfilNoDOM(modelo);
 }
 
-async function carregarPerfilPublico() {
-  const res = await fetch(`/api/modelo/publico/${modelo_id}`, {
-    headers: { Authorization: "Bearer " + token }
-  });
-
-  if (!res.ok) return;
-
-  const modelo = await res.json();
-  localStorage.setItem("modelo_id", modelo.id);
-  modelo_id = modelo.id;
-
-  aplicarPerfilNoDOM(modelo);
-
-  // 🔐 VERIFICAR VIP
-  const vipRes = await fetch(`/api/vip/status/${modelo_id}`, {
-    headers: { Authorization: "Bearer " + token }
-  });
-
-  let isVip = false;
-
-  if (vipRes.ok) {
-    const vipData = await vipRes.json();
-    if (vipData.vip) {
-      isVip = true;
-
-      if (btnVip) {
-        btnVip.textContent = "VIP ativo 💜";
-        btnVip.disabled = true;
-      }
-    }
+function carregarFeedPublico() {
+  if (!listaMidias) return;
+  if (!modelo_id) {
+    console.error("❌ modelo_id ausente no feed público");
+    return;
   }
 
-  // ✅ 1️⃣ DEFINE VIP GLOBAL (ESSENCIAL)
-  window.__CLIENTE_VIP__ = isVip;
+  fetch(`/api/modelo/id/${modelo_id}/feed`, {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Erro ao carregar feed público");
+      }
+      return res.json();
+    })
+    .then(feed => {
+      listaMidias.innerHTML = "";
 
-  // ✅ 2️⃣ AGORA SIM carrega o feed
-  carregarFeedPublico();
+      if (!Array.isArray(feed) || feed.length === 0) {
+        listaMidias.innerHTML = "<p style='opacity:.6'>Sem conteúdos ainda</p>";
+        return;
+      }
+
+      feed.forEach(item => {
+        adicionarMidia(item.id, item.url);
+      });
+    })
+    .catch(err => {
+      console.error("❌ Feed público erro:", err);
+    });
 }
-
 
 // ===============================
 // CHAT
