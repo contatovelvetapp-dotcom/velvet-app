@@ -284,6 +284,25 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// =========================================================
+// 💬 BOTÃO DE MENSAGENS → CHAT POR ROLE
+// =========================================================
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#btnMensagem");
+  if (!btn) return;
+
+  const role = localStorage.getItem("role");
+
+  if (role === "cliente") {
+    window.location.href = "/chatcliente.html";
+  } else if (role === "modelo") {
+    window.location.href = "/chatmodelo.html";
+  } else {
+    window.location.href = "/index.html";
+  }
+});
+
+
 
 // =========================================================
 // LOGOUT
