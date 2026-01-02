@@ -191,8 +191,8 @@ async function carregarListaModelos() {
     };
 
     lista.appendChild(li);
-    contarChatsNaoLidosCliente();
   });
+   contarChatsNaoLidosCliente();
 }
 
 async function carregarCliente() {
