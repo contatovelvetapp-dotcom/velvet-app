@@ -614,3 +614,44 @@ body.role-modelo .only-modelo {
 body.role-cliente .only-cliente {
   display: inline-flex !important;
 }
+
+
+/* =========================================
+   🔒 MÍDIA BLOQUEADA (CLIENTE NÃO VIP)
+========================================= */
+.midiaCard.bloqueada {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.midiaCard.bloqueada .midiaThumb {
+  filter: blur(18px) brightness(0.7);
+  transform: scale(1.05);
+}
+
+/* overlay escuro */
+.midiaCard.bloqueada::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+/* ícone de cadeado */
+.midiaCard.bloqueada::before {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 34px;
+  z-index: 3;
+}
+
+/* impede abrir modal */
+.midiaCard.bloqueada * {
+  pointer-events: none;
+}
+

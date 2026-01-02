@@ -115,6 +115,7 @@ async function carregarPerfilPublico() {
     }
   }
 }
+window.__CLIENTE_VIP__ = isVip;
 
 // ===============================
 // CHAT
@@ -340,28 +341,23 @@ function adicionarMidia(id, url) {
   el.className = "midiaThumb";
   if (isVideo) el.muted = true;
 
-  el.addEventListener("click", () =>
-    abrirModalMidia(url, isVideo)
-  );
+  // 🔒 BLOQUEIO PARA CLIENTE NÃO VIP
+  if (role === "cliente" && !window.__CLIENTE_VIP__) {
+    card.classList.add("bloqueada");
 
-  card.appendChild(el);
-
-  // 🗑 EXCLUIR (SÓ MODELO)
-  if (role === "modelo") {
-    const btnExcluir = document.createElement("button");
-    btnExcluir.className = "btnExcluirMidia";
-    btnExcluir.textContent = "Excluir";
-
-    btnExcluir.onclick = e => {
-      e.stopPropagation();
-      excluirMidia(id, card);
-    };
-
-    card.appendChild(btnExcluir);
+    card.addEventListener("click", () => {
+      alert("🔒 Conteúdo exclusivo para membros VIP");
+    });
+  } else {
+    el.addEventListener("click", () =>
+      abrirModalMidia(url, isVideo)
+    );
   }
 
+  card.appendChild(el);
   listaMidias.appendChild(card);
 }
+
 
 function abrirModalMidia(url, isVideo) {
   const modal = document.getElementById("modalMidia");
