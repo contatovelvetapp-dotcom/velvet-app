@@ -400,6 +400,14 @@ body.role-cliente .chat-conteudo.bloqueado * {
   transform: scale(1.05);
 }
 
+.msg:has(.chat-conteudo) {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  max-width: unset;
+}
+
+
 /* MODELO SEMPRE VÊ LIVRE */
 body.role-modelo .chat-conteudo.bloqueado {
   filter: none;
