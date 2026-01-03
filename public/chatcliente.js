@@ -115,10 +115,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btn = e.target.closest(".btn-desbloquear");
   if (!btn) return;
 
-  const conteudoId = btn.dataset.conteudoId;
-  const preco = btn.dataset.preco;
+ const preco = btn.dataset.preco;
+ const messageId = btn.dataset.messageId;
 
-  abrirPagamentoChat(preco, conteudoId);
+abrirPagamentoChat(preco, messageId);
+
 });
 
 
@@ -164,18 +165,40 @@ async function abrirPagamentoChat(valor, conteudoId) {
 }
 
 
-document.getElementById("confirmarPagamento").onclick = async () => {
-  const { error } = await stripe.confirmPayment({
-    elements,
-    confirmParams: {
-      return_url: window.location.href
-    }
+async function abrirPagamentoChat(valor, conteudoId) {
+
+  if (!valor || !conteudoId) {
+    alert("Erro: dados inválidos do conteúdo.");
+    return;
+  }
+
+  document.getElementById("paymentModal").classList.remove("hidden");
+
+  const res = await fetch("/api/pagamento/criar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      valor: Number(valor),
+      message_id: conteudoId   // 🔥 ESSENCIAL
+    })
   });
 
-  if (error) {
-    alert(error.message);
+  if (!res.ok) {
+    const erro = await res.json();
+    console.error("Erro pagamento:", erro);
+    alert("Erro ao iniciar pagamento");
+    return;
   }
-};
+
+  const { clientSecret } = await res.json();
+
+  elements = stripe.elements({ clientSecret });
+
+  const paymentElement = elements.create("payment");
+  paymentElement.mount("#payment-element");
+}
+
+
 
 //fechar modal
 document.getElementById("fecharPagamento").onclick = () => {
@@ -393,11 +416,10 @@ function renderMensagem(msg) {
     R$ ${Number(msg.preco).toFixed(2)}
   </span>
 
- <button class="btn-desbloquear"
+<button class="btn-desbloquear"
   data-preco="${msg.preco}"
-  data-conteudo-id="${msg.id}">
-  Desbloquear
-</button>
+  data-message-id="${msg.id}">
+
 </div>
 </div>
       `;

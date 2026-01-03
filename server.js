@@ -1059,43 +1059,40 @@ app.put("/api/modelo/bio", authModelo, async (req, res) => {
 
 
 //STRIPE
-app.post("/api/pagamento/criar", async (req, res) => {
+app.post("/api/pagamento/criar", auth, async (req, res) => {
   try {
-    const { valor, descricao } = req.body;
+    const { valor, message_id } = req.body;
 
-    if (!valor || Number(valor) <= 0) {
-      return res.status(400).json({ erro: "Valor inválido" });
+    if (!valor || !message_id) {
+      return res.status(400).json({ erro: "Dados inválidos" });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(valor) * 100),
       currency: "brl",
+      automatic_payment_methods: { enabled: true },
 
-      // ✅ FORMA CORRETA
-      automatic_payment_methods: {
-        enabled: true
-      },
-
-      description: descricao || "Pagamento Velvet"
+      // 🔥 ESSENCIAL
+      metadata: {
+        message_id: String(message_id),
+        cliente_id: String(req.user.id)
+      }
     });
 
-    res.json({
-      clientSecret: paymentIntent.client_secret
-    });
+    res.json({ clientSecret: paymentIntent.client_secret });
 
   } catch (err) {
-    console.error("❌ Stripe erro REAL:", err); // 🔥 agora vais ver o motivo
-    res.status(500).json({
-      erro: "Erro ao criar pagamento"
-    });
+    console.error("❌ Stripe erro:", err);
+    res.status(500).json({ erro: "Erro ao criar pagamento" });
   }
 });
+
 
 
 app.post(
   "/webhook/stripe",
   express.raw({ type: "application/json" }),
-  (req, res) => {
+  async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
 
@@ -1107,17 +1104,40 @@ app.post(
       );
     } catch (err) {
       console.error("❌ Webhook inválido:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      return res.status(400).send(`Webhook Error`);
     }
 
+    // 🔓 PAGAMENTO CONFIRMADO
     if (event.type === "payment_intent.succeeded") {
       const intent = event.data.object;
-      console.log("✅ Pagamento confirmado:", intent.id);
+
+      const message_id = intent.metadata.message_id;
+      const cliente_id = intent.metadata.cliente_id;
+
+      if (message_id && cliente_id) {
+        try {
+          // 🔥 DESBLOQUEIA O CONTEÚDO
+          await db.query(
+            `
+            UPDATE messages
+            SET visto = true
+            WHERE id = $1
+              AND cliente_id = $2
+            `,
+            [message_id, cliente_id]
+          );
+
+          console.log("🔓 Conteúdo desbloqueado:", message_id);
+        } catch (err) {
+          console.error("❌ Erro ao desbloquear conteúdo:", err);
+        }
+      }
     }
 
     res.json({ received: true });
   }
 );
+
 
 
 
