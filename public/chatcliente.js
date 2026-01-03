@@ -130,37 +130,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 // FUNÇÕES
 // ===============================
 
-async function pagar(valor, tipo, referencia_id) {
-  const res = await fetch("/api/pagamentos/criar", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ valor, tipo, referencia_id })
-  });
-
-  const { clientSecret } = await res.json();
-
-  const elements = stripe.elements({ clientSecret });
-  const paymentElement = elements.create("payment");
-  paymentElement.mount("#payment-element");
-
-  document.getElementById("confirmarPagamento").onclick = async () => {
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: window.location.href
-      }
-    });
-
-    if (error) alert(error.message);
-  };
-}
-
 async function abrirPagamentoChat(valor, conteudoId) {
   pagamentoAtual = { valor, conteudoId };
 
   document.getElementById("paymentModal").classList.remove("hidden");
 
-  const res = await fetch("/api/pagamentos/criar", {
+  const res = await fetch("/api/pagamento/criar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
