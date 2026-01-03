@@ -16,7 +16,10 @@ let cliente_id = null;
 let modelo_id = null;
 let chatAtivo = null;
 const mensagensRenderizadas = new Set();
-const stripe = Stripe("pk_live_xxxxx");
+let stripe;
+let elements;
+let pagamentoAtual = {};
+stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 
 // 🔐 SOCKET AUTH
 socket.on("connect", () => {
@@ -108,6 +111,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     "https://velvet-app-production.up.railway.app/assets/avatarDefault.png";
   };
 
+  document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".btn-desbloquear");
+  if (!btn) return;
+
+  const conteudoId = btn.dataset.conteudoId;
+  const preco = btn.dataset.preco;
+
+  abrirPagamentoChat(preco, conteudoId);
+});
+
+
 });
 
 
@@ -140,6 +154,49 @@ async function pagar(valor, tipo, referencia_id) {
     if (error) alert(error.message);
   };
 }
+
+async function abrirPagamentoChat(valor, conteudoId) {
+  pagamentoAtual = { valor, conteudoId };
+
+  document.getElementById("paymentModal").classList.remove("hidden");
+
+  const res = await fetch("/api/pagamentos/criar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      valor,
+      tipo: "conteudo",
+      referencia_id: conteudoId
+    })
+  });
+
+  const { clientSecret } = await res.json();
+
+  elements = stripe.elements({ clientSecret });
+
+  const paymentElement = elements.create("payment");
+  paymentElement.mount("#payment-element");
+}
+
+document.getElementById("confirmarPagamento").onclick = async () => {
+  const { error } = await stripe.confirmPayment({
+    elements,
+    confirmParams: {
+      return_url: window.location.href
+    }
+  });
+
+  if (error) {
+    alert(error.message);
+  }
+};
+
+//fechar modal
+document.getElementById("fecharPagamento").onclick = () => {
+  document.getElementById("paymentModal").classList.add("hidden");
+  document.getElementById("payment-element").innerHTML = "";
+};
+
 
 function atualizarListaComMeta({ cliente_id, modelo_id, sender, created_at }) {
   const minhaRole = localStorage.getItem("role");

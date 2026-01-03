@@ -686,3 +686,8 @@ html, body {
   height: 100%;
   object-fit: cover;
 }
+
+/*modal pagamentos */
+.modal.hidden {
+  display: none;
+}
