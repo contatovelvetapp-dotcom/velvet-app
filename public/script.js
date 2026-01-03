@@ -179,6 +179,35 @@ async function register() {
   switchToLogin();
 }
 
+// ===============================
+// MODAL LEGAL (TERMOS / POLÍTICAS)
+// ===============================
+window.openLegalModal = function (event, url) {
+  event.preventDefault();
+
+  closeAllModals(); // fecha login / age gate se abertos
+
+  const modal = document.getElementById("legalModal");
+  const iframe = document.getElementById("modalFrame");
+
+  if (!modal || !iframe) {
+    console.error("❌ Modal legal não encontrado no DOM");
+    return;
+  }
+
+  iframe.src = url;
+  modal.classList.remove("hidden");
+};
+
+window.closeLegalModal = function () {
+  const modal = document.getElementById("legalModal");
+  const iframe = document.getElementById("modalFrame");
+
+  if (iframe) iframe.src = "";
+  if (modal) modal.classList.add("hidden");
+};
+
+
 
 window.logout = function () {
   localStorage.removeItem("token");
