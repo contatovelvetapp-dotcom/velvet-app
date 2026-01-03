@@ -1063,25 +1063,34 @@ app.post("/api/pagamento/criar", async (req, res) => {
   try {
     const { valor, descricao } = req.body;
 
-    if (!valor) {
+    if (!valor || Number(valor) <= 0) {
       return res.status(400).json({ erro: "Valor inválido" });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(valor * 100), // centavos
+      amount: Math.round(Number(valor) * 100),
       currency: "brl",
-      payment_method_types: ["card", "pix"],
+
+      // ✅ FORMA CORRETA
+      automatic_payment_methods: {
+        enabled: true
+      },
+
       description: descricao || "Pagamento Velvet"
     });
 
     res.json({
       clientSecret: paymentIntent.client_secret
     });
+
   } catch (err) {
-    console.error("❌ Stripe erro:", err);
-    res.status(500).json({ erro: "Erro ao criar pagamento" });
+    console.error("❌ Stripe erro REAL:", err); // 🔥 agora vais ver o motivo
+    res.status(500).json({
+      erro: "Erro ao criar pagamento"
+    });
   }
 });
+
 
 app.post(
   "/webhook/stripe",
