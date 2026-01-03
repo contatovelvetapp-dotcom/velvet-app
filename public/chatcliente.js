@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
  const preco = btn.dataset.preco;
  const messageId = btn.dataset.messageId;
-
+console.log("DEBUG pagamento:", preco, messageId);
 abrirPagamentoChat(preco, messageId);
 
 });
