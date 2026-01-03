@@ -16,7 +16,6 @@ const fs = require("fs");
 const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
-app.use(express.json());
 app.use(express.static("public"));
 const multer = require("multer");
 app.use("/assets", express.static(path.join(__dirname, "assets")));
@@ -1087,8 +1086,6 @@ app.post("/api/pagamento/criar", auth, async (req, res) => {
   }
 });
 
-
-
 app.post(
   "/webhook/stripe",
   express.raw({ type: "application/json" }),
@@ -1136,9 +1133,9 @@ app.post(
 
     res.json({ received: true });
   }
-);
+)
 
-
+app.use(express.json());
 
 
 //DADOS CLIENTE

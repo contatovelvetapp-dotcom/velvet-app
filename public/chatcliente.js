@@ -462,6 +462,10 @@ function abrirConteudo(url, tipo, messageId) {
 
   modal.classList.remove("hidden");
 
+  function atualizarBadgeComTempo(li) {
+  // vazio por enquanto
+}
+
   // 👁️ MARCA COMO VISTO (🔥 ISSO DEIXA VERDE NA MODELO)
   socket.emit("marcarConteudoVisto", {
     message_id: messageId,
@@ -526,13 +530,4 @@ document.getElementById("confirmarPagamento").onclick = async () => {
     alert(error.message);
   }
 };
-
-
-
-setInterval(() => {
-  document
-    .querySelectorAll(".chat-item")
-    .forEach(li => atualizarBadgeComTempo(li));
-}, 60000); // a cada 1 min
-
 
