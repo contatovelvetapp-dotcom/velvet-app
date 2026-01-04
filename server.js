@@ -1196,30 +1196,60 @@ app.post("/api/pagamento/criar", authCliente, async (req, res) => {
 });
 
 app.post("/api/pagamento/pix", authCliente, async (req, res) => {
-  const { valor, message_id } = req.body;
+  try {
+    const { valor, message_id } = req.body;
 
-  const mp = new MercadoPagoConfig({
-    accessToken: process.env.MERCADOPAGO_TOKEN
-  });
-
-  const payment = await mp.payment.create({
-    transaction_amount: Number(valor),
-    description: `Conteúdo ${message_id}`,
-    payment_method_id: "pix",
-    payer: {
-      email: req.user.email
-    },
-    metadata: {
-      message_id,
-      cliente_id: req.user.id
+    if (!valor || !message_id) {
+      return res.status(400).json({ error: "Dados inválidos" });
     }
-  });
 
-  res.json({
-    qrCode: payment.point_of_interaction.transaction_data.qr_code_base64,
-    copiaCola: payment.point_of_interaction.transaction_data.qr_code
-  });
+    // 🔒 verifica se já foi desbloqueado
+    const check = await db.query(
+      `
+      SELECT visto
+      FROM messages
+      WHERE id = $1 AND cliente_id = $2
+      `,
+      [message_id, req.user.id]
+    );
+
+    if (!check.rowCount || check.rows[0].visto) {
+      return res.status(400).json({ error: "Conteúdo já liberado" });
+    }
+
+    const mp = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_TOKEN
+    });
+
+    const payment = new Payment(mp);
+
+    const result = await payment.create({
+      transaction_amount: Number(valor),
+      description: `Conteúdo ${message_id}`,
+      payment_method_id: "pix",
+      payer: {
+        email: req.user.email || "cliente@velvet.lat"
+      },
+      metadata: {
+        message_id: String(message_id),
+        cliente_id: String(req.user.id)
+      }
+    });
+
+    const pix =
+      result.point_of_interaction.transaction_data;
+
+    res.json({
+      qrCode: pix.qr_code_base64,
+      copiaCola: pix.qr_code
+    });
+
+  } catch (err) {
+    console.error("❌ Erro Pix Mercado Pago:", err);
+    res.status(500).json({ error: "Erro ao gerar Pix" });
+  }
 });
+
 
 
 
