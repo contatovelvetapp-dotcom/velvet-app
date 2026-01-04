@@ -477,7 +477,7 @@ function renderMensagem(msg) {
 
 
     // 🔓 LIBERADO
-  if (liberado && Array.isArray(msg.midias)) {
+  if (liberado) {
   div.innerHTML = `
     <div class="chat-conteudo livre premium"
          data-id="${msg.id}"
