@@ -651,3 +651,163 @@ body.role-cliente .only-cliente {
 }
 
 
+
+/* =========================================
+   💳 POPUP PAGAMENTO CARTÃO – VELVET
+========================================= */
+
+#paymentModal .modal-box {
+  box-shadow: 0 20px 60px rgba(123, 44, 255, 0.35);
+  animation: popupFadeIn 0.25s ease;
+}
+
+#paymentModal h2.desbloq {
+  color: #7B2CFF;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* botão fechar */
+#paymentModal .modal-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+
+  background: none;
+  border: none;
+
+  font-size: 26px;
+  color: #7B2CFF;
+  cursor: pointer;
+}
+
+#paymentModal .modal-close:hover {
+  opacity: 0.7;
+}
+
+/* container stripe */
+#payment-element-container {
+  margin-top: 12px;
+}
+
+/* botão confirmar */
+#paymentModal .btn-confirmar-desbloqueio {
+  margin-top: 22px;
+}
+
+
+/* =========================================
+   ⚡ POPUP PIX – VELVET
+========================================= */
+
+#popupPix .modal-box {
+  box-shadow: 0 20px 60px rgba(123, 44, 255, 0.35);
+  animation: popupFadeIn 0.25s ease;
+}
+
+#popupPix .modal-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+
+  background: none;
+  border: none;
+
+  font-size: 26px;
+  color: #7B2CFF;
+  cursor: pointer;
+}
+
+#popupPix .modal-close:hover {
+  opacity: 0.7;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =========================================
+   💰 POPUP ESCOLHER PAGAMENTO
+   🔥 HERDA 100% DO CHATCLIENTE
+========================================= */
+
+/* força usar o mesmo overlay do chat */
+#popupEscolhaPagamento.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* esconder corretamente */
+#popupEscolhaPagamento.popup.hidden {
+  display: none;
+}
+
+/* caixa exatamente igual */
+#popupEscolhaPagamento .popup-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* título (reaproveita estilo existente) */
+#popupEscolhaPagamento .desbloq {
+  color: #7B2CFF;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* preço */
+#popupEscolhaPagamento .cartao-preco {
+  font-size: 15px;
+  margin-bottom: 14px;
+  color: #7B2CFF;
+}
+
+#popupEscolhaPagamento .cartao-preco strong {
+  font-weight: 700;
+}
+
+/* botões IGUAIS ao chat */
+#popupEscolhaPagamento .btn-pagamento {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+/* pix */
+#popupEscolhaPagamento .btn-pagamento.pix {
+  background: linear-gradient(135deg, #7B2CFF, #5D24BE);
+  color: #fff;
+}
+
+/* cartão */
+#popupEscolhaPagamento .btn-pagamento.cartao {
+  background: linear-gradient(135deg, #7B2CFF, #5D24BE);
+  color: #fff;
+}
+
+
+
