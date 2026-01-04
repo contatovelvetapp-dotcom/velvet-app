@@ -1302,9 +1302,9 @@ app.post("/webhook/mercadopago", async (req, res) => {
 if (cliente_id && modelo_id) {
   await db.query(
     `
-    INSERT INTO vip_subscriptions (cliente_id, modelo_id, ativo)
-    VALUES ($1, $2, true)
-    ON CONFLICT DO NOTHING
+   INSERT INTO vip_assinaturas (cliente_id, modelo_id)
+   VALUES ($1, $2)
+   ON CONFLICT DO NOTHING
     `,
     [cliente_id, modelo_id]
   );
