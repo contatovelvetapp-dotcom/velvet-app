@@ -801,6 +801,7 @@ html, body {
 .modal-close {
   background: #fff;;
   color:#7B2CFF;
+  text-align: right;
 }
 
 .btn-pagamento {
