@@ -931,6 +931,73 @@ body.role-cliente .only-cliente {
   transform: scale(0.97);
 }
 
+/* =========================================
+   💳 CARTÃO – TEXTOS VELVET
+========================================= */
+
+#paymentModal label,
+#paymentModal .StripeElementLabel,
+#paymentModal h2,
+#paymentModal .cartao-preco {
+  color: #7B2CFF;
+  font-weight: 600;
+}
+
+#paymentModal input,
+#paymentModal select,
+#paymentModal .StripeElement {
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  padding: 12px;
+  font-family: "Poppins", sans-serif;
+}
+
+#paymentModal input:focus,
+#paymentModal select:focus,
+#paymentModal .StripeElement--focus {
+  border-color: #7B2CFF;
+  box-shadow: 0 0 0 3px rgba(123, 44, 255, 0.15);
+  outline: none;
+}
+
+/* =========================================
+   💜 BOTÃO CONFIRMAR VIP – VELVET
+========================================= */
+
+#paymentModal .btn-confirmar-desbloqueio {
+  display: block;
+  margin: 24px auto 0; /* 👈 CENTRALIZA */
+
+  background: linear-gradient(135deg, #7B2CFF, #AD47FF);
+  color: #fff;
+
+  border: none;
+  border-radius: 25px;
+
+  padding: 12px 28px;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+#paymentModal .btn-confirmar-desbloqueio:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(123, 44, 255, 0.35);
+}
+
+#paymentModal .btn-confirmar-desbloqueio:active {
+  transform: scale(0.97);
+}
+
+/* Centralizar apenas o TOTAL (preço) */
+#paymentModal .cartao-preco {
+  text-align: center;
+}
 
 
 
