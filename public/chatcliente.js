@@ -350,7 +350,7 @@ function renderMensagem(msg) {
           <div class="pacote-grid">
             ${msg.midias.map(m => `
               <div class="midia-item"
-                   onclick="abrirConteudo('${m.url}', '${m.tipo_media}', ${msg.id})">
+                   onclick="abrirConteudoSeguro(${msg.id})"
                 ${
                   m.tipo_media === "video"
                     ? `<video src="${m.url}" muted></video>`
@@ -472,6 +472,41 @@ function abrirConteudo(url, tipo, messageId) {
     cliente_id,
     modelo_id
   });
+}
+
+async function abrirConteudoSeguro(messageId) {
+  try {
+    const res = await fetch(
+      "/content/access?message_id=" + messageId,
+      {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }
+    );
+
+    if (!res.ok) {
+      alert("Conteúdo não autorizado ou expirado");
+      return;
+    }
+
+    const { midias } = await res.json();
+
+    const modal = document.getElementById("modalConteudo");
+    const midiaBox = document.getElementById("modalMidia");
+
+    midiaBox.innerHTML = midias.map(m =>
+      m.tipo === "video"
+        ? `<video src="${m.url}" controls autoplay></video>`
+        : `<img src="${m.url}" />`
+    ).join("");
+
+    modal.classList.remove("hidden");
+
+  } catch (err) {
+    console.error("Erro abrirConteudoSeguro:", err);
+    alert("Erro ao abrir conteúdo");
+  }
 }
 
 function fecharConteudo() {

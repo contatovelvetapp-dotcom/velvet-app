@@ -26,12 +26,13 @@ const { MercadoPagoConfig, PreApproval } = require("mercadopago");
 const CONTEUDOS_FILE = "conteudos.json";
 const MODELOS_FILE = "modelos.json";
 const COMPRAS_FILE = "compras.json";
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 const bodyParser = require("body-parser");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+const contentRouter = require("./servercontent");
+app.use("/content", contentRouter);
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -1126,6 +1127,9 @@ app.post(
     res.json({ received: true });
   }
 );
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 //DADOS CLIENTE
