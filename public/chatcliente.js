@@ -60,13 +60,22 @@ socket.on("newMessage", msg => {
 
 
 socket.on("conteudoVisto", ({ message_id }) => {
+  // 🔓 marca visualmente como visto
   const el = document.querySelector(
     `.chat-conteudo[data-id="${message_id}"]`
   );
+
   if (el) {
     el.classList.add("visto");
   }
+
+  // ✅ FECHA POPUP PIX SE FOR O PAGAMENTO ATUAL
+  if (pagamentoAtual.message_id == message_id) {
+    document.getElementById("popupPix").classList.add("hidden");
+    pagamentoAtual = {};
+  }
 });
+
 
 
 socket.on("unreadUpdate", ({ modelo_id, unread }) => {
