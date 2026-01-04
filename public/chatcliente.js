@@ -570,7 +570,7 @@ function atualizarStatusPorResponder(mensagens) {
   }
 }
 
-async function abrirConteudoSegura(message_id) {
+async function abrirConteudoSeguro(message_id) {
   const modal = document.getElementById("modalConteudo");
   const midiaBox = document.getElementById("modalMidia");
 
