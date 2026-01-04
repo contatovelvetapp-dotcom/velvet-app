@@ -368,9 +368,9 @@ function renderMensagem(msg) {
       ${msg.midias.map(m => `
         <div class="midia-item">
           ${
-            m.tipo_media === "video"
-              ? `<video src="${m.url}" muted></video>`
-              : `<img src="${m.url}" />`
+            (m.tipo_media || m.tipo) === "video"
+  ? `<video src="${m.url}" muted></video>`
+  : `<img src="${m.url}" />`
           }
         </div>
       `).join("")}
