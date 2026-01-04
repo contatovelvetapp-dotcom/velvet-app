@@ -834,6 +834,8 @@ body.role-cliente .only-cliente {
 /* caixa IGUAL ao chatcliente */
 #escolhaPagamento .modal-box {
   background: #fff;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
   border-radius: 12px;
   width: 350px;
