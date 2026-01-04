@@ -33,7 +33,11 @@ socket.on("connect", () => {
 socket.on("chatHistory", mensagens => {
   const chat = document.getElementById("chatBox");
   chat.innerHTML = "";
-
+  if (m.tipo === "conteudo") {
+  if (m.visto === true || Number(m.preco) === 0) {
+    conteudosLiberados.add(Number(m.id));
+  }
+}
   mensagens.forEach(m => renderMensagem(m));
 
   atualizarStatusPorResponder(mensagens);
@@ -579,6 +583,13 @@ function atualizarStatusPorResponder(mensagens) {
 async function abrirConteudoSeguro(message_id) {
   const modal = document.getElementById("modalConteudo");
   const midiaBox = document.getElementById("modalMidia");
+  
+  conteudosLiberados.add(Number(message_id));
+  socket.emit("marcarConteudoVisto", {
+  message_id,
+  cliente_id,
+  modelo_id
+ });
 
   if (!modal || !midiaBox) {
     console.error("❌ Modal de conteúdo não encontrado no DOM");
