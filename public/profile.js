@@ -3,6 +3,8 @@
 // ===============================
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
+const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
+let elements;
 window.__CLIENTE_VIP__ = false;
 
 if (!token) {
@@ -471,6 +473,12 @@ document.getElementById("fecharModal")?.addEventListener("click", () => {
   video.src = "";
   modal.classList.add("hidden");
 });
+
+document.getElementById("fecharPix")?.addEventListener("click", () => {
+  document.getElementById("popupPix").classList.add("hidden");
+  window.pagamentoAtual = {};
+});
+
 
 async function excluirMidia(id, card) {
   if (!confirm("Excluir esta mídia?")) return;
