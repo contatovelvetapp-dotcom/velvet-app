@@ -102,6 +102,25 @@
 
 
 <!-- ================= STRIPE ================= -->
+ <!-- ESCOLHA DO MÉTODO -->
+<div id="escolhaPagamento" class="modal hidden">
+  <div class="modal-backdrop"></div>
+
+  <div class="modal-box escolha-box">
+    <button class="modal-close" onclick="fecharEscolha()">×</button>
+
+    <h2>Escolha a forma de pagamento</h2>
+
+    <button class="btn-pagamento pix" onclick="pagarComPix()">
+      ⚡ Pagar com Pix
+    </button>
+
+    <button class="btn-pagamento cartao" onclick="pagarComCartao()">
+      💳 Pagar com Cartão
+    </button>
+  </div>
+</div>
+
 
 <div id="paymentModal" class="modal hidden">
   <div class="modal-backdrop"></div>

@@ -232,6 +232,8 @@ function lerModelos() {
   }
   return JSON.parse(fs.readFileSync(MODELOS_FILE, "utf8"));
 }
+
+
 // ===============================
 // SOCKET.IO – CHAT ESTÁVEL
 // ===============================
@@ -1192,6 +1194,33 @@ app.post("/api/pagamento/criar", authCliente, async (req, res) => {
     res.status(500).json({ erro: "Erro ao criar pagamento" });
   }
 });
+
+app.post("/api/pagamento/pix", authCliente, async (req, res) => {
+  const { valor, message_id } = req.body;
+
+  const mp = new MercadoPagoConfig({
+    accessToken: process.env.MERCADOPAGO_TOKEN
+  });
+
+  const payment = await mp.payment.create({
+    transaction_amount: Number(valor),
+    description: `Conteúdo ${message_id}`,
+    payment_method_id: "pix",
+    payer: {
+      email: req.user.email
+    },
+    metadata: {
+      message_id,
+      cliente_id: req.user.id
+    }
+  });
+
+  res.json({
+    qrCode: payment.point_of_interaction.transaction_data.qr_code_base64,
+    copiaCola: payment.point_of_interaction.transaction_data.qr_code
+  });
+});
+
 
 
 //DADOS CLIENTE

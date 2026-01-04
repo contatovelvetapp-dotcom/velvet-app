@@ -132,33 +132,45 @@ abrirPagamentoChat(preco, messageId);
 // ===============================
 
 async function abrirPagamentoChat(valor, conteudoId) {
-  pagamentoAtual.message_id = conteudoId;
+  pagamentoAtual = {
+    valor,
+    message_id: conteudoId
+  };
 
   if (!valor || !conteudoId) {
-    alert("Erro: dados inválidos do conteúdo.");
+    alert("Erro: dados inválidos");
     return;
   }
 
-  document.getElementById("paymentModal").classList.remove("hidden");
+  document
+    .getElementById("escolhaPagamento")
+    .classList.remove("hidden");
+}
+
+function fecharEscolha() {
+  document
+    .getElementById("escolhaPagamento")
+    .classList.add("hidden");
+}
+
+async function pagarComCartao() {
+  fecharEscolha();
+
+  document
+    .getElementById("paymentModal")
+    .classList.remove("hidden");
 
   const res = await fetch("/api/pagamento/criar", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + localStorage.getItem("token")
+      Authorization: "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({
-      valor: Number(valor),
-      message_id: conteudoId
+      valor: pagamentoAtual.valor,
+      message_id: pagamentoAtual.message_id
     })
   });
-
-  if (!res.ok) {
-    const erro = await res.json();
-    console.error("Erro pagamento:", erro);
-    alert("Erro ao iniciar pagamento");
-    return;
-  }
 
   const { clientSecret } = await res.json();
 
@@ -167,15 +179,41 @@ async function abrirPagamentoChat(valor, conteudoId) {
   paymentElement.mount("#payment-element");
 }
 
+async function pagarComPix() {
+  fecharEscolha();
 
+  const res = await fetch("/api/pagamento/pix", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({
+      valor: pagamentoAtual.valor,
+      message_id: pagamentoAtual.message_id
+    })
+  });
 
+  const data = await res.json();
 
-//fechar modal
+  document.getElementById("pixQr").src = data.qrCode;
+  document.getElementById("pixCopia").value = data.copiaCola;
+
+  document
+    .getElementById("popupPix")
+    .classList.remove("hidden");
+}
+
 document.getElementById("fecharPagamento").onclick = () => {
+  // fecha modal do cartão
   document.getElementById("paymentModal").classList.add("hidden");
-  document.getElementById("payment-element").innerHTML = "";
-};
 
+  // limpa o Stripe (ESSENCIAL)
+  document.getElementById("payment-element").innerHTML = "";
+
+  // limpa estado atual
+  pagamentoAtual = {};
+};
 
 function atualizarListaComMeta({ cliente_id, modelo_id, sender, created_at }) {
   const minhaRole = localStorage.getItem("role");

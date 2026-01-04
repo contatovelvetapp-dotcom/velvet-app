@@ -779,5 +779,32 @@ html, body {
   cursor: pointer;
 }
 
+.escolha-box {
+  width: 320px;
+  text-align: center;
+}
+
+.btn-pagamento {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-pagamento.pix {
+  background: linear-gradient(135deg, #00c853, #00a843);
+  color: #fff;
+}
+
+.btn-pagamento.cartao {
+  background: linear-gradient(135deg, #7B2CFF, #5D24BE);
+  color: #fff;
+}
+
+
 
 
