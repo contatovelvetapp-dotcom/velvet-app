@@ -479,10 +479,20 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
         AND mc.conteudo_id = ANY($3)
     `, [modelo_id, cliente_id, conteudos_ids]);
 
-    if (jaVistos.rows.length > 0) {
-      console.log("⛔ Conteúdo já visto — envio bloqueado");
-      return; // ⛔ NÃO ENVIA, NÃO COBRA, NÃO DUPLICA
-    }
+    // pega ids já vistos
+const vistosIds = jaVistos.rows.map(r => r.conteudo_id);
+
+// remove só os já vistos
+const conteudosFiltrados = conteudos_ids.filter(
+  id => !vistosIds.includes(id)
+);
+
+// se não sobrar nada, não envia
+if (conteudosFiltrados.length === 0) {
+  console.log("⛔ Todos os conteúdos já foram vistos");
+  return;
+}
+
     // 1️⃣ cria a mensagem principal (pacote)
     const msgRes = await db.query(
       `
@@ -498,7 +508,7 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
     const messageId = msgRes.rows[0].id;
 
     // 2️⃣ associa todas as mídias à mensagem
-    for (const conteudo_id of conteudos_ids) {
+    for (const conteudo_id of conteudosFiltrados) {
       await db.query(
         `
         INSERT INTO messages_conteudos (message_id, conteudo_id)
@@ -517,7 +527,7 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
       FROM conteudos c
       WHERE c.id = ANY($1)
       `,
-      [conteudos_ids]
+      [conteudosFiltrados]
     );
 
     const midias = midiasRes.rows;
