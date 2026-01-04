@@ -1151,6 +1151,28 @@ app.post("/api/pagamento/criar", authCliente, async (req, res) => {
       return res.status(400).json({ erro: "Valor mínimo é R$ 1,00" });
     }
 
+    // 🔒 1️⃣ VERIFICAR SE JÁ FOI DESBLOQUEADO
+    const check = await db.query(
+      `
+      SELECT visto
+      FROM messages
+      WHERE id = $1
+        AND cliente_id = $2
+      `,
+      [message_id, req.user.id]
+    );
+
+    if (check.rowCount === 0) {
+      return res.status(404).json({ erro: "Conteúdo não encontrado" });
+    }
+
+    if (check.rows[0].visto === true) {
+      return res.status(400).json({
+        erro: "Conteúdo já desbloqueado"
+      });
+    }
+
+    // 💳 2️⃣ CRIAR PAYMENT INTENT
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(valor) * 100),
       currency: "brl",

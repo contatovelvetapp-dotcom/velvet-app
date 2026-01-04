@@ -340,29 +340,28 @@ function renderMensagem(msg) {
   /* 📦 CONTEÚDO */
   else if (msg.tipo === "conteudo") {
 
-    const liberado = !msg.bloqueado;
+    const liberado = msg.visto === true;
 
     // 🔓 LIBERADO
     if (liberado && Array.isArray(msg.midias)) {
-      div.innerHTML = `
-        <div class="chat-conteudo livre premium"
-     data-id="${msg.id}"
-     data-qtd="${msg.quantidade ?? msg.midias.length}">
-          <div class="pacote-grid">
-            ${msg.midias.map(m => `
-              <div class="midia-item"
-                   onclick="abrirConteudoSeguro(${msg.id})"
-                ${
-                  m.tipo_media === "video"
-                    ? `<video src="${m.url}" muted></video>`
-                    : `<img src="${m.url}" />`
-                }
-              </div>
-            `).join("")}
+  div.innerHTML = `
+    <div class="chat-conteudo livre premium"
+         data-id="${msg.id}"
+         data-qtd="${msg.quantidade ?? msg.midias.length}">
+      <div class="pacote-grid">
+        ${msg.midias.map(m => `
+          <div class="midia-item" onclick="abrirConteudoSeguro(${msg.id})">
+            ${
+              (m.tipo_media || m.tipo) === "video"
+                ? `<video src="${m.url}" muted playsinline></video>`
+                : `<img src="${m.url}" />`
+            }
           </div>
-        </div>
-      `;
-    }
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
 
     // 🔒 BLOQUEADO
     else {
@@ -389,7 +388,8 @@ function renderMensagem(msg) {
 <button class="btn-desbloquear"
   data-preco="${msg.preco}"
   data-message-id="${msg.id}">
-
+  Desbloquear
+</button>
 </div>
 </div>
       `;
