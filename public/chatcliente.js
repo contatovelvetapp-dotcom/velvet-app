@@ -442,14 +442,15 @@ function renderMensagem(msg) {
     const liberado = msg.visto === true;
 
     // 🔓 LIBERADO
-    if (liberado && Array.isArray(msg.midias)) {
+  if (liberado && Array.isArray(msg.midias)) {
   div.innerHTML = `
     <div class="chat-conteudo livre premium"
          data-id="${msg.id}"
          data-qtd="${msg.quantidade ?? msg.midias.length}">
       <div class="pacote-grid">
-        ${msg.midias.map(m => `
-          <div class="midia-item" onclick="abrirConteudoSeguro(${msg.id})">
+        ${msg.midias.map((m, index) => `
+          <div class="midia-item"
+               onclick="abrirConteudoSeguro(${msg.id}, ${index})">
             ${
               (m.tipo_media || m.tipo) === "video"
                 ? `<video src="${m.url}" muted playsinline></video>`
@@ -551,12 +552,11 @@ function atualizarStatusPorResponder(mensagens) {
   }
 }
 
-async function abrirConteudoSeguro(messageId) {
+async function abrirConteudoSeguro(messageId, index = 0) {
   try {
     const modal = document.getElementById("modalConteudo");
     const midiaBox = document.getElementById("modalMidia");
 
-    // limpa
     midiaBox.innerHTML = "";
 
     const res = await fetch(
@@ -575,16 +575,17 @@ async function abrirConteudoSeguro(messageId) {
 
     const { midias } = await res.json();
 
-    // insere mídia (igual feed)
-    midiaBox.innerHTML = midias.map(m =>
-      m.tipo === "video"
-        ? `<video src="${m.url}" controls autoplay></video>`
-        : `<img src="${m.url}" />`
-    ).join("");
+    const midia = midias[index];
+    if (!midia) return;
+
+    midiaBox.innerHTML =
+      midia.tipo === "video"
+        ? `<video src="${midia.url}" controls autoplay></video>`
+        : `<img src="${midia.url}" />`;
 
     modal.classList.remove("hidden");
 
-    // 👁️ marca como visto (fica verde para modelo)
+    // 👁️ marca como visto
     socket.emit("marcarConteudoVisto", {
       message_id: messageId,
       cliente_id,
@@ -596,6 +597,7 @@ async function abrirConteudoSeguro(messageId) {
     alert("Erro ao abrir conteúdo");
   }
 }
+
 
 
 function fecharConteudo() {
