@@ -70,6 +70,10 @@ const io = new Server(server, {
 // ===============================
 //FUNCOES
 // ===============================
+function emailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 async function limparUnread(cliente_id, modelo_id) {
   await db.query(
     `
@@ -1255,6 +1259,11 @@ app.post(
 );
 
 //ROTA USER
+// função auxiliar (coloque fora da rota, no topo do server.js)
+function emailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 app.post("/api/register", async (req, res) => {
   try {
     const { email, senha, role, nome, ageConfirmed } = req.body;
@@ -1262,6 +1271,11 @@ app.post("/api/register", async (req, res) => {
     // 🔒 validação básica
     if (!email || !senha || !role) {
       return res.status(400).json({ erro: "Dados inválidos" });
+    }
+
+    // 📧 validação de email (CORREÇÃO)
+    if (!emailValido(email)) {
+      return res.status(400).json({ erro: "Email inválido" });
     }
 
     // 🔞 validação obrigatória +18

@@ -150,6 +150,15 @@ async function login() {
 // ===============================
 // REGISTER
 // ===============================
+function emailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+if (!emailValido(email)) {
+  alert("Email inválido");
+  return;
+}
+
 async function register() {
   const email = loginEmail.value.trim();
   const senha = loginSenha.value.trim();
