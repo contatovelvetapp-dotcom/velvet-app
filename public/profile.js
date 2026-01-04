@@ -282,7 +282,49 @@ async function pagarComPix() {
       .getElementById("popupPix")
       .classList.add("hidden");
   }
+  iniciarVerificacaoVip();
 }
+
+async function ativarVipNoFront() {
+  window.__CLIENTE_VIP__ = true;
+
+  // 🔒 botão VIP
+  if (btnVip) {
+    btnVip.textContent = "VIP ativo 💜";
+    btnVip.disabled = true;
+  }
+
+  // 🔓 fecha popups
+  document.getElementById("popupPix")?.classList.add("hidden");
+  document.getElementById("paymentModal")?.classList.add("hidden");
+  document.getElementById("escolhaPagamento")?.classList.add("hidden");
+
+  // 🔄 recarrega feed já liberado
+  carregarFeedPublico();
+}
+
+let vipCheckInterval = null;
+
+function iniciarVerificacaoVip() {
+  if (vipCheckInterval) return;
+
+  vipCheckInterval = setInterval(async () => {
+    const res = await fetch(`/api/vip/status/${modelo_id}`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    if (data.vip) {
+      clearInterval(vipCheckInterval);
+      vipCheckInterval = null;
+      ativarVipNoFront();
+    }
+  }, 4000); // a cada 4s
+}
+
 
 
 
