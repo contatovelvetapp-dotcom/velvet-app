@@ -587,7 +587,7 @@ function atualizarStatusPorResponder(mensagens) {
   }
 }
 
-async function abrirConteudoSeguro(message_id) {
+async function abrirConteudoSeguro(message_id, index = 0) {
   const modal = document.getElementById("modalConteudo");
   const midiaBox = document.getElementById("modalMidia");
   
@@ -619,12 +619,17 @@ async function abrirConteudoSeguro(message_id) {
     }
 
     const midias = await res.json();
+    const midia = midias[index];
 
-    midiaBox.innerHTML = midias.map(m =>
-      m.tipo_media === "video"
-        ? `<video src="${m.url}" controls autoplay></video>`
-        : `<img src="${m.url}" />`
-    ).join("");
+    if (!midia) {
+  midiaBox.innerHTML = "<p>Erro ao abrir mídia.</p>";
+  return;
+}
+
+     midiaBox.innerHTML =
+      (midia.tipo_media || midia.tipo) === "video"
+        ? `<video src="${midia.url}" controls autoplay></video>`
+        : `<img src="${midia.url}" />`;
 
   } catch (err) {
     console.error("Erro abrir conteúdo:", err);
