@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   iniciarPerfil();
   iniciarUploads();
   iniciarBioPopup();
-  
+
   document.getElementById("fecharPagamento")
   ?.addEventListener("click", fecharPagamentoCartao);
 });
@@ -155,7 +155,7 @@ btnVip?.addEventListener("click", () => {
   // 🔑 mesmo estado usado no chat
   window.pagamentoAtual = {
     tipo: "vip",
-    valor: 1.00,
+    valor: 0.10,
     modelo_id
   };
 
