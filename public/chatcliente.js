@@ -194,15 +194,24 @@ async function pagarComPix() {
     })
   });
 
+  if (!res.ok) {
+    const err = await res.json();
+    alert(err.error || "Erro ao gerar Pix");
+    return;
+  }
+
   const data = await res.json();
 
-  document.getElementById("pixQr").src = data.qrCode;
+  document.getElementById("pixQr").src =
+    "data:image/png;base64," + data.qrCode;
+
   document.getElementById("pixCopia").value = data.copiaCola;
 
   document
     .getElementById("popupPix")
     .classList.remove("hidden");
 }
+
 
 document.getElementById("fecharPagamento").onclick = () => {
   // fecha modal do cartão

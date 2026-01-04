@@ -1266,7 +1266,6 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
       return res.status(400).json({ error: "Dados inválidos" });
     }
 
-    // 🔒 verifica se já foi desbloqueado
     const check = await db.query(
       `
       SELECT visto
@@ -1286,25 +1285,28 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
 
     const payment = new Payment(mp);
 
-    const result = await payment.create({
+    const paymentData = {
       transaction_amount: Number(valor),
       description: `Conteúdo ${message_id}`,
       payment_method_id: "pix",
       payer: {
         email: req.user.email || "cliente@velvet.lat"
       },
+      notification_url:
+        "https://velvet-app-production.up.railway.app/webhook/mercadopago",
       metadata: {
         message_id: String(message_id),
         cliente_id: String(req.user.id)
       }
-    });
+    };
 
-    const pix =
-      result.point_of_interaction.transaction_data;
+    const result = await payment.create({ body: paymentData });
+
+    const pixData = result.point_of_interaction.transaction_data;
 
     res.json({
-      qrCode: pix.qr_code_base64,
-      copiaCola: pix.qr_code
+      qrCode: pixData.qr_code_base64,
+      copiaCola: pixData.qr_code
     });
 
   } catch (err) {
