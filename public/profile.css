@@ -836,7 +836,8 @@ body.role-cliente .only-cliente {
   background: #fff;
   padding: 20px;
   border-radius: 12px;
-  width: 320px;
+  width: 350px;
+  height: 350px;
   max-width: 90%;
   text-align: center;
   box-shadow: 0 20px 60px rgba(123, 44, 255, 0.35);
