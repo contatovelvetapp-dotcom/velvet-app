@@ -1454,52 +1454,26 @@ app.post("/api/cliente/dados", auth, async (req, res) => {
 
 
 // 📸 AVATAR DO CLIENTE
-app.post(
-  "/api/cliente/avatar",
-  auth,
-  upload.single("avatar"),
-  async (req, res) => {
-    try {
-      if (req.user.role !== "cliente") {
-        return res.status(403).json({ error: "Apenas clientes" });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ error: "Nenhum arquivo enviado" });
-      }
-
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            folder: `velvet/clientes/${req.user.id}/avatar`,
-            transformation: [{ width: 400, height: 400, crop: "fill" }]
-          },
-          (err, result) => (err ? reject(err) : resolve(result))
-        ).end(req.file.buffer);
-      });
-
-      await db.query(
-        `
-        INSERT INTO clientes_dados (user_id, avatar)
-        VALUES ($1, $2)
-        ON CONFLICT (user_id)
-        DO UPDATE SET
-          avatar = EXCLUDED.avatar,
-          atualizado_em = NOW()
-        `,
-        [req.user.id, result.secure_url]
-      );
-
-      res.json({ url: result.secure_url });
-
-    } catch (err) {
-      console.error("Erro avatar cliente:", err);
-      res.status(500).json({ error: "Erro ao atualizar avatar" });
-    }
-  }
+// 🔎 tenta atualizar primeiro
+const update = await db.query(
+  `
+  UPDATE clientes_dados
+  SET avatar = $1, atualizado_em = NOW()
+  WHERE user_id = $2
+  `,
+  [result.secure_url, req.user.id]
 );
 
-
+// 🔥 se não existir registro ainda, cria com campos mínimos
+if (update.rowCount === 0) {
+  await db.query(
+    `
+    INSERT INTO clientes_dados (user_id, avatar)
+    VALUES ($1, $2)
+    `,
+    [req.user.id, result.secure_url]
+  );
+}
 
 
 //ROTA USER
