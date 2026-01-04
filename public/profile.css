@@ -839,7 +839,7 @@ body.role-cliente .only-cliente {
   padding: 20px;
   border-radius: 12px;
   width: 360px;
-  height: 200px;
+  height: auto;
   max-width: 90%;
   text-align: center;
   align-items: center;
