@@ -574,9 +574,6 @@ function fecharPopupConteudos() {
 }
 
 async function carregarConteudosModelo() {
-  const grid = document.getElementById("previewConteudos");
-  grid.innerHTML = "";
-
   const res = await fetch("/api/conteudos", {
     headers: {
       Authorization: "Bearer " + token
@@ -586,33 +583,15 @@ async function carregarConteudosModelo() {
   const conteudos = await res.json();
 
   if (!conteudos.length) {
-    grid.innerHTML = "<p>Nenhum conteúdo disponível.</p>";
+    document.getElementById("previewConteudos").innerHTML =
+      "<p>Nenhum conteúdo disponível.</p>";
     return;
   }
 
-  conteudos.forEach(c => {
-    const div = document.createElement("div");
-    div.className = "preview-item";
-    div.dataset.conteudoId = c.id;
-
-    div.innerHTML = c.tipo === "video"
-      ? `<video src="${c.url}" muted></video>`
-      : `<img src="${c.url}" />`;
-
-   div.onclick = (e) => {
-  e.stopPropagation(); // não interfere com duplo clique
-  div.classList.toggle("selected");
-};
-
-
-// 🔍 DUPLO CLIQUE → abrir preview grande
-div.ondblclick = () => {
-  abrirPreviewConteudo(c.url, c.tipo);
-};
-
-    grid.appendChild(div);
-  });
+  // 🔥 AQUI está a correção
+  renderConteudosPopup(conteudos);
 }
+
  
 function confirmarEnvioConteudo() {
   if (!cliente_id || !modelo_id) {
