@@ -461,6 +461,14 @@ ORDER BY m.created_at ASC
 
  // 📦 ENVIO DE CONTEÚDO (1 ou N mídias)
 socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }) => {
+  conteudos_ids = conteudos_ids.filter(
+  id => Number.isInteger(id) && id > 0
+);
+
+if (conteudos_ids.length === 0) {
+  console.log("⛔ Nenhum conteudo_id válido recebido");
+  return;
+}
   if (!socket.user || socket.user.role !== "modelo") return;
 
   if (!Array.isArray(conteudos_ids) || conteudos_ids.length === 0) return;

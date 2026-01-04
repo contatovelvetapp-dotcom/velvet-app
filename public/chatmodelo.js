@@ -351,7 +351,7 @@ function renderMensagem(msg) {
   // alinhamento correto
   div.className =
     msg.sender === "modelo" ? "msg msg-modelo" : "msg msg-cliente";
-    
+
     if (
   msg.tipo === "conteudo" &&
   Array.isArray(msg.midias) &&
@@ -616,9 +616,9 @@ function confirmarEnvioConteudo() {
     document.getElementById("precoConteudo").value || 0
   );
 
-  const conteudos_ids = selecionados.map(
-    item => Number(item.dataset.conteudoId)
-  );
+  const conteudos_ids = selecionados
+  .map(item => Number(item.dataset.conteudoId))
+  .filter(id => Number.isInteger(id) && id > 0);
 
   // 🔥 GARANTE QUE A MODELO ESTÁ NA SALA
   const sala = `chat_${cliente_id}_${modelo_id}`;
