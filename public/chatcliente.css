@@ -798,10 +798,27 @@ html, body {
 .titulo-roxo {
   color: #7B2CFF;
 }
+
 .modal-close {
-  background: #fff;;
-  color:#7B2CFF;
-  text-align: right;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  background: transparent;   /* ❌ sem fundo */
+  border: none;              /* ❌ sem borda */
+  padding: 0;
+
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+
+  color: #7B2CFF;            /* 💜 roxo Velvet */
+  cursor: pointer;
+}
+
+/* efeito hover (opcional, mas bonito) */
+.modal-close:hover {
+  opacity: 0.7;
 }
 
 .btn-pagamento {
