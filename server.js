@@ -17,7 +17,6 @@ const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
 const multer = require("multer");
-app.use("/assets", express.static(path.join(__dirname, "assets")));
 const onlineClientes = {};
 const onlineModelos = {};
 const cloudinary = require("cloudinary").v2;
@@ -25,13 +24,10 @@ const { MercadoPagoConfig, PreApproval } = require("mercadopago");
 const CONTEUDOS_FILE = "conteudos.json";
 const MODELOS_FILE = "modelos.json";
 const COMPRAS_FILE = "compras.json";
-app.use(express.static(path.join(__dirname, "public")));
 const bodyParser = require("body-parser");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 const contentRouter = require("./servercontent");
-app.use("/content", contentRouter);
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -48,10 +44,6 @@ if (
   process.exit(1);
 }
 
-app.use(cors({
-  origin: ["https://velvet-app-production.up.railway.app"],
-  credentials: true
-}));
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -1183,6 +1175,13 @@ app.post("/webhook/mercadopago", async (req, res) => {
 
 
 // ⚠️ JSON FIRST
+app.use("/assets", express.static(path.join(__dirname, "assets")));
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/content", contentRouter);
+app.use(cors({
+  origin: ["https://velvet-app-production.up.railway.app"],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
