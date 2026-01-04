@@ -301,6 +301,7 @@ async function ativarVipNoFront() {
 
   // 🔄 recarrega feed já liberado
   carregarFeedPublico();
+  localStorage.setItem("vip_modelo_id", modelo_id);
 }
 
 let vipCheckInterval = null;

@@ -155,6 +155,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarCliente();
   await carregarListaModelos();
 
+  const vipModelo = localStorage.getItem("vip_modelo_id");
+
+if (vipModelo) {
+  localStorage.removeItem("vip_modelo_id");
+
+  // força reload da lista VIP
+  await carregarListaModelos();
+
+  // abre automaticamente o chat da modelo VIP
+  const li = [...document.querySelectorAll("#listaModelos li")]
+    .find(el => Number(el.dataset.modeloId) === Number(vipModelo));
+
+  if (li) li.click();
+}
+
+
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
   sendBtn.onclick = enviarMensagem;
