@@ -562,6 +562,10 @@ socket.on("marcarConteudoVisto", async ({ message_id, cliente_id, modelo_id }) =
 // ===============================
 //ROTA GET
 // ===============================
+app.get("/webhook/mercadopago", (req, res) => {
+  res.status(200).send("WEBHOOK OK");
+});
+
 app.get("/api/conteudos", authModelo, async (req, res) => {
   try {
     const result = await db.query(
