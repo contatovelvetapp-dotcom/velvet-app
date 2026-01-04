@@ -611,7 +611,7 @@ html, body {
 /* força card correto */
 .chat-conteudo.premium {
   width: 200px !important;
-  height: 200px !important;
+  height: auto !important;
   max-width: 500px;
 
   padding: 10px;
@@ -795,6 +795,10 @@ html, body {
   text-align: center;
 }
 
+.titulo-roxo {
+  color: #7B2CFF;
+}
+
 .btn-pagamento {
   width: 100%;
   padding: 14px;
@@ -807,7 +811,7 @@ html, body {
 }
 
 .btn-pagamento.pix {
-  background: linear-gradient(135deg, #00c853, #00a843);
+  background: linear-gradient(135deg, #7B2CFF,#5D24BE );
   color: #fff;
 }
 
