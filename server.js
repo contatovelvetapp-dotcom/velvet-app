@@ -14,6 +14,10 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const app = express();
+app.use((req, res, next) => {
+  console.log("➡️ REQ:", req.method, req.url);
+  next();
+});
 app.set("trust proxy", 1);
 const server = http.createServer(app);
 const multer = require("multer");
