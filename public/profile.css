@@ -626,6 +626,7 @@ body.role-cliente .only-cliente {
 
 .modal-box {
   position: relative;
+  z-index: 100001 !important;
   background: #fff;
   width: 420px;
   max-width: 95%;
