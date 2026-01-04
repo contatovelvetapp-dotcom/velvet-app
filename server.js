@@ -1479,7 +1479,7 @@ app.post(
         ).end(req.file.buffer);
       });
 
-      // 🔄 tenta atualizar primeiro
+      // 🔄 tenta atualizar avatar (perfil já existente)
       const update = await db.query(
         `
         UPDATE clientes_dados
@@ -1489,17 +1489,14 @@ app.post(
         [result.secure_url, req.user.id]
       );
 
-      // ➕ se não existir registro, cria
+      // 🚫 se ainda não preencheu "Meus Dados"
       if (update.rowCount === 0) {
-        await db.query(
-          `
-          INSERT INTO clientes_dados (user_id, avatar)
-          VALUES ($1, $2)
-          `,
-          [req.user.id, result.secure_url]
-        );
+        return res.status(400).json({
+          error: "Preencha seus dados antes de adicionar uma foto de perfil."
+        });
       }
 
+      // ✅ sucesso
       res.json({ url: result.secure_url });
 
     } catch (err) {
@@ -1508,6 +1505,7 @@ app.post(
     }
   }
 );
+
 
 
 //ROTA USER
