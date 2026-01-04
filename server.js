@@ -1066,39 +1066,6 @@ app.put("/api/modelo/bio", authModelo, async (req, res) => {
 // ===============================
 // 💳 CRIAR PAGAMENTO STRIPE (CHAT)
 // ===============================
-app.post("/api/pagamento/criar", authCliente, async (req, res) => {
-  try {
-    const { valor, message_id } = req.body;
-
-    if (!valor || !message_id) {
-      return res.status(400).json({ erro: "Dados inválidos" });
-    }
-
-    if (Number(valor) < 1) {
-      return res.status(400).json({ erro: "Valor mínimo é R$ 1,00" });
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(Number(valor) * 100),
-      currency: "brl",
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        message_id: String(message_id),
-        cliente_id: String(req.user.id)
-      }
-    });
-
-    res.json({
-      clientSecret: paymentIntent.client_secret
-    });
-
-  } catch (err) {
-    console.error("❌ Erro Stripe criar pagamento:", err.message);
-    res.status(500).json({ erro: "Erro ao criar pagamento" });
-  }
-});
-
-
 app.post(
   "/webhook/stripe",
   express.raw({ type: "application/json" }),
@@ -1167,8 +1134,42 @@ app.post(
   }
 );
 
+// ⚠️ JSON FIRST
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+app.post("/api/pagamento/criar", authCliente, async (req, res) => {
+  try {
+    const { valor, message_id } = req.body;
+
+    if (!valor || !message_id) {
+      return res.status(400).json({ erro: "Dados inválidos" });
+    }
+
+    if (Number(valor) < 1) {
+      return res.status(400).json({ erro: "Valor mínimo é R$ 1,00" });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(Number(valor) * 100),
+      currency: "brl",
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        message_id: String(message_id),
+        cliente_id: String(req.user.id)
+      }
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret
+    });
+
+  } catch (err) {
+    console.error("❌ Erro Stripe criar pagamento:", err);
+    res.status(500).json({ erro: "Erro ao criar pagamento" });
+  }
+});
 
 
 //DADOS CLIENTE
