@@ -1,4 +1,12 @@
 // servercontent.js
+const path = require("path");
+
+// CSS e JS do admin
+router.use(
+  "/assets",
+  express.static(path.join(__dirname, "admin-pages"))
+);
+
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("./middleware/auth"); // ajuste o caminho
@@ -693,6 +701,18 @@ router.get(
     doc.end();
   }
 );
+
+router.get(
+  "/relatorios",
+  authMiddleware,          // já existe
+  requireRole("admin"),    // você já usa
+  (req, res) => {
+    res.sendFile(
+      path.join(__dirname, "admin-pages", "chart.html")
+    );
+  }
+);
+
 
 router.get(
   "/api/relatorios/alertas-chargeback",
