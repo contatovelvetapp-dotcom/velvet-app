@@ -900,11 +900,11 @@ router.get(
 );
 
 router.get(
-  "/modelo/relatorio",
+  "/modelo/transacoes",
   requireRole("modelo", "admin"),
   (req, res) => {
     res.sendFile(
-      path.join(process.cwd(), "transacoes", "relatorio.html")
+      path.join(process.cwd(), "transacoes", "transacoes.html")
     );
   }
 );
