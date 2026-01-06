@@ -130,26 +130,39 @@ async function carregarGraficoAnual() {
 // =====================================================
 // ⚠️ GRÁFICO DE CHARGEBACKS
 // =====================================================
+// =====================================================
+// ⚠️ GRÁFICO DE CHARGEBACKS (ROBUSTO)
+// =====================================================
 let graficoChargebacks;
 
 async function carregarGraficoChargebacks() {
   const mes = filtroPeriodo.value;
 
+  if (!/^\d{4}-\d{2}$/.test(mes)) {
+    console.error("MÊS INVÁLIDO PARA CHARGEBACK:", mes);
+    return;
+  }
+
   const inicio = `${mes}-01`;
   const fim = `${mes}-31`;
 
-  const res = await authFetch(`/content/api/relatorios/chargebacks?inicio=${inicio}&fim=${fim}`);
-  if (!res || !res.ok) return;
+  const res = await authFetch(
+    `/content/api/relatorios/chargebacks?inicio=${inicio}&fim=${fim}`
+  );
+
+  if (!res || !res.ok) {
+    console.error("Erro ao buscar chargebacks");
+    return;
+  }
 
   const dados = await res.json();
 
+  // 🛡️ aceita array OU objeto
+  const totalChargebacks = Array.isArray(dados)
+    ? dados.length
+    : Number(dados.total || dados.count || 0);
+
   if (graficoChargebacks) graficoChargebacks.destroy();
-
-  if (!/^\d{4}-\d{2}$/.test(mes)) {
-  console.error("MÊS INVÁLIDO ENVIADO:", mes);
-  return;
-}
-
 
   graficoChargebacks = new Chart(
     document.getElementById("graficoChargebacks"),
@@ -158,8 +171,14 @@ async function carregarGraficoChargebacks() {
       data: {
         labels: ["Chargebacks"],
         datasets: [{
-          data: [dados.length]
+          data: [totalChargebacks],
+          backgroundColor: ["#FF4D4D"]
         }]
+      },
+      options: {
+        plugins: {
+          legend: { position: "bottom" }
+        }
       }
     }
   );
