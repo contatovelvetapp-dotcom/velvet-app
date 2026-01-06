@@ -197,7 +197,7 @@ router.post("/api/transacoes", authMiddleware, async (req, res) => {
 router.post(
   "/api/transacoes/:id/chargeback",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { result } = req.body; // won | lost
@@ -390,7 +390,7 @@ router.get("/api/transacoes/diario", authMiddleware, async (req, res) => {
 router.get(
   "/api/relatorios/chargebacks",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { inicio, fim } = req.query;
@@ -592,7 +592,7 @@ router.get("/api/export/resumo-mensal/pdf", authMiddleware, async (req, res) => 
 router.get(
   "/api/export/chargebacks/excel",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { mes } = req.query;
@@ -651,7 +651,7 @@ router.get(
 router.get(
   "/api/export/chargebacks/pdf",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { mes } = req.query;
@@ -703,7 +703,7 @@ router.get(
 router.get(
   "/relatorios",
   authMiddleware,          // já existe
-  requireRole("admin"),    // você já usa
+  requireRole("admin", "modelo"),    // você já usa
   (req, res) => {
     res.sendFile(
       path.join(__dirname, "admin-pages", "chart.html")
@@ -715,7 +715,7 @@ router.get(
 router.get(
   "/api/relatorios/alertas-chargeback",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { rows } = await db.query(
@@ -907,7 +907,7 @@ router.get("/api/export/resumo-anual/pdf", authMiddleware, async (req, res) => {
 router.get(
   "/api/alertas/risco",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "modelo"),
   async (req, res) => {
 
     const { rows } = await db.query(`
