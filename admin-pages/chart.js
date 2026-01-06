@@ -126,17 +126,19 @@ async function carregarAlertas() {
   const res = await authFetch("/content/api/alertas/risco");
   if (!res || !res.ok) return;
 
-  const alertas = await res.json();
   const lista = document.getElementById("listaAlertas");
+  if (!lista) return; // 🔒 evita crash
 
+  const alertas = await res.json();
   lista.innerHTML = "";
 
   alertas.forEach(a => {
     const li = document.createElement("li");
-    li.textContent = a.mensagem;
+    li.textContent = a.mensagem || a.nivel;
     lista.appendChild(li);
   });
 }
+
 
 
 // =====================================================
@@ -164,7 +166,7 @@ async function exportarPDF() {
   const ano = filtroAno.value;
   const mes = filtroMes.value;
 
-  const res = await aauthFetch(`/content/api/export/resumo-mensal/pdf?mes=${mes}`);
+  const res = await authFetch(`/content/api/export/resumo-mensal/pdf?mes=${mes}`);
   if (!res || !res.ok) return;
 
   const blob = await res.blob();
