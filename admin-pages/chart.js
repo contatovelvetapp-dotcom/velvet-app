@@ -229,6 +229,62 @@ async function exportarPDF() {
   }
 }
 
+// =====================================================
+// 🍰 GRÁFICO ASSINATURAS x MÍDIAS
+// =====================================================
+let graficoAssinaturasMidias;
+
+async function carregarGraficoAssinaturasMidias() {
+  const mes = filtroPeriodo.value; // ex: 2026-01
+
+  if (!/^\d{4}-\d{2}$/.test(mes)) {
+    console.error("MÊS INVÁLIDO:", mes);
+    return;
+  }
+
+  const res = await authFetch(
+    `/content/api/transacoes/resumo-mensal?mes=${mes}`
+  );
+
+  if (!res || !res.ok) {
+    console.error("Erro ao buscar resumo mensal");
+    return;
+  }
+
+  const dados = await res.json();
+
+  const assinaturas = Number(dados.total_assinaturas || 0);
+  const midias = Number(dados.total_midias || 0);
+
+  if (graficoAssinaturasMidias) {
+    graficoAssinaturasMidias.destroy();
+  }
+
+  graficoAssinaturasMidias = new Chart(
+    document.getElementById("graficoAssinaturasMidias"),
+    {
+      type: "doughnut",
+      data: {
+        labels: ["Assinaturas", "Mídias"],
+        datasets: [
+          {
+            data: [assinaturas, midias],
+            backgroundColor: ["#7B2CFF", "#E0D4FF"]
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    }
+  );
+}
+
+
 
 // =====================================================
 // 🚀 INICIALIZAÇÃO DA PÁGINA
@@ -246,5 +302,6 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarGraficoMensal();
   carregarGraficoChargebacks();
   carregarAlertas();
+  carregarGraficoAssinaturasMidias();
 });
 
