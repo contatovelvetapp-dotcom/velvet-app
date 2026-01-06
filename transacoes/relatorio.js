@@ -1,7 +1,7 @@
 // =====================================================
 // 🔐 FETCH COM AUTENTICAÇÃO (JWT)
 // =====================================================
-function authFetch(url, options = {}) {
+async function authFetch(url, options = {}) {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -9,19 +9,29 @@ function authFetch(url, options = {}) {
     return;
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers: {
       ...(options.headers || {}),
       Authorization: "Bearer " + token
     }
   });
+
+  if (!response.ok) {
+    console.error("Não autorizado ou erro ao buscar dados");
+    return;
+  }
+
+  return response;
 }
+
 
 
 async function carregarRelatorio() {
   try {
-    const response = await fetch('/api/relatorios/transacoes');
+    const response = await authFetch('/api/relatorios/transacoes');
+    if (!response) return;
+
     const transacoes = await response.json();
 
     const tbody = document.getElementById('tabela-transacoes');
@@ -44,10 +54,11 @@ async function carregarRelatorio() {
       tbody.appendChild(tr);
     });
 
-  } catch (error) {
-    console.error('Erro ao carregar relatório:', error);
+  } catch (err) {
+    console.error("Erro ao carregar relatório:", err);
   }
 }
+
 
 function formatarData(data) {
   const d = new Date(data);
