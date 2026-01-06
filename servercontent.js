@@ -1,19 +1,18 @@
 // servercontent.js
+const express = require("express");
 const path = require("path");
+const jwt = require("jsonwebtoken");
+const authMiddleware = require("./middleware/auth");
+const db = require("./db");
+const cloudinary = require("cloudinary").v2;
 
-// CSS e JS do admin
+const router = express.Router();   // ⬅️ PRIMEIRO SEMPRE
+
+// 🔓 assets do admin (HTML/CSS/JS)
 router.use(
   "/assets",
   express.static(path.join(__dirname, "admin-pages"))
 );
-
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const authMiddleware = require("./middleware/auth"); // ajuste o caminho
-const db = require("./db");
-const cloudinary = require("cloudinary").v2;
-
-const router = express.Router();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
