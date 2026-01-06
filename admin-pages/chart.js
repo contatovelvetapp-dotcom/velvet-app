@@ -234,19 +234,17 @@ async function exportarPDF() {
 // 🚀 INICIALIZAÇÃO DA PÁGINA
 // =====================================================
 document.addEventListener("DOMContentLoaded", () => {
+  const hoje = new Date();
+  const mesAtual = hoje.toISOString().slice(0, 7); // YYYY-MM
+
+  if (filtroPeriodo) {
+    filtroPeriodo.value = mesAtual;
+    console.log("PERÍODO INICIAL:", filtroPeriodo.value);
+  }
+
   carregarGraficoAnual();
   carregarGraficoMensal();
   carregarGraficoChargebacks();
   carregarAlertas();
-
-  filtroAno.addEventListener("change", () => {
-    carregarGraficoAnual();
-    carregarGraficoMensal();
-    carregarGraficoChargebacks();
-  });
-
-  filtroPeriodo.addEventListener("change", () => {
-    carregarGraficoMensal();
-    carregarGraficoChargebacks();
-  });
 });
+
