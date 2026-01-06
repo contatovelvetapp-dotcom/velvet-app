@@ -894,13 +894,10 @@ router.get(
   requireRole("modelo", "admin"),
   (req, res) => {
     res.sendFile(
-      path.join(__dirname, "admin-pages", "relatorio.html")
+      path.join(process.cwd(), "admin-pages", "relatorio.html")
     );
   }
 );
-
-
-
 module.exports = router;
 
 
