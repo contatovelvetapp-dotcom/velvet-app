@@ -292,6 +292,57 @@ async function carregarGraficoAssinaturasMidias() {
     }
   );
 }
+
+async function preencherRelatorioMensalPorDia() {
+  const mes = filtroPeriodo.value; // YYYY-MM
+  const [ano, mesNum] = mes.split("-");
+
+  const nomeMes = new Date(ano, mesNum - 1)
+    .toLocaleString("pt-BR", { month: "long", year: "numeric" });
+
+  const diasNoMes = new Date(ano, mesNum, 0).getDate();
+
+  const res = await authFetch(
+    `/content/api/transacoes/diario?mes=${mes}`
+  );
+  if (!res || !res.ok) return;
+
+  const dados = await res.json();
+
+  const mapa = {};
+  dados.forEach(d => {
+    const dia = new Date(d.dia).getDate();
+    mapa[dia] = d;
+  });
+
+  function montarTabela(tipo) {
+    let html = `<thead><tr><th>Mês</th>`;
+    for (let d = 1; d <= diasNoMes; d++) {
+      html += `<th>${String(d).padStart(2, "0")}</th>`;
+    }
+    html += `</tr></thead><tbody><tr>`;
+    html += `<td>${nomeMes}</td>`;
+
+    for (let d = 1; d <= diasNoMes; d++) {
+      const valor =
+        tipo === "midia"
+          ? mapa[d]?.total_midias ?? 0
+          : mapa[d]?.total_assinaturas ?? 0;
+
+      html += `<td>$${Number(valor).toFixed(2)}</td>`;
+    }
+
+    html += `</tr></tbody>`;
+    return html;
+  }
+
+  document.getElementById("tabelaGanhosMidias").innerHTML =
+    montarTabela("midia");
+
+  document.getElementById("tabelaGanhosAssinaturas").innerHTML =
+    montarTabela("assinatura");
+}
+
 // =====================================================
 // 🚀 INICIALIZAÇÃO DA PÁGINA
 // =====================================================
@@ -309,5 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarGraficoChargebacks();
   carregarAlertas();
   carregarGraficoAssinaturasMidias();
+  preencherRelatorioMensalPorDia();
+  
 });
 
