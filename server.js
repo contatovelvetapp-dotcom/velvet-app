@@ -41,6 +41,9 @@ app.use(cors({
   credentials: true
 }));
 
+const servercontent = require("./servercontent");
+app.use("/", servercontent);
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
