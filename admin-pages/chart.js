@@ -269,43 +269,29 @@ async function carregarGraficoAssinaturasMidias() {
     graficoAssinaturasMidias.destroy();
   }
 
-let valores;
-let labels;
-let cores;
-
-// 👇 TRATAMENTO DO ZERO
-if (Array.isArray(dados) && dados.length === 0) {
-  valores = [1];
-  labels = ["Sem chargebacks"];
-  cores = ["#2ECC71"]; // verde
-} else {
-  valores = [dados.length];
-  labels = ["Chargebacks"];
-  cores = ["#FF4D4D"]; // vermelho
-}
-
-graficoChargebacks = new Chart(
-  document.getElementById("graficoChargebacks"),
-  {
-    type: "doughnut",
-    data: {
-      labels,
-      datasets: [{
-        data: valores,
-        backgroundColor: cores
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { position: "bottom" }
+  graficoAssinaturasMidias = new Chart(
+    document.getElementById("graficoAssinaturasMidias"),
+    {
+      type: "doughnut",
+      data: {
+        labels: ["Assinaturas", "Mídias"],
+        datasets: [
+          {
+            data: [assinaturas, midias],
+            backgroundColor: ["#7B2CFF", "#E0D4FF"]
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
       }
     }
-  }
-);
+  );
 }
-
-
-
 // =====================================================
 // 🚀 INICIALIZAÇÃO DA PÁGINA
 // =====================================================
