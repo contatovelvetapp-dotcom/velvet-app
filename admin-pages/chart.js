@@ -293,55 +293,58 @@ async function carregarGraficoAssinaturasMidias() {
   );
 }
 
-async function preencherRelatorioMensalPorDia() {
-  const mes = filtroPeriodo.value; // YYYY-MM
-  const [ano, mesNum] = mes.split("-");
+async function carregarResumoModelo() {
+  const hoje = new Date().toISOString().slice(0, 10);
+  const mesAtual = hoje.slice(0, 7);
 
-  const nomeMes = new Date(ano, mesNum - 1)
-    .toLocaleString("pt-BR", { month: "long", year: "numeric" });
-
-  const diasNoMes = new Date(ano, mesNum, 0).getDate();
-
-  const res = await authFetch(
-    `/content/api/transacoes/diario?mes=${mes}`
+  // 🔹 Ganhos de hoje
+  const resHoje = await authFetch(
+    `/content/api/transacoes/diario?mes=${mesAtual}`
   );
-  if (!res || !res.ok) return;
+  if (!resHoje || !resHoje.ok) return;
 
-  const dados = await res.json();
+  const dadosHoje = await resHoje.json();
 
-  const mapa = {};
-  dados.forEach(d => {
-    const dia = new Date(d.dia).getDate();
-    mapa[dia] = d;
-  });
+  const hojeData = dadosHoje.find(
+    d => d.dia === hoje
+  );
 
-  function montarTabela(tipo) {
-    let html = `<thead><tr><th>Mês</th>`;
-    for (let d = 1; d <= diasNoMes; d++) {
-      html += `<th>${String(d).padStart(2, "0")}</th>`;
-    }
-    html += `</tr></thead><tbody><tr>`;
-    html += `<td>${nomeMes}</td>`;
+  document.getElementById("hojeMidias").innerText =
+    `$${Number(hojeData?.total_midias || 0).toFixed(2)}`;
 
-    for (let d = 1; d <= diasNoMes; d++) {
-      const valor =
-        tipo === "midia"
-          ? mapa[d]?.total_midias ?? 0
-          : mapa[d]?.total_assinaturas ?? 0;
+  document.getElementById("hojeAssinaturas").innerText =
+    `$${Number(hojeData?.total_assinaturas || 0).toFixed(2)}`;
 
-      html += `<td>$${Number(valor).toFixed(2)}</td>`;
-    }
+  // 🔹 Acumulado do mês
+  const resMes = await authFetch(
+    `/content/api/transacoes/resumo-mensal?mes=${mesAtual}`
+  );
+  if (!resMes || !resMes.ok) return;
 
-    html += `</tr></tbody>`;
-    return html;
-  }
+  const mes = await resMes.json();
 
-  document.getElementById("tabelaGanhosMidias").innerHTML =
-    montarTabela("midia");
+  document.getElementById("mesMidias").innerText =
+    `$${Number(mes.total_midias || 0).toFixed(2)}`;
 
-  document.getElementById("tabelaGanhosAssinaturas").innerHTML =
-    montarTabela("assinatura");
+  document.getElementById("mesAssinaturas").innerText =
+    `$${Number(mes.total_assinaturas || 0).toFixed(2)}`;
+
+  // 🔹 Acumulado meses anteriores
+  const resAno = await authFetch(
+    `/content/api/transacoes/resumo-anual?ano=${new Date().getFullYear()}`
+  );
+  if (!resAno || !resAno.ok) return;
+
+  const ano = await resAno.json();
+
+  const acumuladoAnterior = ano
+    .filter(m => m.mes.slice(0,7) < mesAtual)
+    .reduce((acc, m) => acc + Number(m.total_modelo), 0);
+
+  document.getElementById("acumuladoAnterior").innerText =
+    `$${acumuladoAnterior.toFixed(2)}`;
 }
+
 
 // =====================================================
 // 🚀 INICIALIZAÇÃO DA PÁGINA
@@ -361,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarAlertas();
   carregarGraficoAssinaturasMidias();
   preencherRelatorioMensalPorDia();
-  
+  carregarResumoModelo();
+
 });
 
