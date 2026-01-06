@@ -357,21 +357,29 @@ async function carregarResumoModelo() {
 // 🚀 INICIALIZAÇÃO DA PÁGINA
 // =====================================================
 document.addEventListener("DOMContentLoaded", () => {
-  const hoje = new Date();
-  const mesAtual = hoje.toISOString().slice(0, 7); // YYYY-MM
 
-  if (filtroPeriodo) {
-    filtroPeriodo.value = mesAtual;
-    console.log("PERÍODO INICIAL:", filtroPeriodo.value);
+  // 🔹 ADMIN
+  if (document.getElementById("graficoAnual")) {
+    carregarGraficoAnual();
   }
 
-  carregarGraficoAnual();
-  carregarGraficoMensal();
-  carregarGraficoChargebacks();
-  carregarAlertas();
-  carregarGraficoAssinaturasMidias();
-  preencherRelatorioMensalPorDia();
-  carregarResumoModelo();
+  if (document.getElementById("graficoMensal")) {
+    carregarGraficoMensal();
+  }
+
+  if (document.getElementById("graficoChargebacks")) {
+    carregarGraficoChargebacks();
+  }
+
+  if (document.getElementById("graficoAssinaturasMidias")) {
+    carregarGraficoAssinaturasMidias();
+  }
+
+  // 🔹 MODELO
+  if (document.getElementById("hojeMidias")) {
+    carregarResumoModelo();
+  }
 
 });
+
 

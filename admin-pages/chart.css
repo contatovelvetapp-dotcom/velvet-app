@@ -303,6 +303,60 @@
   height: 300px;
 }
 
+#graficoAnual,
+#graficoResumoAnual {
+  max-height: 240px !important;
+}
+
+.btn {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.filtros-dashboard select {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+
+/*MODELO HTML*/
+.modelo-dashboard {
+  max-width: 1100px;
+  margin: 40px auto;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.modelo-dashboard .card {
+  text-align: center;
+  padding: 24px;
+}
+
+.modelo-dashboard .card span {
+  font-size: 14px;
+  color: #888;
+}
+
+.modelo-dashboard .card strong {
+  font-size: 32px;
+  margin-top: 8px;
+  display: block;
+}
+
+.modelo-dashboard .card.destaque {
+  background: linear-gradient(135deg, #7B2CFF, #9E6BFF);
+  color: #fff;
+}
+
+.modelo-dashboard .card.destaque span {
+  color: #EDE7FF;
+}
+
+.modelo-dashboard .card.destaque strong {
+  color: #fff;
+}
+
+
+
 
 
 
