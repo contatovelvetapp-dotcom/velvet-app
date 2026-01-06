@@ -701,18 +701,6 @@ router.get(
 );
 
 router.get(
-  "/relatorios",
-  authMiddleware,          // já existe
-  requireRole("admin", "modelo"),    // você já usa
-  (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "admin-pages", "chart.html")
-    );
-  }
-);
-
-
-router.get(
   "/api/relatorios/alertas-chargeback",
   authMiddleware,
   requireRole("admin", "modelo"),
@@ -904,33 +892,26 @@ router.get("/api/export/resumo-anual/pdf", authMiddleware, async (req, res) => {
   doc.end();
 });
 
-// router.get(
-//   "/api/alertas/risco",
-//   authMiddleware,
-//   requireRole("admin", "modelo"),
-//   async (req, res) => {
+router.get(
+  "/api/alertas/risco",
+  authMiddleware,
+  requireRole("admin", "modelo"),
+  async (req, res) => {
 
-//     const { rows } = await db.query(`
-//       SELECT
-//         cliente_id,
-//         score,
-//         nivel,
-//         atualizado_em
-//       FROM cliente_risco
-//       WHERE nivel IN ('alto','critico')
-//       ORDER BY score DESC
-//     `);
+    const { rows } = await db.query(`
+      SELECT
+        cliente_id,
+        score,
+        nivel,
+        atualizado_em
+      FROM cliente_risco
+      WHERE nivel IN ('alto','critico')
+      ORDER BY score DESC
+    `);
 
-//     res.json(rows);
-//   }
-// );
-
-///DEPOIS VOLTAR A ANTERIOR
-router.get("/relatorios", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "admin-pages", "chart.html")
-  );
-});
+    res.json(rows);
+  }
+);
 
 module.exports = router;
 

@@ -75,20 +75,62 @@ async function carregarGraficoTipos(mes) {
 }
 
 
-function exportarExcel() {
+async function exportarExcel() {
   const mes = document.getElementById("filtroMes").value;
-  window.location.href = `/api/export/resumo-mensal/excel?mes=${mes}`;
+
+  const res = await authFetch(
+    `/api/export/resumo-mensal/excel?mes=${mes}`
+  );
+
+  if (!res || !res.ok) {
+    alert("Erro ao exportar Excel");
+    return;
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `resumo-${mes}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }
 
-function exportarPDF() {
+
+async function exportarPDF() {
   const mes = document.getElementById("filtroMes").value;
-  window.location.href = `/api/export/resumo-mensal/pdf?mes=${mes}`;
+
+  const res = await authFetch(
+    `/api/export/resumo-mensal/pdf?mes=${mes}`
+  );
+
+  if (!res || !res.ok) {
+    alert("Erro ao exportar PDF");
+    return;
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `resumo-${mes}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }
+
 
 async function fecharMes() {
   if (!confirm("Tem certeza que deseja fechar este mês?")) return;
 
-  await fetch("/api/admin/fechar-mes", {
+  await authFetch("/api/admin/fechar-mes", {
     method: "POST"
   });
 
@@ -355,7 +397,7 @@ async function graficoChargebacks(ano, mes) {
 }
 
 async function carregarAlertas() {
-  const res = await fetch("/api/alertas/risco");
+  const res = await authFetch("/api/alertas/risco");
   const dados = await res.json();
 
   let critico = 0, alto = 0, medio = 0;
