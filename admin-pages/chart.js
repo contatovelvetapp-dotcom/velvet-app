@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarGraficoChargebacks();
   });
 
-  filtroMes.addEventListener("change", () => {
+  filtroPeriodoes.addEventListener("change", () => {
     carregarGraficoMensal();
     carregarGraficoChargebacks();
   });
