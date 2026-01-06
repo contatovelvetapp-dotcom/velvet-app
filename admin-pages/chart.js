@@ -202,6 +202,7 @@ async function exportarExcel() {
   if (!/^\d{4}-\d{2}$/.test(mes)) {
   console.error("MÊS INVÁLIDO ENVIADO:", mes);
   return;
+  }
 }
 
 
@@ -225,7 +226,9 @@ async function exportarPDF() {
   if (!/^\d{4}-\d{2}$/.test(mes)) {
   console.error("MÊS INVÁLIDO ENVIADO:", mes);
   return;
+  }
 }
+
 
 // =====================================================
 // 🚀 INICIALIZAÇÃO DA PÁGINA
