@@ -113,7 +113,7 @@ if (inputAvatar) {
     if (data.url) {
       avatarPreview.src = data.url;
     } else {
-      alert("Erro ao atualizar foto");
+      alert("Erro ao atualizar foto, preencha seus dados primeiro");
     }
   });
 }

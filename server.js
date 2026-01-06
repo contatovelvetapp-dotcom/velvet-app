@@ -1368,7 +1368,7 @@ app.post("/api/pagamento/criar", authCliente, async (req, res) => {
     }
 
     if (Number(valor) < 1) {
-      return res.status(400).json({ erro: "Valor mínimo é R$ 1,00" });
+      return res.status(400).json({ erro: "Valor mínimo é R$ 5,00" });
     }
 
     // 🔒 1️⃣ VERIFICAR SE JÁ FOI DESBLOQUEADO
@@ -2086,6 +2086,10 @@ if (jaVip.rowCount === 0) {
 // ===============================
 // START SERVER
 // ===============================
+
+require("./jobs/chargebackJob");
+require("./jobs/fechamentoMensalJob");
+
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, "0.0.0.0", () => {
