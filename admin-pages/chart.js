@@ -34,7 +34,7 @@ async function carregarGraficoMensal() {
   const mes = filtroMes.value;
 
   const res = await authFetch(
-    `/transacoes/diario?mes=${ano}-${mes}`
+    `/content/api/transacoes/diario?mes=${ano}-${mes}`
   );
   if (!res || !res.ok) return;
 
@@ -66,7 +66,7 @@ async function carregarGraficoAnual() {
   const ano = filtroAno.value;
 
   const res = await authFetch(
-    `/transacoes/resumo-mensal?ano=${ano}`
+    `/content/api/transacoes/resumo-mensal?ano=${ano}`
   );
   if (!res || !res.ok) return;
 
@@ -100,7 +100,7 @@ async function carregarGraficoChargebacks() {
   const mes = filtroMes.value;
 
   const res = await authFetch(
-    `/relatorios/chargebacks?mes=${ano}-${mes}`
+    `/content/api/relatorios/chargebacks?mes=${ano}-${mes}`
   );
   if (!res || !res.ok) return;
 
@@ -127,7 +127,7 @@ async function carregarGraficoChargebacks() {
 // 🚨 ALERTAS DE RISCO
 // =====================================================
 async function carregarAlertas() {
-  const res = await authFetch("/alertas/risco");
+  const res = await authFetch("/content/api/alertas/risco");
   if (!res || !res.ok) return;
 
   const alertas = await res.json();
