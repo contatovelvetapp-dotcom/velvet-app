@@ -901,7 +901,6 @@ router.get(
 
 router.get(
   "/relatorio",
-  authMiddleware,
   requireRole("admin", "modelo"),
   (req, res) => {
     res.sendFile(
