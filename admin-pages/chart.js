@@ -130,39 +130,26 @@ async function carregarGraficoAnual() {
 // =====================================================
 // ⚠️ GRÁFICO DE CHARGEBACKS
 // =====================================================
-// =====================================================
-// ⚠️ GRÁFICO DE CHARGEBACKS (ROBUSTO)
-// =====================================================
 let graficoChargebacks;
 
 async function carregarGraficoChargebacks() {
   const mes = filtroPeriodo.value;
 
-  if (!/^\d{4}-\d{2}$/.test(mes)) {
-    console.error("MÊS INVÁLIDO PARA CHARGEBACK:", mes);
-    return;
-  }
-
   const inicio = `${mes}-01`;
   const fim = `${mes}-31`;
 
-  const res = await authFetch(
-    `/content/api/relatorios/chargebacks?inicio=${inicio}&fim=${fim}`
-  );
-
-  if (!res || !res.ok) {
-    console.error("Erro ao buscar chargebacks");
-    return;
-  }
+  const res = await authFetch(`/content/api/relatorios/chargebacks?inicio=${inicio}&fim=${fim}`);
+  if (!res || !res.ok) return;
 
   const dados = await res.json();
 
-  // 🛡️ aceita array OU objeto
-  const totalChargebacks = Array.isArray(dados)
-    ? dados.length
-    : Number(dados.total || dados.count || 0);
-
   if (graficoChargebacks) graficoChargebacks.destroy();
+
+  if (!/^\d{4}-\d{2}$/.test(mes)) {
+  console.error("MÊS INVÁLIDO ENVIADO:", mes);
+  return;
+ }
+
 
   graficoChargebacks = new Chart(
     document.getElementById("graficoChargebacks"),
@@ -171,14 +158,8 @@ async function carregarGraficoChargebacks() {
       data: {
         labels: ["Chargebacks"],
         datasets: [{
-          data: [totalChargebacks],
-          backgroundColor: ["#FF4D4D"]
+          data: [dados.length]
         }]
-      },
-      options: {
-        plugins: {
-          legend: { position: "bottom" }
-        }
       }
     }
   );
@@ -288,28 +269,39 @@ async function carregarGraficoAssinaturasMidias() {
     graficoAssinaturasMidias.destroy();
   }
 
-  graficoAssinaturasMidias = new Chart(
-    document.getElementById("graficoAssinaturasMidias"),
-    {
-      type: "doughnut",
-      data: {
-        labels: ["Assinaturas", "Mídias"],
-        datasets: [
-          {
-            data: [assinaturas, midias],
-            backgroundColor: ["#7B2CFF", "#E0D4FF"]
-          }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
-        }
+let valores;
+let labels;
+let cores;
+
+// 👇 TRATAMENTO DO ZERO
+if (Array.isArray(dados) && dados.length === 0) {
+  valores = [1];
+  labels = ["Sem chargebacks"];
+  cores = ["#2ECC71"]; // verde
+} else {
+  valores = [dados.length];
+  labels = ["Chargebacks"];
+  cores = ["#FF4D4D"]; // vermelho
+}
+
+graficoChargebacks = new Chart(
+  document.getElementById("graficoChargebacks"),
+  {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{
+        data: valores,
+        backgroundColor: cores
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom" }
       }
     }
-  );
+  }
+);
 }
 
 
