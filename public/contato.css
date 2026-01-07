@@ -1,13 +1,53 @@
-* {
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+:root {
+  --font-primary: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Pesos */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Tamanhos */
+  --fs-h1: 44px;
+  --fs-h2: 32px;
+  --fs-body: 16px;
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #12001f, #2b0a3d);
+  font-family: var(--font-primary);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
   color: #fff;
+  line-height: 1.6;
+}
+
+h1,
+.h1 {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+  margin: 0;
+  color: #7B2CFF;
+
+}
+
+h2,
+.h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  margin: 0;
+}
+
+p,
+.body-text {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* HEADER */
@@ -16,24 +56,28 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 18px 30px;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(10px);
+ background: linear-gradient(
+        to right,
+        #ffffff 0%,
+        #f2eaff 35%,
+        #7B2CFF 100%
+        ) !important;
 }
 
 .logo {
   font-size: 22px;
   font-weight: 600;
-  color: #a855f7;
+  color: #7B2CFF;
 }
 
 .voltar {
-  color: #ccc;
+  color: #fff;
   text-decoration: none;
   font-size: 14px;
 }
 
 .voltar:hover {
-  color: #fff;
+  color: #9E6BFF;
 }
 
 /* CONTAINER */
@@ -51,7 +95,7 @@ h1 {
 
 .subtitle {
   text-align: center;
-  color: #cfc3ff;
+  color: #1E1E26;
   font-size: 14px;
   margin-bottom: 30px;
 }
@@ -71,27 +115,57 @@ h1 {
 
 label {
   font-size: 13px;
-  color: #d8cfff;
+  color: #1E1E26;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  padding: 12px;
+  padding: 12px 14px;
   margin-top: 6px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: rgba(255,255,255,0.12);
-  color: #fff;
+
+  font-family: "Poppins", sans-serif;
   font-size: 14px;
+  color: #1E1E26;
+
+  border-radius: 10px;
+  border: 1.5px solid rgba(124, 58, 237, 0.5);
+
+  background: #fff;
+  outline: none;
+
+  box-sizing: border-box;
+  appearance: none; /* 🔑 MUITO importante pro select */
 }
 
+/* Altura padrão (Nome, Email, Assunto) */
+input,
+select {
+  height: 46px;
+}
+
+/* Textarea (Mensagem) */
+textarea {
+  min-height: 120px;
+  resize: none;
+}
+
+/* Placeholder */
 input::placeholder,
 textarea::placeholder {
-  color: #bbb;
+  color: #6b7280;
 }
+
+/* Foco */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+}
+
+
 
 textarea {
   resize: none;
@@ -105,7 +179,7 @@ textarea {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, #7b2cff, #a855f7);
+  background: linear-gradient(135deg, #7B2CFF, #9E6BFF);
   color: #fff;
   font-weight: 600;
   font-size: 15px;

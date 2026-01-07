@@ -32,6 +32,7 @@ const bodyParser = require("body-parser");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const contentRouter = require("./servercontent");
+const nodemailer = require("nodemailer");
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/admin", contentRouter);
@@ -92,21 +93,6 @@ const io = new Server(server, {
 // ===============================
 //FUNCOES
 // ===============================
-function emailValido(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-async function limparUnread(cliente_id, modelo_id) {
-  await db.query(
-    `
-    UPDATE unread
-    SET has_unread = false
-    WHERE cliente_id = $1 AND modelo_id = $2
-    `,
-    [cliente_id, modelo_id]
-  );
-}
-
 async function buscarUnreadCliente(cliente_id) {
   const result = await db.query(
     `
@@ -597,69 +583,33 @@ if (conteudosFiltrados.length === 0) {
  });
 
  // 👁️ CLIENTE VISUALIZOU CONTEÚDO
-socket.on("conteudoVisto", async ({ message_id }) => {
-  console.log("🔓 Conteúdo liberado:", message_id);
-  conteudosLiberados.add(Number(message_id));
+socket.on("marcarConteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
+  if (!socket.user || socket.user.role !== "cliente") return;
 
-  /* ==========================
-     🔒 FECHA POPUP PIX
-  ========================== */
-  if (
-    pagamentoAtual.message_id &&
-    Number(pagamentoAtual.message_id) === Number(message_id)
-  ) {
-    document.getElementById("popupPix")?.classList.add("hidden");
-    pagamentoAtual = {};
+  try {
+    // 1️⃣ marca como visto no banco
+    await db.query(
+      `
+      UPDATE messages
+      SET visto = true
+      WHERE id = $1
+        AND cliente_id = $2
+        AND modelo_id = $3
+      `,
+      [message_id, cliente_id, modelo_id]
+    );
+
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+
+    // 2️⃣ avisa MODELO em tempo real
+    io.to(sala).emit("conteudoVisto", {
+      message_id
+    });
+
+  } catch (err) {
+    console.error("❌ Erro marcarConteudoVisto:", err);
   }
-
-  /* ==========================
-     🔄 ATUALIZA CARD NO CHAT
-  ========================== */
-  const card = document.querySelector(
-    `.chat-conteudo[data-id="${message_id}"]`
-  );
-
-  if (!card) return;
-
-  const res = await fetch(`/api/chat/conteudo/${message_id}`, {
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token")
-    }
-  });
-
-  if (!res.ok) return;
-
-  const data = await res.json();
-  const midias = data.midias || [];
-
-  card.classList.remove("bloqueado");
-  card.classList.add("livre");
-  card.removeAttribute("data-preco");
-
-  card.innerHTML = `
-    <div class="pacote-grid">
-      ${midias.map((m, index) => `
-        <div class="midia-item"
-             onclick="abrirConteudoSeguro(${message_id}, ${index})">
-          ${
-            m.tipo === "video"
-              ? `<video src="${m.url}" muted playsinline></video>`
-              : `<img src="${m.url}" />`
-          }
-        </div>
-      `).join("")}
-    </div>
-  `;
-
-  /* ==========================
-     ✅ TOAST DE CONFIRMAÇÃO
-  ========================== */
-  const toast = document.getElementById("toastPagamento");
-  if (toast) {
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 3000);
-  }
-});
+ });
 
 
 });
@@ -2275,6 +2225,53 @@ if (jaVip.rowCount === 0) {
     res.status(500).json({ error: "Erro interno" });
   }
 });
+
+app.post("/api/contato", async (req, res) => {
+  try {
+    const { nome, email, assunto, mensagem } = req.body;
+
+    // 🔒 validação básica
+    if (!nome || !email || !assunto || !mensagem) {
+      return res.status(400).json({ error: "Dados incompletos" });
+    }
+
+    // 📧 SMTP HOSTINGER (CORRETO)
+    const transporter = nodemailer.createTransport({
+      host: "smtp.hostinger.com",
+      port: 465,
+      secure: true, // SSL
+      auth: {
+        user: process.env.CONTACT_EMAIL,
+        pass: process.env.CONTACT_EMAIL_PASS
+      }
+    });
+
+    // ✉️ envio do email
+    await transporter.sendMail({
+      from: `"Contato Velvet" <${process.env.CONTACT_EMAIL}>`,
+      to: "contato@velvet.lat",
+      replyTo: email,
+      subject: `[Contato] ${assunto}`,
+      html: `
+        <h3>Novo contato pelo site</h3>
+        <p><b>Nome:</b> ${nome}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Assunto:</b> ${assunto}</p>
+        <p><b>Mensagem:</b></p>
+        <p>${mensagem}</p>
+      `
+    });
+
+    // ✅ resposta para o frontend
+    return res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erro envio contato:", err);
+    return res.status(500).json({ error: "Erro ao enviar email" });
+  }
+});
+
+
 
 // ===============================
 // 🔥 MIDDLEWARE GLOBAL DE ERRO

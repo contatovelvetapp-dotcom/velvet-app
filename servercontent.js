@@ -272,52 +272,49 @@ router.get(
   requireRole("admin", "modelo", "agente"),
   async (req, res) => {
     const { mes, tipo, origem, modelo_id } = req.query;
+    // 🔒 VALIDAÇÃO DE QUERY (RELATÓRIO DE TRANSAÇÕES)
+
+// valida mês (YYYY-MM)
+if (mes && !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({
+    error: "Formato de mês inválido (YYYY-MM)"
+  });
+}
+
+// valida tipo
+const tiposPermitidos = ["midia", "assinatura"];
+if (tipo && !tiposPermitidos.includes(tipo)) {
+  return res.status(400).json({
+    error: "Tipo inválido"
+  });
+}
+
+// valida origem (string curta)
+if (origem && typeof origem !== "string") {
+  return res.status(400).json({
+    error: "Origem inválida"
+  });
+}
+if (modelo_id) {
+  if (role !== "admin") {
+    return res.status(403).json({
+      error: "Filtro por modelo permitido apenas para admin"
+    });
+  }
+
+  if (!Number.isInteger(Number(modelo_id))) {
+    return res.status(400).json({
+      error: "modelo_id inválido"
+    });
+  }
+
+  values.push(Number(modelo_id));
+  where.push(`modelo_id = $${values.length}`);
+}
     const { role, id } = req.user;
 
     let where = [];
     let values = [];
-
-    // 🔒 VALIDAÇÃO DE QUERY (RELATÓRIO DE TRANSAÇÕES)
-
-    // valida mês (YYYY-MM)
-    if (mes && !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
-      return res.status(400).json({
-        error: "Formato de mês inválido (YYYY-MM)"
-      });
-    }
-
-    // valida tipo
-    const tiposPermitidos = ["midia", "assinatura"];
-    if (tipo && !tiposPermitidos.includes(tipo)) {
-      return res.status(400).json({
-        error: "Tipo inválido"
-      });
-    }
-
-    // valida origem
-    if (origem && typeof origem !== "string") {
-      return res.status(400).json({
-        error: "Origem inválida"
-      });
-    }
-
-    // 🔒 FILTRO POR MODELO (APENAS ADMIN)
-    if (modelo_id) {
-      if (role !== "admin") {
-        return res.status(403).json({
-          error: "Filtro por modelo permitido apenas para admin"
-        });
-      }
-
-      if (!Number.isInteger(Number(modelo_id))) {
-        return res.status(400).json({
-          error: "modelo_id inválido"
-        });
-      }
-
-      values.push(Number(modelo_id));
-      where.push(`modelo_id = $${values.length}`);
-    }
 
     // MODELO → só vê suas próprias transações
     if (role === "modelo") {
@@ -330,6 +327,8 @@ router.get(
       values.push(id);
       where.push(`agente_id = $${values.length}`);
     }
+
+    // ADMIN → vê tudo (sem filtro extra)
 
     if (mes) {
       values.push(`${mes}-01`);
@@ -360,7 +359,6 @@ router.get(
     res.json(result.rows);
   }
 );
-
 
 //ROTA DO LINK DE ACESSO A PLATAFORMA(CLIENTES INSTA TIKTOK)
 router.get(
@@ -1057,7 +1055,6 @@ router.get(
     res.json(result.rows);
   }
 );
-
 
 
 module.exports = router;
