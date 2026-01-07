@@ -337,7 +337,7 @@ h2 #modeloNome {
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* IMG / VIDEO */
+.preview-item img,
 .preview-item video {
   width: 100%;
   height: 100%;
