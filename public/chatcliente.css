@@ -93,8 +93,8 @@ html, body {
 #listaModelos li {
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: #C9C9C9;
-  color: #7B2CFF;
+  background: #F3F0FF;
+  color: #1E1E26;
   border-radius: 12px;
   cursor: pointer;
   font-size: 12px;
@@ -102,7 +102,7 @@ html, body {
 }
 
 #listaModelos li:hover {
-  background: #E1E1E1;
+  background: #C9C9C9;
 }
 
 /* =========================

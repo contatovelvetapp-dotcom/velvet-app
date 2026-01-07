@@ -85,8 +85,8 @@ h2 #modeloNome {
 #listaClientes li {
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: #9E6BFF;
-  color: #fff;
+  background: #f3f0ff;
+  color: #1E1E26;
   border-radius: 12px;
   cursor: pointer;
   font-size: 12px;
@@ -94,7 +94,7 @@ h2 #modeloNome {
 }
 
 #listaClientes li:hover {
-  background:#E1E1E1;
+  background:#C9C9C9;
 }
 
 /* =========================
