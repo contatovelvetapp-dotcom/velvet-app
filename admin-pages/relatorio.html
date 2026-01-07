@@ -10,24 +10,36 @@
 </head>
 
 <body>
+   <header class="app-header">
+  <div class="header-inner">
 
-<header class="top-bar">
-  <img src="/assets/velvet.png" alt="Velvet" class="logo">
-  <span class="page-title">Meus Ganhos</span>
+    <img src="assets/velvet.png" class="logo-app" alt="Logo">
+
+    <div class="profile-menu-top">
+      <button id="btnMensagem">
+        <img src="assets/chat.png" alt="Chat">
+        <span id="badgeUnread" class="badge-unread hidden">0</span>
+      </button>
+
+      <button id="menuBtn" class="menu-btn">☰</button>
+      <div id="userMenu" class="menu-superior"></div>
+    </div>
+
+  </div>
 </header>
-
+<span class="page-title">Meus Ganhos</span>
 <main class="container">
 
   <!-- GANHOS HOJE -->
   <section class="cards-row destaque">
     <div class="card highlight">
       <span>Hoje · Mídias</span>
-      <strong id="hojeMidias">$0.00</strong>
+      <strong id="hojeMidias">R$0.00</strong>
     </div>
 
     <div class="card highlight">
       <span>Hoje · Assinaturas</span>
-      <strong id="hojeAssinaturas">$0.00</strong>
+      <strong id="hojeAssinaturas">R$0.00</strong>
     </div>
   </section>
 
@@ -35,22 +47,38 @@
   <section class="cards-row">
     <div class="card">
       <span>Mês atual · Mídias</span>
-      <strong id="mesMidias">$0.00</strong>
+      <strong id="mesMidias">R$0.00</strong>
     </div>
 
     <div class="card">
       <span>Mês atual · Assinaturas</span>
-      <strong id="mesAssinaturas">$0.00</strong>
+      <strong id="mesAssinaturas">R$0.00</strong>
     </div>
   </section>
 
   <!-- ACUMULADO -->
   <section class="cards-row single">
     <div class="card total">
-      <span>Acumulado de meses anteriores</span>
-      <strong id="acumuladoAnterior">$0.00</strong>
+      <span>Acumulados de 2026</span>
+      <strong id="acumuladoAnterior">R$0.00</strong>
     </div>
   </section>
+
+  <!-- LINKS ABAIXO DOS CARDS -->
+<div class="links-abaixo-cards">
+  <a href="/content/transacoes.html" class="link-card">
+    Transações
+  </a>
+
+  <span class="link-card disabled">
+    Meus pagamentos <small>(Breve)</small>
+  </span>
+
+  <span class="link-card disabled">
+    Links de rastreamento <small>(Breve)</small>
+  </span>
+</div>
+
 
 </main>
 

@@ -112,3 +112,39 @@ body {
     font-size: 22px;
   }
 }
+
+
+/* =========================
+   LINKS ABAIXO DOS CARDS
+========================= */
+.links-abaixo-cards {
+  margin-top: 10px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.link-card {
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.link-card:hover {
+  text-decoration: underline;
+}
+
+/* links ainda não disponíveis */
+.link-card.disabled {
+  color: var(--text-light);
+  cursor: default;
+  pointer-events: none;
+}
+
+.link-card small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
