@@ -225,13 +225,13 @@ router.get(
 );
 // 🔐 ENDPOINT DE ACESSO AO CONTEÚDO
 router.get("/access", authCliente, async (req, res) => {
-  const { message_id } = req.query;
+  const message_id = Number(req.query.message_id);
 
-  if (!message_id) {
-    return res.status(400).json({ error: "message_id obrigatório" });
+  // 🔒 validação query/param
+  if (!Number.isInteger(message_id) || message_id <= 0) {
+    return res.status(400).json({ error: "message_id inválido" });
   }
 
-  // 1️⃣ verifica se foi desbloqueado
   const msgRes = await db.query(
     `
     SELECT id
@@ -247,7 +247,6 @@ router.get("/access", authCliente, async (req, res) => {
     return res.status(403).json({ error: "Conteúdo não liberado" });
   }
 
-  // 2️⃣ busca mídias
   const midiasRes = await db.query(
     `
     SELECT c.url, c.tipo
@@ -258,15 +257,14 @@ router.get("/access", authCliente, async (req, res) => {
     [message_id]
   );
 
-  // 3️⃣ gera URLs temporárias
-const midias = midiasRes.rows.map(m => ({
-  tipo: m.tipo,
-  url: m.url  
-}));
-
-
-  res.json({ midias });
+  res.json({
+    midias: midiasRes.rows.map(m => ({
+      tipo: m.tipo,
+      url: m.url
+    }))
+  });
 });
+
 
 router.get(
   "/api/transacoes",
@@ -274,6 +272,29 @@ router.get(
   requireRole("admin", "modelo", "agente"),
   async (req, res) => {
     const { mes, tipo, origem } = req.query;
+    // 🔒 VALIDAÇÃO DE QUERY (RELATÓRIO DE TRANSAÇÕES)
+
+// valida mês (YYYY-MM)
+if (mes && !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({
+    error: "Formato de mês inválido (YYYY-MM)"
+  });
+}
+
+// valida tipo
+const tiposPermitidos = ["midia", "assinatura"];
+if (tipo && !tiposPermitidos.includes(tipo)) {
+  return res.status(400).json({
+    error: "Tipo inválido"
+  });
+}
+
+// valida origem (string curta)
+if (origem && typeof origem !== "string") {
+  return res.status(400).json({
+    error: "Origem inválida"
+  });
+}
     const { role, id } = req.user;
 
     let where = [];
@@ -348,7 +369,10 @@ router.get(
   authMiddleware,
   requireRole("admin", "modelo", "agente"),
   async (req, res) => {
-    const { mes } = req.query; // ex: 2026-01
+    const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+     } 
     const { role, id: modelo_id } = req.user;
 
     const inicio = `${mes}-01`;
@@ -433,7 +457,10 @@ router.get(
   authMiddleware,
   requireRole("admin", "modelo", "agente"),
   async (req, res) => {
-    const { mes } = req.query; // ex: 2025-12
+    const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+} // ex: 2025-12
     const { role, id: modelo_id } = req.user;
 
     const dataBase = `${mes}-01`;
@@ -482,6 +509,9 @@ router.get(
   requireRole("admin"),
   async (req, res) => {
     const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+}
 
     const dataBase = `${mes}-01`;
 
@@ -543,6 +573,9 @@ router.get(
   requireRole("agente"),
   async (req, res) => {
     const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+}
     const { id: agente_id } = req.user;
 
     let values = [`${mes}-01`, agente_id];
@@ -605,6 +638,9 @@ router.get(
   async (req, res) => {
 
     const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+}
 
     const { rows } = await db.query(
       `
@@ -664,6 +700,9 @@ router.get(
   async (req, res) => {
 
     const { mes } = req.query;
+    if (!mes || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+  return res.status(400).json({ error: "Formato de mês inválido (YYYY-MM)" });
+}
 
     const { rows } = await db.query(
       `

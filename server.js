@@ -627,7 +627,12 @@ app.get("/api/conteudos", authModelo, async (req, res) => {
 
 app.get("/api/vip/status/:modelo_id", authCliente, async (req, res) => {
   const cliente_id = req.user.id;
-  const modelo_id = req.params.modelo_id;
+  const modelo_id = Number(req.params.modelo_id);
+
+  // 🔒 validação param
+  if (!Number.isInteger(modelo_id) || modelo_id <= 0) {
+    return res.status(400).json({ error: "modelo_id inválido" });
+  }
 
   const result = await db.query(
     `
@@ -641,6 +646,7 @@ app.get("/api/vip/status/:modelo_id", authCliente, async (req, res) => {
 
   res.json({ vip: result.rowCount > 0 });
 });
+
 
 
 
@@ -1106,7 +1112,12 @@ app.get("/api/cliente/:id", authModelo, async (req, res) => {
 });
 
 app.get("/api/chat/conteudo/:message_id", authCliente, async (req, res) => {
-  const { message_id } = req.params;
+  const message_id = Number(req.params.message_id);
+
+  // 🔒 validação de param
+  if (!Number.isInteger(message_id) || message_id <= 0) {
+    return res.status(400).json({ error: "message_id inválido" });
+  }
 
   try {
     const result = await db.query(
@@ -1130,10 +1141,15 @@ app.get("/api/chat/conteudo/:message_id", authCliente, async (req, res) => {
   }
 });
 
+
 // 🔒 CONTEÚDOS JÁ VISTOS POR CLIENTE (MODELO)
 app.get("/api/chat/conteudos-vistos/:cliente_id", authModelo, async (req, res) => {
   const modelo_id  = req.user.id;
   const cliente_id = Number(req.params.cliente_id);
+  
+if (!Number.isInteger(cliente_id) || cliente_id <= 0) {
+  return res.status(400).json({ error: "cliente_id inválido" });
+}
 
   try {
     const result = await db.query(`
@@ -1265,9 +1281,22 @@ app.post(
 );
 
 app.post("/webhook/mercadopago", async (req, res) => {
+
+  // 🔒 PROTEÇÃO MÍNIMA DO WEBHOOK MP
+  const signature =
+    req.headers["x-signature"] ||
+    req.headers["x-hub-signature"];
+
+  if (!signature) {
+    console.log("❌ Webhook MP sem assinatura");
+    return res.sendStatus(401);
+  }
+
+  // 🔍 debug de ambiente (ok manter por enquanto)
   db.query("SELECT current_database(), inet_server_port()")
-  .then(r => console.log("🟢 DB DO SERVER:", r.rows[0]))
-  .catch(console.error);
+    .then(r => console.log("🟢 DB DO SERVER:", r.rows[0]))
+    .catch(console.error);
+
   try {
     console.log("🔥 WEBHOOK MP RECEBIDO");
     console.log("Body:", req.body);
@@ -1522,22 +1551,47 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
 app.post("/api/pagamento/vip/cartao", authCliente, async (req, res) => {
   const { valor, modelo_id } = req.body;
 
-  const intent = await stripe.paymentIntents.create({
-    amount: Math.round(valor * 100),
-    currency: "brl",
-    metadata: {
-      tipo: "vip",
-      cliente_id: req.user.id,
-      modelo_id
-    }
-  });
+  // 🔒 VALIDAÇÃO DE ENTRADA (OBRIGATÓRIA)
+  if (!valor || !modelo_id) {
+    return res.status(400).json({ error: "Dados inválidos" });
+  }
 
-  res.json({ clientSecret: intent.client_secret });
+  if (isNaN(Number(valor)) || Number(valor) <= 0) {
+    return res.status(400).json({ error: "Valor inválido" });
+  }
+
+  try {
+    const intent = await stripe.paymentIntents.create({
+      amount: Math.round(Number(valor) * 100),
+      currency: "brl",
+      metadata: {
+        tipo: "vip",
+        cliente_id: req.user.id,
+        modelo_id: String(modelo_id)
+      }
+    });
+
+    res.json({ clientSecret: intent.client_secret });
+
+  } catch (err) {
+    console.error("Erro criar pagamento VIP cartão:", err);
+    res.status(500).json({ error: "Erro ao criar pagamento" });
+  }
 });
+
 
 app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
   try {
     const { valor, modelo_id } = req.body;
+
+    // 🔒 VALIDAÇÃO DE ENTRADA (OBRIGATÓRIA)
+    if (!valor || !modelo_id) {
+      return res.status(400).json({ error: "Dados inválidos" });
+    }
+
+    if (isNaN(Number(valor)) || Number(valor) <= 0) {
+      return res.status(400).json({ error: "Valor inválido" });
+    }
 
     const mp = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_TOKEN
@@ -1554,8 +1608,8 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
           email: req.user.email || "cliente@velvet.lat"
         },
         metadata: {
-          cliente_id: req.user.id,
-          modelo_id
+          cliente_id: String(req.user.id),
+          modelo_id: String(modelo_id)
         }
       }
     });
@@ -1570,6 +1624,7 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
     res.status(500).json({ error: "Erro Pix VIP" });
   }
 });
+
 
 
 
