@@ -136,6 +136,8 @@ body {
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
+  font-size: 16px;
+  text-align: center;
 }
 
 .link-card:hover {
@@ -147,6 +149,8 @@ body {
   color: var(--text-light);
   cursor: default;
   pointer-events: none;
+  font-size: 16px;
+  text-align: center;
 }
 
 .link-card small {
