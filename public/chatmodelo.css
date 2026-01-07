@@ -31,11 +31,11 @@ html, body {
 }
 
 h2 #modeloNome {
-  color: #1E1E26;
+  color: #7B2CFF;
 }
 
 #clienteNome {
-  color: #1E1E26;
+  color: #7B2CFF; /* roxo Velvet */
   font-weight: 700;
 }
 
@@ -57,7 +57,7 @@ h2 #modeloNome {
 .painel {
   background: #fff;
   border-radius: 18px;
-  border: 1px solid #b9a9e6;
+  border: 1px solid #9E6BFF;
   box-shadow: 0 6px 20px rgba(93,36,190,0.15);
 }
 
@@ -85,8 +85,8 @@ h2 #modeloNome {
 #listaClientes li {
   padding: 8px 10px;
   margin-bottom: 6px;
-  background: #f3f0ff;
-  color: #1E1E26;
+  background: #9E6BFF ;
+  color: #fff;
   border-radius: 12px;
   cursor: pointer;
   font-size: 12px;
@@ -94,7 +94,7 @@ h2 #modeloNome {
 }
 
 #listaClientes li:hover {
-  background:#C9C9C9;
+  background:#7B2CFF;
 }
 
 /* =========================
@@ -113,7 +113,7 @@ h2 #modeloNome {
 .chat-header {
   padding-bottom: 8px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #b9a9e6;
+  border-bottom: 1px solid #9E6BFF;
   flex-shrink: 0;
 }
 
@@ -146,8 +146,8 @@ h2 #modeloNome {
 /* 🔮 MODELO direita */
 .msg-modelo {
   align-self: flex-end;
-  background: #E1E1E1;
-  color: #1E1E26;
+  background: #9E6BFF;
+  color: #fff;
   margin: 6px 8px;
   border-bottom-left-radius: 4px;
   box-shadow: 0 2px 8px rgba(123,44,255,0.25);
@@ -156,8 +156,8 @@ h2 #modeloNome {
 /* 💜 CLIENTE esquerda */
 .msg-cliente {
   align-self: flex-start;
-  background: #C9C9C9;
-  color: #1E1E26;
+  background: #7B2CFF;
+  color: #fff;
   margin: 6px 8px;
   border-bottom-right-radius: 4px;
   box-shadow: 0 2px 10px rgba(123,44,255,0.45);
@@ -228,7 +228,7 @@ h2 #modeloNome {
   padding: 0 14px;
 
   border-radius: 14px;          /* 🔥 igual chatcliente */
-  border: 1px solid #b9a9e6;
+  border: 1px solid #9E6BFF;
 
   font-size: 13px;
   line-height: normal;          /* 🔥 remove efeito cápsula */
@@ -347,7 +347,7 @@ h2 #modeloNome {
 
 /* SELECIONADO */
 .preview-item.selected {
-  border-color: #1E1E26;   /* roxo Velvet */
+  border-color: #7B2CFF;
   box-shadow: 0 0 0 2px rgba(123,44,255,0.25);
 }
 
@@ -441,7 +441,7 @@ h2 #modeloNome {
   padding: 0 10px;
 
   border-radius: 10px;
-  border: 1px solid #b9a9e6;
+  border: 1px solid #9E6BFF;
   font-size: 14px;
 }
 
@@ -470,7 +470,7 @@ h2 #modeloNome {
 }
 
 .btn-enviar {
-  background: linear-gradient(135deg, #7b2cff, #5d24be);
+background: linear-gradient(135deg, #7b2cff, #9E6BFF);
   color: #fff;
 }
 
@@ -598,14 +598,10 @@ h2 #modeloNome {
 }
 
 .msg:has(.chat-conteudo) {
-  align-self: flex-end; /* modelo */
+  align-self: flex-end; 
 }
 /* =====================================================
    🔥 OVERRIDE FINAL – GRID QUADRADO VELVET (FORÇADO)
-   Resolve:
-   - bolinhas redondas ❌
-   - espaço vazio ❌
-   - não preencher card ❌
 ===================================================== */
 
 /* força card correto */
