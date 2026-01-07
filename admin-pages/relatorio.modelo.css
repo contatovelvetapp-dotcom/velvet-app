@@ -86,7 +86,7 @@ body {
 /* DESTAQUE */
 .highlight {
   background: linear-gradient(135deg, var(--primary), #9b6bff);
-  color: #fff;
+  color: #7B2CFF;
 }
 
 .highlight span {
@@ -290,13 +290,13 @@ body {
 
 /* texto secundário mais leve */
 .card span {
-  color: #fff;
+  color: #7B2CFF;
   font-weight: 500;
 }
 
 /* valores com menos agressividade */
 .card strong {
-  color: #1E1E26;
+  color: #7B2CFF;
   font-weight: 700;
 }
 
@@ -318,7 +318,7 @@ body {
 }
 
 .total strong {
-  color: #1E1E26;
+  color: #7B2CFF;
 }
 
 /* links soft */
@@ -330,7 +330,7 @@ body {
 
 .link-card {
   font-size: 15px;
-  color: #1E1E26;
+  color: #7B2CFF;
   font-weight: 500;
 }
 
