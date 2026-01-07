@@ -14,7 +14,7 @@ if (token && role) {
 // ===============================
 // ESTADO GLOBAL
 // ===============================
-let modalMode = "login";          // login | register
+let modalMode = "login";          // login | registe
 let pendingAction = null;         // login | register
 
 // ===============================
@@ -35,7 +35,10 @@ function openAgeGate(action) {
 
 function confirmAge(isAdult) {
   if (!isAdult) {
-    alert("Você precisa ter 18 anos ou mais para acessar a Velvet.");
+    alert("Você precisa ter 18 anos ou mais para acessar a Plataforma.");
+    
+    document.getElementById("ageModal")?.classList.add("hidden");
+    window.location.href = "/index.html";
     return;
   }
 
@@ -103,14 +106,14 @@ function updateModal() {
   const switchRegister = document.querySelector(".modal-switch");
 
   if (modalMode === "login") {
-    title.textContent = "Entrar no Velvet";
+    title.textContent = "Entrar";
     submit.textContent = "Entrar";
     submit.onclick = login;
     roleSelect.classList.add("hidden");
     switchRegister.classList.remove("hidden");
     switchLogin.classList.add("hidden");
   } else {
-    title.textContent = "Criar conta no Velvet";
+    title.textContent = "Criar Conta";
     submit.textContent = "Criar conta";
     submit.onclick = register;
     roleSelect.classList.remove("hidden");

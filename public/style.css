@@ -246,6 +246,7 @@ body {
   flex-direction: column;
   gap: 14px;
   animation: modalIn 0.25s ease;
+  text-align: center;
 }
 
 .modal-box h2 {
