@@ -21,14 +21,14 @@ html, body {
    PÁGINA PRINCIPAL
 ========================= */
 .chat-header strong {
-  color: #7B2CFF;               /* 💜 roxo Velvet */
+  color: #1E1E26;               /* 💜 roxo Velvet */
   font-weight: 600;
 }
 
 #tituloConversas {
   font-size: 20px;
   font-weight: 600;
-  color: #7B2CFF;               /* 💜 roxo Velvet */
+  color: #1E1E26;               /* 💜 roxo Velvet */
 }
 
 #tituloConversas span {
@@ -438,13 +438,13 @@ html, body {
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #7B2CFF;
+  border: 2px solid #1E1E26;
 }
 
 #chatNome {
   font-weight: 600;
   font-size: 14px;
-  color: #7B2CFF;
+  color: #1E1E26;
 }
 
 /* CARD BLOQUEADO LIMPO (CLIENTE) */
