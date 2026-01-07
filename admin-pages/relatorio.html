@@ -1,48 +1,60 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Meus ganhos</title>
-  <link rel="stylesheet" href="/admin/assets/chart.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Meus Ganhos | Velvet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/assets/relatorio-modelo.css">
 </head>
 
 <body>
-  <div class="title">
-    <h3>📊 Meus Ganhos</h3>
-  </div>
 
-<section class="cards-anual modelo-dashboard">
+<header class="top-bar">
+  <img src="/assets/velvet.png" alt="Velvet" class="logo">
+  <span class="page-title">Meus Ganhos</span>
+</header>
 
-    <div class="card destaque">
-      <span>Ganhos de Hoje — Mídias</span>
+<main class="container">
+
+  <!-- GANHOS HOJE -->
+  <section class="cards-row destaque">
+    <div class="card highlight">
+      <span>Hoje · Mídias</span>
       <strong id="hojeMidias">$0.00</strong>
     </div>
 
-    <div class="card destaque">
-      <span>Ganhos de Hoje — Assinaturas</span>
+    <div class="card highlight">
+      <span>Hoje · Assinaturas</span>
       <strong id="hojeAssinaturas">$0.00</strong>
     </div>
+  </section>
 
+  <!-- GANHOS DO MÊS -->
+  <section class="cards-row">
     <div class="card">
-      <span>Acumulado do Mês — Mídias</span>
+      <span>Mês atual · Mídias</span>
       <strong id="mesMidias">$0.00</strong>
     </div>
 
     <div class="card">
-      <span>Acumulado do Mês — Assinaturas</span>
+      <span>Mês atual · Assinaturas</span>
       <strong id="mesAssinaturas">$0.00</strong>
     </div>
+  </section>
 
-    <div class="card">
-      <span>Meses Anteriores</span>
+  <!-- ACUMULADO -->
+  <section class="cards-row single">
+    <div class="card total">
+      <span>Acumulado de meses anteriores</span>
       <strong id="acumuladoAnterior">$0.00</strong>
     </div>
-
   </section>
-</body>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/admin/assets/chart.js"></script>
+</main>
+
+<script src="/admin/assets/relatorio.js"></script>
 </body>
 </html>
+
