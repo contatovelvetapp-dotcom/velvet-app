@@ -204,10 +204,14 @@ if (vipModelo) {
 
  const preco = btn.dataset.preco;
  const messageId = btn.dataset.messageId;
-console.log("DEBUG pagamento:", preco, messageId);
-abrirPagamentoChat(preco, messageId);
+ console.log("DEBUG pagamento:", preco, messageId);
+ abrirPagamentoChat(preco, messageId);
 
-});
+ document.getElementById("popupPix")?.classList.add("hidden");
+ document.getElementById("paymentModal")?.classList.add("hidden");
+ document.getElementById("escolhaPagamento")?.classList.add("hidden");
+ pagamentoAtual = {}; // 🔒 zera qualquer lixo antigo
+ });
 
 
 });
@@ -299,6 +303,10 @@ async function pagarComCartao() {
 
 async function pagarComPix() {
   fecharEscolha();
+  if (!pagamentoAtual.valor || !pagamentoAtual.message_id) {
+  console.warn("Pix chamado sem pagamentoAtual válido");
+  return;
+}
 
   const res = await fetch("/api/pagamento/pix", {
     method: "POST",
