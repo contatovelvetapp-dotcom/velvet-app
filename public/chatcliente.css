@@ -771,14 +771,19 @@ html, body {
 }
 
 .pix-preco {
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 14px;
   color: #7B2CFF;
 }
 
 .pix-preco strong {
   color: #7B2CFF;
-  font-size: 14px;
+  font-size: 16px;
+}
+
+.pix-detalhes {
+color: #7B2CFF;
+font-size: 12px;
 }
 
 .pix-qr {
