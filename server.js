@@ -43,6 +43,46 @@ app.use(cors({
   credentials: true
 }));
 
+app.post("/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("❌ Webhook Stripe inválido:", err.message);
+    return res.status(400).send(`Webhook Error`);
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const pi = event.data.object;
+
+    if (pi.metadata?.tipo === "vip") {
+      await ativarVipAssinatura({
+        cliente_id: pi.metadata.cliente_id,
+        modelo_id: pi.metadata.modelo_id,
+        valor_assinatura: pi.metadata.valor_assinatura,
+        taxa_transacao: pi.metadata.taxa_transacao,
+        taxa_plataforma: pi.metadata.taxa_plataforma
+      });
+
+      // 🔔 socket realtime
+      const sid = onlineClientes[pi.metadata.cliente_id];
+      if (sid) {
+        io.to(sid).emit("vipAtivado", {
+          modelo_id: pi.metadata.modelo_id
+        });
+      }
+    }
+  }
+
+  res.json({ received: true });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -1907,45 +1947,6 @@ if (socketId) {
   }
 });
 
-app.post("/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error("❌ Webhook Stripe inválido:", err.message);
-    return res.status(400).send(`Webhook Error`);
-  }
-
-  if (event.type === "payment_intent.succeeded") {
-    const pi = event.data.object;
-
-    if (pi.metadata?.tipo === "vip") {
-      await ativarVipAssinatura({
-        cliente_id: pi.metadata.cliente_id,
-        modelo_id: pi.metadata.modelo_id,
-        valor_assinatura: pi.metadata.valor_assinatura,
-        taxa_transacao: pi.metadata.taxa_transacao,
-        taxa_plataforma: pi.metadata.taxa_plataforma
-      });
-
-      // 🔔 socket realtime
-      const sid = onlineClientes[pi.metadata.cliente_id];
-      if (sid) {
-        io.to(sid).emit("vipAtivado", {
-          modelo_id: pi.metadata.modelo_id
-        });
-      }
-    }
-  }
-
-  res.json({ received: true });
-});
 
 
 app.post("/api/pagamento/vip/cartao", authCliente, async (req, res) => {
