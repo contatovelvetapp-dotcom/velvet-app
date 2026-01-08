@@ -217,6 +217,13 @@ abrirPagamentoChat(preco, messageId);
 // ===============================
 // FUNÇÕES
 // ===============================
+// 💰 FORMATA VALORES EM REAL (R$)
+function valorBRL(valor) {
+  return Number(valor).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
 
 async function abrirPagamentoChat(valor, conteudoId) {
   pagamentoAtual = {
