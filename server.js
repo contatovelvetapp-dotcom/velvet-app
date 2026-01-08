@@ -1866,6 +1866,15 @@ app.post("/webhook/mercadopago", async (req, res) => {
       taxa_transacao,
       taxa_plataforma
     });
+    // 🔔 AVISA CLIENTE EM TEMPO REAL (VIP ATIVADO)
+const socketId = onlineClientes[cliente_id];
+
+if (socketId) {
+  io.to(socketId).emit("vipAtivado", {
+    modelo_id
+  });
+}
+
 
     console.log("✅ VIP ATIVADO:", cliente_id, modelo_id);
 

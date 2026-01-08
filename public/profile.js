@@ -12,6 +12,16 @@ if (!token) {
   throw new Error("Sem token");
 }
 
+const socket = io();
+
+// autentica socket
+socket.emit("auth", { token });
+
+// registra cliente online
+if (role === "cliente") {
+  socket.emit("loginCliente", Number(jwtDecode(token).id));
+}
+
 
 function logout() {
   localStorage.clear();
@@ -551,5 +561,41 @@ function copiarPix() {
   document.execCommand("copy");
   alert("Código Pix copiado 💜");
 }
+
+socket.on("vipAtivado", ({ modelo_id: modeloVip }) => {
+  if (Number(modeloVip) !== Number(modelo_id)) return;
+
+  // 🔒 fecha popup PIX
+  document.getElementById("popupPix")?.classList.add("hidden");
+
+  // 🔔 popup simples de sucesso
+  mostrarVipAtivadoPopup();
+
+  // 🔥 atualiza estado local
+  window.__CLIENTE_VIP__ = true;
+
+  // 🔘 botão vira VIP ativo
+  if (btnVip) {
+    btnVip.textContent = "VIP ativo";
+    btnVip.disabled = true;
+  }
+
+  // 🔓 desbloqueia conteúdos
+  carregarFeedPublico();
+});
+
+
+function mostrarVipAtivadoPopup() {
+  document
+    .getElementById("popupVipAtivado")
+    .classList.remove("hidden");
+}
+
+function fecharVipAtivado() {
+  document
+    .getElementById("popupVipAtivado")
+    .classList.add("hidden");
+}
+
 
 
