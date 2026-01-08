@@ -1818,6 +1818,63 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
   }
 });
 
+app.post("/webhook/mercadopago", async (req, res) => {
+  try {
+    // MercadoPago envia o ID aqui
+    const paymentId = req.body?.data?.id;
+
+    if (!paymentId) {
+      return res.sendStatus(200);
+    }
+
+    const mp = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
+    });
+
+    const payment = new Payment(mp);
+
+    // 🔎 BUSCA O PAGAMENTO REAL
+    const pagamento = await payment.get({ id: paymentId });
+
+    // ⏳ Ainda não aprovado
+    if (pagamento.status !== "approved") {
+      return res.sendStatus(200);
+    }
+
+    // 🔐 CONFERE SE É VIP
+    if (pagamento.metadata?.tipo !== "vip") {
+      return res.sendStatus(200);
+    }
+
+    const {
+      cliente_id,
+      modelo_id,
+      valor_assinatura,
+      taxa_transacao,
+      taxa_plataforma
+    } = pagamento.metadata;
+
+    // 🔥 AQUI É O PONTO CRÍTICO 🔥
+    // 👉 ATIVA O VIP DE VERDADE
+    await ativarVipAssinatura({
+      cliente_id,
+      modelo_id,
+      valor_assinatura,
+      taxa_transacao,
+      taxa_plataforma
+    });
+
+    console.log("✅ VIP ATIVADO:", cliente_id, modelo_id);
+
+    return res.sendStatus(200);
+
+  } catch (err) {
+    console.error("❌ Erro webhook MercadoPago:", err);
+    return res.sendStatus(500);
+  }
+});
+
+
 
 
 // ===============================
