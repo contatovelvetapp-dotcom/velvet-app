@@ -900,16 +900,20 @@ app.get("/api/cliente/me", auth, async (req, res) => {
     return res.status(403).json({ error: "Apenas cliente" });
   }
 
-  const result = await db.query(
-    "SELECT nome FROM clientes WHERE user_id = $1",
-    [req.user.id]
-  );
+  const result = await db.query(`
+    SELECT
+      c.user_id AS id,
+      cd.username,
+      c.nome
+    FROM clientes c
+    LEFT JOIN clientes_dados cd
+      ON cd.user_id = c.user_id
+    WHERE c.user_id = $1
+  `, [req.user.id]);
 
-  res.json({
-    id: req.user.id,
-    nome: result.rows[0]?.nome
-  });
+  res.json(result.rows[0]);
 });
+
 
 //ROTA LISTA VIP
 app.get("/api/vip/status/:modelo_id", auth, async (req, res) => {
