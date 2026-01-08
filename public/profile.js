@@ -19,8 +19,18 @@ socket.emit("auth", { token });
 
 // registra cliente online
 if (role === "cliente") {
-  socket.emit("loginCliente", Number(jwtDecode(token).id));
+  socket.emit("loginCliente", Number(decodeJWT(token).id));
 }
+
+function decodeJWT(token) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch (e) {
+    return null;
+  }
+}
+
 
 
 function logout() {
