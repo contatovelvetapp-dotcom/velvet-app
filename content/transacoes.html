@@ -48,9 +48,20 @@
 <script>
 async function carregarTransacoes() {
   try {
-    const res = await fetch("/api/transacoes", {
-      credentials: "include"
-    });
+    const token = localStorage.getItem("token");
+
+if (!token) {
+  document.getElementById("lista").innerText =
+    "Você não está logada.";
+  return;
+}
+
+const res = await fetch("/api/transacoes", {
+  headers: {
+    "Authorization": "Bearer " + token
+  }
+});
+
 
     if (!res.ok) {
       document.getElementById("lista").innerText =
