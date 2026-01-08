@@ -1814,12 +1814,30 @@ app.post("/api/pagamento/vip/cartao", authCliente, async (req, res) => {
       return res.status(400).json({ error: "Dados inválidos" });
     }
 
+    // 🔒 BLOQUEIO VIP DUPLICADO (ESSENCIAL)
+    const jaVip = await db.query(
+      `
+      SELECT 1
+      FROM vip_subscriptions
+      WHERE cliente_id = $1
+        AND modelo_id = $2
+        AND ativo = true
+      `,
+      [cliente_id, modelo_id]
+    );
+
+    if (jaVip.rowCount > 0) {
+      return res.status(409).json({
+        error: "Você já é VIP desta modelo"
+      });
+    }
+
     const valorBase = Number(valor);
     if (!Number.isFinite(valorBase) || valorBase <= 0) {
       return res.status(400).json({ error: "Valor inválido" });
     }
 
-    const taxaGateway   = Number((valorBase * 0.10).toFixed(2));
+    const taxaGateway    = Number((valorBase * 0.10).toFixed(2));
     const taxaPlataforma = Number((valorBase * 0.05).toFixed(2));
     const total = Number((valorBase + taxaGateway + taxaPlataforma).toFixed(2));
 
@@ -1827,8 +1845,6 @@ app.post("/api/pagamento/vip/cartao", authCliente, async (req, res) => {
       amount: Math.round(total * 100),
       currency: "brl",
       automatic_payment_methods: { enabled: true },
-
-      // 🔥🔥🔥 ISSO É O QUE ESTAVA FALTANDO 🔥🔥🔥
       metadata: {
         tipo: "vip",
         cliente_id: String(cliente_id),

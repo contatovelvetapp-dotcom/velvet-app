@@ -143,14 +143,34 @@ async function carregarPerfilPublico() {
 // ===============================
 // VIP
 // ===============================
-btnVip?.addEventListener("click", async() => {
+btnVip?.addEventListener("click", async () => {
   if (!modelo_id) {
     alert("Modelo não identificada");
     return;
   }
 
-  let data;
+  // 🔒 CHECA SE JÁ É VIP (UX — evita pagar 2x)
+  try {
+    const statusRes = await fetch(`/api/vip/status/${modelo_id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
 
+    const statusData = await statusRes.json();
+
+    if (statusData.vip === true) {
+      alert("💜 Você já é VIP desta modelo");
+      return;
+    }
+  } catch (err) {
+    console.error("Erro ao verificar status VIP:", err);
+    alert("Erro ao verificar status VIP");
+    return;
+  }
+
+  // 💎 BUSCA PREÇO DO VIP
+  let data;
   try {
     const res = await fetch("/api/vip/preco");
     data = await res.json();
@@ -166,12 +186,14 @@ btnVip?.addEventListener("click", async() => {
     return;
   }
 
+  // 🔥 DEFINE PAGAMENTO ATUAL
   window.pagamentoAtual = {
     tipo: "vip",
     modelo_id,
     valor: valorVip
   };
 
+  // 🪟 ABRE MODAL
   document
     .getElementById("escolhaPagamento")
     .classList.remove("hidden");
