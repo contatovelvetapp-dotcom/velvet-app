@@ -627,13 +627,22 @@ body.role-cliente .only-cliente {
 .modal-box {
   position: relative;
   z-index: 100001 !important;
+
   background: #fff;
-  width: 420px;
-  max-width: 95%;
   border-radius: 16px;
-  padding: 24px;
-  margin-top: 32px;
+
+  /* 🔥 RESPONSIVIDADE REAL */
+  width: min(420px, 92vw);
+  max-height: 90vh;
+
+  padding: clamp(16px, 4vw, 24px);
+
+  overflow-y: auto; /* 👈 scroll interno se precisar */
+
+  box-shadow: 0 20px 60px rgba(123, 44, 255, 0.35);
+  animation: popupFadeIn 0.25s ease;
 }
+
 
 body.modal-open {
   overflow: hidden;
