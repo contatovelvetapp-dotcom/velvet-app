@@ -256,9 +256,40 @@ async function pagarComCartao() {
 
   const { clientSecret } = await res.json();
 
-  elements = stripe.elements({ clientSecret });
-  const paymentElement = elements.create("payment");
-  paymentElement.mount("#payment-element");
+  elements = stripe.elements({
+  clientSecret,
+  appearance: {
+    theme: "flat",
+    variables: {
+      colorPrimary: "#7B2CFF",        // roxo Velvet
+      colorBackground: "#ffffff",
+      colorText: "#4a2bbf",
+      colorDanger: "#d9534f",
+
+      fontFamily: "Poppins, system-ui, sans-serif",
+      fontSizeBase: "15px",
+      borderRadius: "14px"
+    },
+    rules: {
+      ".Input": {
+        border: "1px solid #9E6BFF",
+        padding: "12px"
+      },
+      ".Input:focus": {
+        borderColor: "#7B2CFF",
+        boxShadow: "0 0 0 2px rgba(123,44,255,0.25)"
+      },
+      ".Label": {
+        color: "#7B2CFF",
+        fontWeight: "600",
+        fontSize: "13px"
+      }
+    }
+  }
+});
+
+const paymentElement = elements.create("payment");
+paymentElement.mount("#payment-element");
 }
 
 
