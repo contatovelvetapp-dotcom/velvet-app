@@ -162,7 +162,6 @@ btnVip?.addEventListener("click", () => {
   // 🔑 mesmo estado usado no chat
   window.pagamentoAtual = {
     tipo: "vip",
-    valor: 0.10,
     modelo_id
   };
 
@@ -292,7 +291,6 @@ const paymentElement = elements.create("payment");
 paymentElement.mount("#payment-element");
 }
 
-
 async function pagarComPix() {
   fecharEscolha();
 
@@ -400,8 +398,6 @@ function iniciarVerificacaoVip() {
     }
   }, 4000); // a cada 4s
 }
-
-
 
 
 // ===============================
