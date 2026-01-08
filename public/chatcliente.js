@@ -332,6 +332,26 @@ document.getElementById("pixValor").innerText =
     style: "currency",
     currency: "BRL"
   });
+  
+  // DETALHAMENTO DO PIX
+document.getElementById("pixValorBase").innerText =
+  Number(data.valor_base).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+
+document.getElementById("pixTaxaTransacao").innerText =
+  Number(data.taxa_transacao).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+
+document.getElementById("pixTaxaPlataforma").innerText =
+  Number(data.taxa_plataforma).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+
 
   document.getElementById("pixQr").src =
     "data:image/png;base64," + data.qrCode;
@@ -740,15 +760,13 @@ function organizarListaModelos() {
   itens.sort((a, b) => {
     const ta = Number(a.dataset.lastTime || 0);
     const tb = Number(b.dataset.lastTime || 0);
-    return tb - ta; // mais recente primeiro
+    return tb - ta; 
   });
 
   itens.forEach(li => lista.appendChild(li));
 }
 
 function organizarListaClientes() {
-  // cliente NÃO usa essa função
-  // deixamos vazia só pra não quebrar
 }
 
 function contarChatsNaoLidosCliente() {
