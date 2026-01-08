@@ -120,7 +120,7 @@ async function carregarPerfilPublico() {
       isVip = true;
 
       if (btnVip) {
-        btnVip.textContent = "VIP ativo 💜";
+        btnVip.textContent = "VIP ativo";
         btnVip.disabled = true;
       }
     }
