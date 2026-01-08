@@ -35,6 +35,7 @@ const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const contentRouter = require("./servercontent");
 const nodemailer = require("nodemailer");
+const VIP_PRECO_FIXO = 0.10;
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/admin", contentRouter);
@@ -1523,30 +1524,50 @@ if (tipo === "midia") {
 
   console.log("✅ Conteúdo desbloqueado e transação Pix registrada:", codigoTransacao);
 }
+const valor_bruto = VIP_PRECO_FIXO;
+const taxa_gateway = Number((valor_bruto * 0.10).toFixed(2)); // 10%
+const velvet_fee   = Number((valor_bruto * 0.05).toFixed(2)); // 5%
+const valor_modelo = Number((valor_bruto - velvet_fee).toFixed(2));
 
+const codigoTransacao = `vip_pix_${paymentId}`;
 
-    /* ===============================
-       💜 VIP PAGO
-    =============================== */
-    if (tipo === "vip") {
+await db.query(`
+  INSERT INTO transacoes (
+    codigo,
+    tipo,
+    modelo_id,
+    cliente_id,
+    valor_bruto,
+    taxa_gateway,
+    velvet_fee,
+    valor_modelo,
+    origem_cliente,
+    status
+  )
+  VALUES (
+    $1,
+    'vip',
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    'pix',
+    'normal'
+  )
+  ON CONFLICT (codigo) DO NOTHING
+`, [
+  codigoTransacao,
+  modelo_id,
+  cliente_id,
+  valor_bruto,
+  taxa_gateway,
+  velvet_fee,
+  valor_modelo
+]);
 
-      if (!cliente_id || !modelo_id) {
-        console.log("⚠️ Metadata incompleta (vip):", metadata);
-        return res.sendStatus(200);
-      }
-      await db.query(
-  `
-  INSERT INTO vip_subscriptions (cliente_id, modelo_id, ativo)
-  VALUES ($1, $2, true)
-  ON CONFLICT (cliente_id, modelo_id)
-  DO UPDATE SET
-    ativo = true,
-    updated_at = NOW()
-  `,
-  [cliente_id, modelo_id]
-);
-      console.log("💜 VIP ativado via Pix:", cliente_id, modelo_id);
-    }
+console.log("✅ VIP PIX registrado em transacoes");
 
     res.sendStatus(200);
 
