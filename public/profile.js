@@ -64,7 +64,7 @@ document.getElementById("btnVipCartao")?.addEventListener("click", () => {
 });
 
   document.getElementById("fecharPagamento")
-  ?.addEventListener("click", fecharPagamentoCartao);
+  ?.addEventListener("click", fecharPagamento);
 });
 
 // ===============================
