@@ -78,44 +78,49 @@ const res = await fetch("/api/transacoes", {
       return;
     }
 
-    dados.forEach(t => {
-      const div = document.createElement("div");
-      div.className = "transacao";
+   dados.forEach(t => {
+  const div = document.createElement("div");
+  div.className = "transacao";
 
-      div.innerHTML = `
-        <div class="linha">
-          <strong>#${t.codigo}</strong> ${t.tipo.toUpperCase()}
-        </div>
+  div.innerHTML = `
+    <div class="linha">
+      <strong>#${t.codigo}</strong> ${t.tipo.toUpperCase()}
+    </div>
 
-        <div class="linha">Cliente ID: ${t.cliente_id}</div>
-        <div class="linha">
-          Data da transação:
-          ${new Date(t.created_at).toLocaleString()}
-        </div>
+    <div class="linha">Cliente ID: ${t.cliente_id}</div>
 
-        <div class="linha">Preço: $${t.valor_bruto}</div>
-        <div class="linha">Taxas do terminal: $${t.taxa_gateway}</div>
+    <div class="linha">
+      Data da transação:
+      ${new Date(t.created_at).toLocaleString()}
+    </div>
 
-        <div class="linha">
-          Ganhos da Velvet:
-          <span class="${Number(t.velvet_fee) < 0 ? 'negativo' : ''}">
-            $${t.velvet_fee}
-          </span>
-        </div>
+    <div class="linha">Preço: ${emReais(t.valor_bruto)}</div>
 
-        <div class="linha">Agency: $${t.agency_fee}</div>
-        <div class="linha">Ganhos do modelo: $${t.valor_modelo}</div>
+    <div class="linha">
+      Taxas do terminal: ${emReais(t.taxa_gateway)}
+    </div>
 
-        ${
-          t.status === "chargeback"
-            ? `<div class="linha negativo">
-                Chargeback: ${t.chargeback_result || "—"}
-              </div>`
-            : ""
-        }
-      `;
+    <div class="linha">
+      Ganhos da Velvet:
+      <span class="${Number(t.velvet_fee) < 0 ? 'negativo' : ''}">
+        ${emReais(t.velvet_fee)}
+      </span>
+    </div>
 
-      lista.appendChild(div);
+    <div class="linha">
+      Ganhos do modelo: ${emReais(t.valor_modelo)}
+    </div>
+
+    ${
+      t.status === "chargeback"
+        ? `<div class="linha negativo">
+            Chargeback: ${t.chargeback_result || "—"}
+          </div>`
+        : ""
+    }
+  `;
+
+  lista.appendChild(div);
     });
 
   } catch (err) {
@@ -123,6 +128,13 @@ const res = await fetch("/api/transacoes", {
     document.getElementById("lista").innerText =
       "Erro inesperado ao carregar.";
   }
+}
+
+function formatarReais(valor) {
+  return Number(valor).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
 }
 
 carregarTransacoes();
