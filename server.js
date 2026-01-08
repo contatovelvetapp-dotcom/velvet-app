@@ -258,10 +258,18 @@ async function ativarVipAssinatura({
   taxa_transacao,
   taxa_plataforma
 }) {
-  const valor_total =
+  let valor_total = Number(
+  (
     Number(valor_assinatura) +
     Number(taxa_transacao) +
-    Number(taxa_plataforma);
+    Number(taxa_plataforma)
+  ).toFixed(2)
+);
+
+// 🔒 Regra do MercadoPago PIX (BR)
+if (!valor_total || isNaN(valor_total) || valor_total < 1) {
+  valor_total = 1.00;
+}
 
   const expiration_at = new Date();
   expiration_at.setDate(expiration_at.getDate() + 30); // VIP mensal
@@ -1778,10 +1786,18 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
 
     const cliente_id = req.user.id;
 
-    const valor_total =
-      Number(valor_assinatura) +
-      Number(taxa_transacao) +
-      Number(taxa_plataforma);
+    let valor_total = Number(
+  (
+    Number(valor_assinatura) +
+    Number(taxa_transacao) +
+    Number(taxa_plataforma)
+  ).toFixed(2)
+);
+
+// 🔒 Regra do MercadoPago PIX (BR)
+if (!valor_total || isNaN(valor_total) || valor_total < 1) {
+  valor_total = 1.00;
+}
 
     const mp = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
