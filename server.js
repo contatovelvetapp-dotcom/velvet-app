@@ -1405,7 +1405,7 @@ app.post("/webhook/mercadopago", async (req, res) => {
     }
 
     const mp = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_TOKEN
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
     });
 
     const payment = new Payment(mp);
@@ -1680,7 +1680,7 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
         description: `Conteúdo ${message_id}`,
         payment_method_id: "pix",
         payer: {
-          email: "cliente@velvet.lat" // pode manter assim por enquanto
+          email: emailCliente
         },
         metadata: {
           message_id: String(message_id),
@@ -1753,7 +1753,7 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
     }
 
     const mp = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_TOKEN
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
     });
 
     const payment = new Payment(mp);
