@@ -315,10 +315,7 @@ document
     btn.innerText = "Processando...";
 
     const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: window.location.href
-      }
+      elements
     });
 
     if (error) {
@@ -327,8 +324,13 @@ document
 
       btn.disabled = false;
       btn.innerText = "Confirmar ativação VIP";
+      return;
     }
+
+    // 🔥 PAGAMENTO OK → INICIA VERIFICAÇÃO DE VIP
+    iniciarVerificacaoVip();
   });
+
 
 async function pagarComPix() {
   fecharEscolha();
