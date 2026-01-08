@@ -577,11 +577,11 @@ async function abrirPopupConteudos() {
   const grid = document.getElementById("previewConteudos");
   grid.innerHTML = "Carregando...";
 
-  const res = await fetch("/content/api/feed/me", {
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token")
-    }
-  });
+  const res = await fetch("/api/feed/me", {
+  headers: {
+    Authorization: "Bearer " + localStorage.getItem("token")
+  }
+});
 
   if (!res.ok) {
     grid.innerHTML = "Erro ao carregar conteúdos";
