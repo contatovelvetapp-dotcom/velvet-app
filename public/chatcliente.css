@@ -47,6 +47,12 @@ html, body {
   flex-shrink: 0;
 }
 
+.h2.titulo-roxo {
+  color: #7B2CFF; 
+  font-size: 12px;
+  text-align: center
+}
+
 /* =========================
    LAYOUT GERAL
 ========================= */
@@ -872,7 +878,7 @@ text-align: center;
 }
 
 .chat-conteudo.bloqueado .midia-item {
-  background: radial-gradient(circle at 30% 30%, rgba(183, 160, 255, 0.45), transparent 35%), radial-gradient(circle at 70% 70%, rgba(140, 108, 255, 0.35), transparent 40%), linear-gradient(135deg, #9E6BFF, #e6e1ff);
+  background: radial-gradient(circle at 30% 30%, rgba(183, 160, 255, 0.45), transparent 35%), radial-gradient(circle at 70% 70%, rgba(140, 108, 255, 0.35), transparent 40%), linear-gradient(135deg, #9E6BFF);
 
   filter: blur(6px);
   opacity: 0.85;
