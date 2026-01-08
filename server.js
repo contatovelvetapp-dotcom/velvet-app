@@ -1768,16 +1768,21 @@ app.post("/api/pagamento/vip/cartao", authCliente, async (req, res) => {
 
 app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
   try {
-    const { valor, modelo_id } = req.body;
+    const cliente_id = req.user.id;
+    const { modelo_id } = req.body;
 
-    // 🔒 VALIDAÇÃO DE ENTRADA (OBRIGATÓRIA)
-    if (!valor || !modelo_id) {
-      return res.status(400).json({ error: "Dados inválidos" });
+    if (!modelo_id) {
+      return res.status(400).json({ error: "modelo_id ausente" });
     }
 
-    if (isNaN(Number(valor)) || Number(valor) <= 0) {
-      return res.status(400).json({ error: "Valor inválido" });
-    }
+    // 🔒 VALOR FIXO DO VIP
+    const valor_base = 0.10;
+
+    const taxa_transacao  = Number((valor_base * 0.10).toFixed(2));
+    const taxa_plataforma = Number((valor_base * 0.05).toFixed(2));
+    const valor_total = Number(
+      (valor_base + taxa_transacao + taxa_plataforma).toFixed(2)
+    );
 
     const mp = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
@@ -1785,28 +1790,37 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
 
     const payment = new Payment(mp);
 
-    const result = await payment.create({
+    const pagamento = await payment.create({
       body: {
-        transaction_amount: Number(valor),
-        description: "Assinatura VIP",
+        transaction_amount: valor_total,
+        description: "Assinatura VIP Velvet",
         payment_method_id: "pix",
+        payer: {
+          email: "@contato@velvet.app",
+        },
         metadata: {
-          cliente_id: String(req.user.id),
-          modelo_id: String(modelo_id)
+          tipo: "vip",
+          cliente_id,
+          modelo_id
         }
       }
     });
 
-    res.json({
-      qrCode: result.point_of_interaction.transaction_data.qr_code_base64,
-      copiaCola: result.point_of_interaction.transaction_data.qr_code
+    return res.json({
+      qrCode: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+      copiaCola: pagamento.point_of_interaction.transaction_data.qr_code,
+      valor_total,
+      valor_base,
+      taxa_transacao,
+      taxa_plataforma
     });
 
   } catch (err) {
-    console.error("Erro Pix VIP:", err);
-    res.status(500).json({ error: "Erro Pix VIP" });
+    console.error("❌ Erro Pix VIP:", err);
+    res.status(500).json({ error: "Erro ao gerar Pix VIP" });
   }
 });
+
 
 
 
