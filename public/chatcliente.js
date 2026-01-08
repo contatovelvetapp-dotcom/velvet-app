@@ -568,6 +568,11 @@ function renderMensagem(msg) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function avisarConteudoBloqueado() {
+  alert("Você precisa desbloquear a mídia para ver o conteúdo.");
+}
+
+
   
 function marcarNaoVisto(msg) {
   document.querySelectorAll("#listaModelos li").forEach(li => {

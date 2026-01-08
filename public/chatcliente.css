@@ -576,7 +576,7 @@ html, body {
   border-radius: 14px !important; /* arredondado, NÃO círculo */
   overflow: hidden;
 
-  background: #7B2CFF;
+  background: #9E6BFF;
 }
 
 /* mídia preenche tudo */
@@ -873,27 +873,14 @@ text-align: center;
 }
 
 .chat-conteudo.bloqueado .midia-item {
-  position: relative;
   background: linear-gradient(
     135deg,
-    #6a2cff,
-    #a56bff
+    #7b2cff,
+    #9d6cff
   );
 
-  filter: blur(8px);
-  opacity: 0.9;
-}
-
-.chat-conteudo.bloqueado .midia-item::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background: radial-gradient(
-    circle at top,
-    rgba(255,255,255,0.35),
-    transparent 60%
-  );
+  filter: blur(6px);
+  opacity: 0.85;
 }
 
 
