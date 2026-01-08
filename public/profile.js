@@ -242,7 +242,6 @@ async function pagarComCartao() {
     .getElementById("paymentModal")
     .classList.remove("hidden");
 
-  // 📡 CHAMADA BACKEND
   const res = await fetch("/api/pagamento/vip/cartao", {
     method: "POST",
     headers: {
@@ -250,53 +249,20 @@ async function pagarComCartao() {
       Authorization: "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({
-      valor: valorBase,
+      valor: pagamentoAtual.valor,
       modelo_id: pagamentoAtual.modelo_id
     })
   });
 
-  const data = await res.json();
+  const { clientSecret } = await res.json();
 
-  if (!res.ok) {
-    console.error("Erro pagamento cartão:", data);
-    alert(data.error || "Erro ao iniciar pagamento");
-    return;
-  }
-
-  const { clientSecret } = data;
-
-  // ✅ STRIPE ELEMENTS (APENAS UMA VEZ)
-  const elements = stripe.elements({
-    clientSecret,
-    appearance: {
-      theme: "flat",
-      variables: {
-        colorPrimary: "#7B2CFF",
-        colorBackground: "#ffffff",
-        colorText: "#4a2bbf",
-        colorDanger: "#d9534f",
-        fontFamily: "Poppins, system-ui, sans-serif",
-        fontSizeBase: "14px",
-        borderRadius: "12px"
-      },
-      rules: {
-        ".Input": {
-          border: "1px solid #9E6BFF"
-        },
-        ".Input:focus": {
-          borderColor: "#7B2CFF",
-          boxShadow: "0 0 0 2px rgba(123,44,255,0.25)"
-        },
-        ".Label": {
-          color: "#7B2CFF",
-          fontWeight: "500"
-        }
-      }
-    }
-  });
+  elements = stripe.elements({ clientSecret });
+  const paymentElement = elements.create("payment");
+  paymentElement.mount("#payment-element");
 }
 
- async function pagarComPix() {
+
+async function pagarComPix() {
   fecharEscolha();
 
   // 🔥 ABRE O POPUP
