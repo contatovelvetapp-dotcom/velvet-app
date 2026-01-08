@@ -297,6 +297,39 @@ const paymentElement = elements.create("payment");
 paymentElement.mount("#payment-element");
 }
 
+// ===============================
+// 💳 CONFIRMAR PAGAMENTO STRIPE (VIP)
+// ===============================
+document
+  .querySelector(".btn-confirmar-desbloqueio")
+  ?.addEventListener("click", async () => {
+
+    if (!stripe || !elements) {
+      alert("Pagamento não inicializado");
+      return;
+    }
+
+    // evita clique duplo
+    const btn = document.querySelector(".btn-confirmar-desbloqueio");
+    btn.disabled = true;
+    btn.innerText = "Processando...";
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.href
+      }
+    });
+
+    if (error) {
+      console.error("❌ Erro Stripe:", error);
+      alert(error.message || "Erro ao processar pagamento");
+
+      btn.disabled = false;
+      btn.innerText = "Confirmar ativação VIP";
+    }
+  });
+
 async function pagarComPix() {
   fecharEscolha();
 
