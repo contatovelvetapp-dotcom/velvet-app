@@ -1017,16 +1017,19 @@ text-align: center;
   box-shadow: 0 8px 20px rgba(123,44,255,0.35);
 }
 
-/* 🔒 GARANTIA: modal só aparece quando EU mando */
+/* ================================
+   🔒 BLINDAGEM TOTAL DE MODAIS
+================================ */
+
+/* por padrão, NENHUM modal aparece */
 .modal {
-  display: none;
+  display: none !important;
 }
 
+/* só aparece quando EU remover .hidden */
 .modal:not(.hidden) {
-  display: flex;
+  display: flex !important;
 }
-
-
 
 
 
