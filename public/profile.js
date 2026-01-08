@@ -211,9 +211,26 @@ function fecharEscolha() {
 async function pagarComCartao() {
   fecharEscolha();
 
-  document.getElementById("cartaoValor").innerText =
-    "R$ " + Number(pagamentoAtual.valor).toFixed(2);
+  // 🔥 CÁLCULOS (IGUAL AO PIX)
+  const valorBase = Number(pagamentoAtual.valor);
+  const taxaTransacao  = valorBase * 0.10;
+  const taxaPlataforma = valorBase * 0.05;
+  const valorTotal = valorBase + taxaTransacao + taxaPlataforma;
 
+  // 🧾 MOSTRA DETALHAMENTO
+  document.getElementById("cartaoValorTotal").innerText =
+    valorBRL(valorTotal);
+
+  document.getElementById("cartaoValorBase").innerText =
+    valorBRL(valorBase);
+
+  document.getElementById("cartaoTaxaTransacao").innerText =
+    valorBRL(taxaTransacao);
+
+  document.getElementById("cartaoTaxaPlataforma").innerText =
+    valorBRL(taxaPlataforma);
+
+  // 🔓 ABRE MODAL
   document
     .getElementById("paymentModal")
     .classList.remove("hidden");
@@ -237,10 +254,11 @@ async function pagarComCartao() {
   paymentElement.mount("#payment-element");
 }
 
+
 async function pagarComPix() {
   fecharEscolha();
 
-  // 🔥 ABRE O POPUP IMEDIATAMENTE (igual chat)
+  // 🔥 ABRE O POPUP
   document
     .getElementById("popupPix")
     .classList.remove("hidden");
@@ -264,24 +282,43 @@ async function pagarComPix() {
 
     const data = await res.json();
 
-    document.getElementById("pixValor").innerText =
-      "R$ " + Number(pagamentoAtual.valor).toFixed(2);
+    // 🔥 CÁLCULOS (IGUAL AO CONTEÚDO)
+    const valorBase = Number(pagamentoAtual.valor);
+    const taxaTransacao  = valorBase * 0.10;
+    const taxaPlataforma = valorBase * 0.05;
+    const valorTotal = valorBase + taxaTransacao + taxaPlataforma;
 
+    // 🧾 MOSTRA DETALHAMENTO
+    document.getElementById("pixValorTotal").innerText =
+      valorBRL(valorTotal);
+
+    document.getElementById("pixValorBase").innerText =
+      valorBRL(valorBase);
+
+    document.getElementById("pixTaxaTransacao").innerText =
+      valorBRL(taxaTransacao);
+
+    document.getElementById("pixTaxaPlataforma").innerText =
+      valorBRL(taxaPlataforma);
+
+    // 📸 QR CODE
     document.getElementById("pixQr").src =
       "data:image/png;base64," + data.qrCode;
 
     document.getElementById("pixCopia").value =
       data.copiaCola || "";
 
+    iniciarVerificacaoVip();
+
   } catch (err) {
     alert("Erro ao gerar pagamento Pix");
     console.error(err);
 
-    // fecha se falhar
     document
       .getElementById("popupPix")
       .classList.add("hidden");
   }
+  
   iniciarVerificacaoVip();
 }
 

@@ -781,7 +781,13 @@ body.modal-open {
 
 /* preço */
 #popupEscolhaPagamento .cartao-preco {
-  font-size: 15px;
+  font-size: 16px;
+  margin-bottom: 14px;
+  color: #7B2CFF;
+}
+
+.cartao-detalhes {
+font-size: 12px;
   margin-bottom: 14px;
   color: #7B2CFF;
 }
@@ -975,6 +981,15 @@ body.modal-open {
 
 .pix-preco {
 color: #7B2CFF !important;
+font-size: 16px;
+margin-bottom: 14px;
+color: #7B2CFF;
+}
+
+pix-*.cartao-detalhes {
+  font-size: 12px;
+  margin-bottom: 14px;
+  color: #7B2CFF;
 }
 
 .pix-title {

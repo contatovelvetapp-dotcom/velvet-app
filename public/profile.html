@@ -172,10 +172,17 @@ body {
     <h2 class="desbloq">Ativar VIP</h2>
 
     <div class="cartao-preco">
-      Total:
-      <strong id="cartaoValor">R$ 1,00</strong>
-    </div>
+  <div class="cartao-total">
+    Total para Ativar:
+    <strong id="cartaoValorTotal">R$ 0,00</strong>
+  </div>
 
+  <div class="cartao-detalhes">
+    <div>Assinatura: <span id="cartaoValorBase">R$ 0,00</span></div>
+    <div>Taxa de transação: <span id="cartaoTaxaTransacao">R$ 0,00</span></div>
+    <div>Taxa da plataforma: <span id="cartaoTaxaPlataforma">R$ 0,00</span></div>
+  </div>
+</div>
     <div id="payment-element-container">
       <div id="payment-element"></div>
     </div>
@@ -194,9 +201,17 @@ body {
     <h2 class="pix-title">Ativar VIP</h2>
 
     <div class="pix-preco">
-      Total:
-      <strong id="pixValor">R$ 0,00</strong>
-    </div>
+  <div class="pix-total">
+    Total para Ativar:
+    <strong id="pixValorTotal">R$ 0,00</strong>
+  </div>
+
+  <div class="pix-detalhes">
+    <div>Assinatura: <span id="pixValorBase">R$ 0,00</span></div>
+    <div>Taxa de transação: <span id="pixTaxaTransacao">R$ 0,00</span></div>
+    <div>Taxa da plataforma: <span id="pixTaxaPlataforma">R$ 0,00</span></div>
+  </div>
+</div>
 
     <img id="pixQr" class="pix-qr" />
 
