@@ -760,6 +760,8 @@ html, body {
   width: 100%;
   max-width: 340px;
   margin: 0 auto;
+  align-items: center;
+  text-align: center;
 }
 
 .pix-title {
@@ -918,6 +920,36 @@ text-align: center;
 
   animation: modalIn 0.25s ease;
 }
+
+/* ================================
+   MODAL FULLSCREEN DE VERDADE
+================================ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+
+  display: none; /* só aparece quando JS mandar */
+
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.55); /* 🔥 backdrop */
+
+  z-index: 99999; /* acima do chat */
+}
+
+.modal:not(.hidden) {
+  display: flex;
+}
+
+
+.modal-box {
+  position: relative;
+  z-index: 100000; /* acima do backdrop */
+}
+
+
 
 
 
