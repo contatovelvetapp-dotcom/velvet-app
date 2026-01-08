@@ -1694,10 +1694,15 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
     });
 
     res.json({
-      qrCode: pix.point_of_interaction.transaction_data.qr_code_base64,
-      copiaCola: pix.point_of_interaction.transaction_data.qr_code,
-      valor_total: valorTotal
-    });
+  qrCode: pix.point_of_interaction.transaction_data.qr_code_base64,
+  copiaCola: pix.point_of_interaction.transaction_data.qr_code,
+
+  valor_total: valorTotal,
+  valor_base: precoBase,
+  taxa_transacao: Number(taxaTransacao.toFixed(2)),
+  taxa_plataforma: Number(taxaPlataforma.toFixed(2))
+});
+
 
   } catch (err) {
     console.error("❌ Erro gerar Pix:", err);

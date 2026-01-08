@@ -326,32 +326,17 @@ async function pagarComPix() {
 
   const data = await res.json();
 
-  // 🔥 MOSTRA O VALOR NO POPUP
-document.getElementById("pixValor").innerText =
-  Number(data.valor_total).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-  
-  // DETALHAMENTO DO PIX
-document.getElementById("pixValorBase").innerText =
-  Number(data.valor_base).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
+ document.getElementById("pixValorTotal").innerText =
+  valorBRL(data.valor_total);
+
+document.getElementById("pixValorConteudo").innerText =
+  valorBRL(data.valor_base);
 
 document.getElementById("pixTaxaTransacao").innerText =
-  Number(data.taxa_transacao).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
+  valorBRL(data.taxa_transacao);
 
 document.getElementById("pixTaxaPlataforma").innerText =
-  Number(data.taxa_plataforma).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-
+  valorBRL(data.taxa_plataforma);
 
   document.getElementById("pixQr").src =
     "data:image/png;base64," + data.qrCode;
