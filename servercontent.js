@@ -1053,15 +1053,12 @@ router.get(
   }
 );
 
-router.get(
-  "/content/transacoes",
-  requireRole("admin", "modelo", "agente"),
-  (req, res) => {
-    res.sendFile(
-      path.join(process.cwd(), "content", "transacoes.html")
-    );
-  }
-);
+router.get("/content/transacoes", (req, res) => {
+  res.sendFile(
+    path.join(process.cwd(), "content", "transacoes.html")
+  );
+});
+
 
 
 
