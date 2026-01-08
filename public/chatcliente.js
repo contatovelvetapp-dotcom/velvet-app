@@ -453,10 +453,16 @@ function enviarMensagem() {
   const text = input.value.trim();
   if (!text) return;
 
-  if (!cliente_id || !modelo_id) {
-    alert("Erro de sessão. Recarregue a página.");
-    return;
-  }
+  if (!modelo_id) {
+  alert("Selecione uma modelo para conversar.");
+  return;
+}
+
+// ❌ erro real de sessão
+if (!cliente_id) {
+  alert("Erro de sessão. Recarregue a página.");
+  return;
+}
 
   socket.emit("sendMessage", {
     cliente_id,
