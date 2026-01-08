@@ -315,8 +315,9 @@ document
     btn.innerText = "Processando...";
 
     const { error } = await stripe.confirmPayment({
-      elements
-    });
+  elements,
+  redirect: "if_required"
+});
 
     if (error) {
       console.error("❌ Erro Stripe:", error);
