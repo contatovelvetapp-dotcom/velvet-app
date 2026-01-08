@@ -248,6 +248,59 @@ function lerModelos() {
   return JSON.parse(fs.readFileSync(MODELOS_FILE, "utf8"));
 }
 
+async function ativarVipAssinatura({
+  cliente_id,
+  modelo_id,
+  valor_assinatura,
+  taxa_transacao,
+  taxa_plataforma
+}) {
+  const valor_total =
+    Number(valor_assinatura) +
+    Number(taxa_transacao) +
+    Number(taxa_plataforma);
+
+  const expiration_at = new Date();
+  expiration_at.setDate(expiration_at.getDate() + 30); // VIP mensal
+
+  await db.query(
+    `
+    INSERT INTO vip_subscriptions (
+      cliente_id,
+      modelo_id,
+      valor_assinatura,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      ativo,
+      created_at,
+      updated_at,
+      expiration_at
+    )
+    VALUES ($1,$2,$3,$4,$5,$6,true,NOW(),NOW(),$7)
+    ON CONFLICT (cliente_id, modelo_id)
+    DO UPDATE SET
+      valor_assinatura = EXCLUDED.valor_assinatura,
+      taxa_transacao   = EXCLUDED.taxa_transacao,
+      taxa_plataforma  = EXCLUDED.taxa_plataforma,
+      valor_total      = EXCLUDED.valor_total,
+      ativo            = true,
+      updated_at       = NOW(),
+      expiration_at    = EXCLUDED.expiration_at
+    `,
+    [
+      cliente_id,
+      modelo_id,
+      valor_assinatura,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      expiration_at
+    ]
+  );
+}
+
+
 
 // ===============================
 // SOCKET.IO – CHAT ESTÁVEL
@@ -1707,6 +1760,61 @@ const transporter = nodemailer.createTransport({
   } catch (err) {
     console.error("Erro envio contato:", err);
     return res.status(500).json({ error: "Erro ao enviar email" });
+  }
+});
+
+
+app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
+  try {
+    const {
+      modelo_id,
+      valor_assinatura,
+      taxa_transacao,
+      taxa_plataforma
+    } = req.body;
+
+    const cliente_id = req.user.id;
+
+    const valor_total =
+      Number(valor_assinatura) +
+      Number(taxa_transacao) +
+      Number(taxa_plataforma);
+
+    const mp = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
+    });
+
+    const payment = new Payment(mp);
+
+    const pagamento = await payment.create({
+      body: {
+        transaction_amount: Number(valor_total),
+        description: "Assinatura VIP",
+        payment_method_id: "pix",
+        payer: {
+          email: req.user.email
+        },
+        metadata: {
+          tipo: "vip",
+          cliente_id,
+          modelo_id,
+          valor_assinatura,
+          taxa_transacao,
+          taxa_plataforma
+        }
+      }
+    });
+
+    return res.json({
+      qr_code: pagamento.point_of_interaction.transaction_data.qr_code_base64,
+      copia_cola:
+        pagamento.point_of_interaction.transaction_data.qr_code,
+      payment_id: pagamento.id
+    });
+
+  } catch (err) {
+    console.error("Erro PIX VIP:", err);
+    res.status(500).json({ error: "Erro ao gerar pagamento PIX" });
   }
 });
 

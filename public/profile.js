@@ -482,3 +482,73 @@ function aplicarPerfilNoDOM(modelo) {
   if (modelo.capa) capaImg.src = modelo.capa;
 }
 
+
+
+
+async function abrirPopupPix() {
+  if (!modelo_id) {
+    alert("Modelo não identificada");
+    return;
+  }
+
+  // 🔢 VALORES (ajuste depois se quiser)
+  const valorAssinatura = 10.00;
+  const taxaTransacao  = valorAssinatura * 0.10;
+  const taxaPlataforma = valorAssinatura * 0.05;
+  const valorTotal     = valorAssinatura + taxaTransacao + taxaPlataforma;
+
+  // 🧾 PREENCHE UI
+  document.getElementById("pixValorBase").innerText =
+    valorBRL(valorAssinatura);
+
+  document.getElementById("pixTaxaTransacao").innerText =
+    valorBRL(taxaTransacao);
+
+  document.getElementById("pixTaxaPlataforma").innerText =
+    valorBRL(taxaPlataforma);
+
+  document.getElementById("pixValorTotal").innerText =
+    valorBRL(valorTotal);
+
+  // 🔓 ABRE POPUP
+  document.getElementById("popupPix").classList.remove("hidden");
+
+  // 🔥 CRIA PIX NO BACKEND
+  const res = await fetch("/api/pagamento/vip/pix", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({
+      modelo_id,
+      valor_assinatura: valorAssinatura,
+      taxa_transacao: taxaTransacao,
+      taxa_plataforma: taxaPlataforma
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || "Erro ao gerar PIX");
+    return;
+  }
+
+  // 📲 MOSTRA PIX
+  document.getElementById("pixQr").src = data.qr_code;
+  document.getElementById("pixCopia").value = data.copia_cola;
+
+  // guarda id do pagamento (IMPORTANTE pro webhook)
+  window.__PIX_PAYMENT_ID__ = data.payment_id;
+}
+
+
+function copiarPix() {
+  const textarea = document.getElementById("pixCopia");
+  textarea.select();
+  document.execCommand("copy");
+  alert("Código Pix copiado 💜");
+}
+
+
