@@ -879,20 +879,33 @@ text-align: center;
   opacity: 0.85;
 }
 
-.titulo-roxo {
+/* 🔥 TÍTULO MODAL DESBLOQUEIO */
+.modal-box .titulo-roxo,
+.modal-box h2.titulo-roxo {
   color: #7B2CFF !important;
-  font-size: 12px;
+  font-size: 18px !important;
+  font-weight: 600;
   text-align: center !important;
+  margin-bottom: 18px;
 }
 
-.modal-close {
-  color: #7B2CFF; 
-  font-size: 16px !important;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  border: none;
 
+/* 🔥 BOTÃO FECHAR MODAL */
+.modal-box .modal-close {
+  font-size: 22px !important;
+  font-weight: 600;
+  color: #7B2CFF !important;
+
+  top: 10px;
+  right: 12px;
+
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-box .modal-close:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
 }
 
 
