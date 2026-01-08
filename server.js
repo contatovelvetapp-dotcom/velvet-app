@@ -1265,53 +1265,110 @@ app.post(
     }
 
     // ✅ PAGAMENTO CONFIRMADO
-    if (event.type === "payment_intent.succeeded") {
-      const intent = event.data.object;
+// ✅ PAGAMENTO CONFIRMADO (STRIPE)
+if (event.type === "payment_intent.succeeded") {
+  const intent = event.data.object;
 
-      const message_id = intent.metadata?.message_id;
-      const cliente_id = intent.metadata?.cliente_id;
+  const message_id = intent.metadata?.message_id;
+  const cliente_id = intent.metadata?.cliente_id;
 
-      if (message_id && cliente_id) {
-        try {
-          // 🔓 DESBLOQUEIA NO BANCO
-          await db.query(
-            `
-            UPDATE messages
-            SET visto = true
-            WHERE id = $1
-              AND cliente_id = $2
-            `,
-            [message_id, cliente_id]
-          );
+  if (message_id && cliente_id) {
+    try {
+      // 🔓 DESBLOQUEIA O CONTEÚDO
+      await db.query(
+        `
+        UPDATE messages
+        SET visto = true
+        WHERE id = $1
+          AND cliente_id = $2
+        `,
+        [message_id, cliente_id]
+      );
 
-          // 🔎 BUSCA MODELO DA MENSAGEM
-          const msgRes = await db.query(
-            `SELECT modelo_id FROM messages WHERE id = $1`,
-            [message_id]
-          );
+      // 🔎 BUSCA DADOS DA MENSAGEM
+      const msgRes = await db.query(
+        `
+        SELECT modelo_id, preco
+        FROM messages
+        WHERE id = $1
+        `,
+        [message_id]
+      );
 
-          const modelo_id = msgRes.rows[0]?.modelo_id;
+      const modelo_id = msgRes.rows[0]?.modelo_id;
+      const valor_bruto = Number(msgRes.rows[0]?.preco);
 
-          if (modelo_id) {
-            const sala = `chat_${cliente_id}_${modelo_id}`;
+      // 💸 TAXAS (REGRA NOVA)
+      const taxa_gateway = Number((valor_bruto * 0.10).toFixed(2)); // 10%
+      const velvet_fee   = Number((valor_bruto * 0.05).toFixed(2)); // 5%
 
-            // 🔥 AVISA CLIENTE + MODELO EM TEMPO REAL
-            io.to(sala).emit("conteudoVisto", {
-              message_id
-            });
-          }
+      // 💰 GANHO DA MODELO (PREÇO SEM TAXA DA PLATAFORMA)
+      const valor_modelo = Number(
+        (valor_bruto - velvet_fee).toFixed(2)
+      );
 
-          console.log("🔓 Conteúdo desbloqueado via Stripe:", message_id);
+      // 🧾 CÓDIGO ÚNICO DA TRANSAÇÃO
+      const codigoTransacao = `stripe_${intent.id}`;
 
-        } catch (err) {
-          console.error("❌ Erro ao desbloquear conteúdo:", err);
-        }
+      // 💾 REGISTRA NA TABELA TRANSACOES
+      await db.query(
+        `
+        INSERT INTO transacoes (
+          codigo,
+          tipo,
+          modelo_id,
+          cliente_id,
+          message_id,
+          valor_bruto,
+          taxa_gateway,
+          velvet_fee,
+          valor_modelo,
+          origem_cliente,
+          status
+        )
+        VALUES (
+          $1,
+          'midia',
+          $2,
+          $3,
+          $4,
+          $5,
+          $6,
+          $7,
+          $8,
+          'cartao',
+          'normal'
+        )
+        ON CONFLICT (codigo) DO NOTHING
+        `,
+        [
+          codigoTransacao,
+          modelo_id,
+          cliente_id,
+          message_id,
+          valor_bruto,
+          taxa_gateway,
+          velvet_fee,
+          valor_modelo
+        ]
+      );
+
+      // 🔥 AVISA CLIENTE + MODELO EM TEMPO REAL
+      if (modelo_id) {
+        const sala = `chat_${cliente_id}_${modelo_id}`;
+        io.to(sala).emit("conteudoVisto", { message_id });
       }
-    }
 
-    res.json({ received: true });
+      console.log("✅ Transação Stripe registrada:", codigoTransacao);
+
+    } catch (err) {
+      console.error("❌ Erro no webhook Stripe:", err);
+    }
   }
-);
+ }
+
+ res.json({ received: true });
+});
 
 
 app.post("/webhook/mercadopago", async (req, res) => {
@@ -1366,74 +1423,107 @@ app.post("/webhook/mercadopago", async (req, res) => {
     /* ===============================
        🎬 VENDA DE MÍDIA
     =============================== */
-    if (tipo === "midia") {
+/* ===============================
+   🎬 VENDA DE MÍDIA (PIX)
+=============================== */
+if (tipo === "midia") {
 
-      if (!message_id || !cliente_id) {
-        console.log("⚠️ Metadata incompleta (midia):", metadata);
-        return res.sendStatus(200);
-      }
+  if (!message_id || !cliente_id) {
+    console.log("⚠️ Metadata incompleta (midia):", metadata);
+    return res.sendStatus(200);
+  }
 
-      const msg = await db.query(
-        "SELECT modelo_id, preco FROM messages WHERE id = $1",
-        [message_id]
-      );
+  // 🔎 BUSCA DADOS DA MENSAGEM
+  const msg = await db.query(
+    `
+    SELECT modelo_id, preco
+    FROM messages
+    WHERE id = $1
+    `,
+    [message_id]
+  );
 
-      if (!msg.rowCount) {
-        console.log("❌ Message não encontrada:", message_id);
-        return res.sendStatus(200);
-      }
+  if (!msg.rowCount) {
+    console.log("❌ Message não encontrada:", message_id);
+    return res.sendStatus(200);
+  }
 
-      const modelo = msg.rows[0].modelo_id;
-      const valor_bruto = Number(msg.rows[0].preco);
+  const modelo_id  = msg.rows[0].modelo_id;
+  const valor_bruto = Number(msg.rows[0].preco);
 
-      const valor_modelo = Number((valor_bruto * 0.8).toFixed(2));
-      const velvet_fee = Number((valor_bruto * 0.2).toFixed(2));
+  // 💸 TAXAS (REGRA NOVA)
+  const taxa_gateway = Number((valor_bruto * 0.10).toFixed(2)); // 10%
+  const velvet_fee   = Number((valor_bruto * 0.05).toFixed(2)); // 5%
 
-      await db.query(
-        `
-        UPDATE messages
-        SET visto = true
-        WHERE id = $1 AND cliente_id = $2
-        `,
-        [message_id, cliente_id]
-      );
+  // 💰 GANHO DA MODELO
+  const valor_modelo = Number(
+    (valor_bruto - velvet_fee).toFixed(2)
+  );
 
-      const codigoTransacao = `pix_${paymentId}`;
+  // 🔓 DESBLOQUEIA CONTEÚDO
+  await db.query(
+    `
+    UPDATE messages
+    SET visto = true
+    WHERE id = $1
+      AND cliente_id = $2
+    `,
+    [message_id, cliente_id]
+  );
 
-      await db.query(
-        `
-        INSERT INTO transacoes (
-          codigo,
-          tipo,
-          modelo_id,
-          cliente_id,
-          message_id,
-          valor_bruto,
-          valor_modelo,
-          velvet_fee,
-          taxa_gateway,
-          origem_cliente,
-          status
-        )
-        VALUES ($1,'midia',$2,$3,$4,$5,$6,$7,0,'pix','normal')
-        ON CONFLICT (codigo) DO NOTHING
-        `,
-        [
-          codigoTransacao,
-          modelo,
-          cliente_id,
-          message_id,
-          valor_bruto,
-          valor_modelo,
-          velvet_fee
-        ]
-      );
+  // 🧾 CÓDIGO ÚNICO
+  const codigoTransacao = `pix_${paymentId}`;
 
-      const sala = `chat_${cliente_id}_${modelo}`;
-      io.to(sala).emit("conteudoVisto", { message_id });
+  // 💾 REGISTRA TRANSAÇÃO
+  await db.query(
+    `
+    INSERT INTO transacoes (
+      codigo,
+      tipo,
+      modelo_id,
+      cliente_id,
+      message_id,
+      valor_bruto,
+      taxa_gateway,
+      velvet_fee,
+      valor_modelo,
+      origem_cliente,
+      status
+    )
+    VALUES (
+      $1,
+      'midia',
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      'pix',
+      'normal'
+    )
+    ON CONFLICT (codigo) DO NOTHING
+    `,
+    [
+      codigoTransacao,
+      modelo_id,
+      cliente_id,
+      message_id,
+      valor_bruto,
+      taxa_gateway,
+      velvet_fee,
+      valor_modelo
+    ]
+  );
 
-      console.log("✅ Conteúdo desbloqueado via Pix:", message_id);
-    }
+  // 🔔 AVISA CLIENTE + MODELO
+  const sala = `chat_${cliente_id}_${modelo_id}`;
+  io.to(sala).emit("conteudoVisto", { message_id });
+
+  console.log("✅ Conteúdo desbloqueado e transação Pix registrada:", codigoTransacao);
+}
+
 
     /* ===============================
        💜 VIP PAGO
