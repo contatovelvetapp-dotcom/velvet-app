@@ -1053,5 +1053,17 @@ router.get(
   }
 );
 
+router.get(
+  "/content/transacoes",
+  authMiddleware,
+  requireRole("admin", "modelo", "agente"),
+  (req, res) => {
+    res.sendFile(
+      path.join(process.cwd(), "content", "transacoes.html")
+    );
+  }
+);
+
+
 
 module.exports = router;

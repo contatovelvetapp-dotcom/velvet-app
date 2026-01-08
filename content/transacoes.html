@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transações</title>
+
+  <style>
+    body {
+      background: #0e0e11;
+      color: #eaeaea;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .transacao {
+      background: #16161c;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .linha {
+      font-size: 14px;
+      margin: 4px 0;
+    }
+
+    strong {
+      color: #a855f7; /* roxo Velvet */
+    }
+
+    .negativo {
+      color: #ff5a5a;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📄 Transações</h1>
+<div id="lista">Carregando transações...</div>
+
+<script>
+async function carregarTransacoes() {
+  try {
+    const res = await fetch("/api/transacoes", {
+      credentials: "include"
+    });
+
+    if (!res.ok) {
+      document.getElementById("lista").innerText =
+        "Erro ao carregar transações.";
+      return;
+    }
+
+    const dados = await res.json();
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    if (!dados.length) {
+      lista.innerText = "Nenhuma transação encontrada.";
+      return;
+    }
+
+    dados.forEach(t => {
+      const div = document.createElement("div");
+      div.className = "transacao";
+
+      div.innerHTML = `
+        <div class="linha">
+          <strong>#${t.codigo}</strong> ${t.tipo.toUpperCase()}
+        </div>
+
+        <div class="linha">Cliente ID: ${t.cliente_id}</div>
+        <div class="linha">
+          Data da transação:
+          ${new Date(t.created_at).toLocaleString()}
+        </div>
+
+        <div class="linha">Preço: $${t.valor_bruto}</div>
+        <div class="linha">Taxas do terminal: $${t.taxa_gateway}</div>
+
+        <div class="linha">
+          Ganhos da Velvet:
+          <span class="${Number(t.velvet_fee) < 0 ? 'negativo' : ''}">
+            $${t.velvet_fee}
+          </span>
+        </div>
+
+        <div class="linha">Agency: $${t.agency_fee}</div>
+        <div class="linha">Ganhos do modelo: $${t.valor_modelo}</div>
+
+        ${
+          t.status === "chargeback"
+            ? `<div class="linha negativo">
+                Chargeback: ${t.chargeback_result || "—"}
+              </div>`
+            : ""
+        }
+      `;
+
+      lista.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("lista").innerText =
+      "Erro inesperado ao carregar.";
+  }
+}
+
+carregarTransacoes();
+</script>
+
+</body>
+</html>
