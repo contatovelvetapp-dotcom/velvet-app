@@ -1524,14 +1524,13 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
       return res.status(400).json({ error: "Dados inválidos" });
     }
 
-    // 🔒 buscar preço REAL do conteúdo
+    if (!process.env.MERCADOPAGO_TOKEN) {
+      return res.status(500).json({ error: "Pix indisponível" });
+    }
+
     const msgRes = await db.query(
-      `
-      SELECT preco, visto
-      FROM messages
-      WHERE id = $1
-        AND cliente_id = $2
-      `,
+      `SELECT preco, visto FROM messages
+       WHERE id = $1 AND cliente_id = $2`,
       [message_id, req.user.id]
     );
 
@@ -1545,9 +1544,13 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
 
     const valor = Number(msgRes.rows[0].preco);
 
-    if (isNaN(valor) || valor <= 0) {
-      return res.status(400).json({ error: "Valor inválido" });
-    }
+    const clienteRes = await db.query(
+      "SELECT email FROM clientes WHERE user_id = $1",
+      [req.user.id]
+    );
+
+    const emailCliente =
+      clienteRes.rows[0]?.email || "cliente@velvet.lat";
 
     const mp = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_TOKEN
@@ -1560,12 +1563,11 @@ app.post("/api/pagamento/pix", authCliente, async (req, res) => {
         transaction_amount: valor,
         description: `Conteúdo ${message_id}`,
         payment_method_id: "pix",
-        payer: {
-          email: req.user.email || "cliente@velvet.lat"
-        },
+        payer: { email: emailCliente },
         notification_url:
           "https://velvet-app-production.up.railway.app/webhook/mercadopago",
         metadata: {
+          tipo: "midia",
           message_id: String(message_id),
           cliente_id: String(req.user.id)
         }
