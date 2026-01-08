@@ -85,6 +85,25 @@ document.getElementById("btnVipCartao")?.addEventListener("click", () => {
 
   document.getElementById("fecharPagamento")
   ?.addEventListener("click", fecharPagamento);
+  
+  btnChat?.addEventListener("click", () => {
+  if (!modelo_id) {
+    alert("Modelo não identificada");
+    return;
+  }
+
+  // salva modelo para o chat
+  localStorage.setItem("chat_modelo_id", modelo_id);
+
+  // redireciona para o chat do cliente
+  window.location.href = "/chatCliente.html";
+
+  
+});
+
+
+
+
 });
 
 // ===============================
@@ -600,7 +619,7 @@ async function pagarComCartao() {
   fecharEscolha();
 
   // 🔢 VALOR BASE (ASSINATURA)
-  const valorAssinatura = 1.00;
+  const valorAssinatura = 20.00;
 
   // 🔥 TAXAS PERCENTUAIS (CORRETO)
   const taxaTransacao  = Number((valorAssinatura * 0.10).toFixed(2)); // 10%

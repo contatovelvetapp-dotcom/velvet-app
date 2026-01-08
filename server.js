@@ -33,7 +33,6 @@ const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const contentRouter = require("./servercontent");
 const nodemailer = require("nodemailer");
-const VIP_PRECO_FIXO = 1.00;
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/admin", contentRouter);
