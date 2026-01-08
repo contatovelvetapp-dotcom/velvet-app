@@ -872,6 +872,31 @@ text-align: center;
   font-weight: 500;
 }
 
+.chat-conteudo.bloqueado .midia-item {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    #6a2cff,
+    #a56bff
+  );
+
+  filter: blur(8px);
+  opacity: 0.9;
+}
+
+.chat-conteudo.bloqueado .midia-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at top,
+    rgba(255,255,255,0.35),
+    transparent 60%
+  );
+}
+
+
 
 
 
