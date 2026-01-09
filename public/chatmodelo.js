@@ -107,6 +107,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 // FUNÇÕES
 // ===============================
 
+function formatarTempo(timestamp) {
+  if (!timestamp || timestamp === "0") return "";
+
+  const diff = Date.now() - Number(timestamp);
+  const min = Math.floor(diff / 60000);
+  const h   = Math.floor(diff / 3600000);
+  const d   = Math.floor(diff / 86400000);
+
+  if (min < 1) return "agora";
+  if (min < 60) return `${min} min`;
+  if (h < 24) return `${h} h`;
+  if (d === 1) return "ontem";
+  return `${d} dias`;
+}
+
+function organizarListaClientes() {
+  const lista = document.getElementById("listaClientes");
+  const itens = [...lista.querySelectorAll(".chat-item")];
+
+  const prioridadeStatus = {
+    "novo": 1,
+    "nao-visto": 2,
+    "por-responder": 3,
+    "normal": 4
+  };
+
+  itens.sort((a, b) => {
+    const pa = prioridadeStatus[a.dataset.status] || 4;
+    const pb = prioridadeStatus[b.dataset.status] || 4;
+
+    // 1️⃣ prioridade por status
+    if (pa !== pb) return pa - pb;
+
+    // 2️⃣ se status igual → mais recente primeiro
+    const ta = Number(a.dataset.lastTime || 0);
+    const tb = Number(b.dataset.lastTime || 0);
+    return tb - ta;
+  });
+
+  itens.forEach(li => lista.appendChild(li));
+}
+
+
 async function carregarListaClientes() {
   const res = await fetch("/api/chat/modelo", {
     headers: { Authorization: "Bearer " + token }
@@ -202,88 +245,38 @@ li.innerHTML = `
   organizarListaClientes();
 }
 
-
-// ===============================
-// 🔁 ORDENAR LISTA DE CLIENTES
-// ===============================
-function organizarListaClientes() {
-  const lista = document.getElementById("listaClientes");
-  const itens = [...lista.querySelectorAll("li")];
-
-  const prioridade = {
-    "novo": 1,
-    "nao-visto": 2,
-    "por-responder": 3,
-    "normal": 4
-  };
-
-  itens.sort((a, b) => {
-    const pA = prioridade[a.dataset.status] || 99;
-    const pB = prioridade[b.dataset.status] || 99;
-
-    // prioridade primeiro
-    if (pA !== pB) return pA - pB;
-
-    // mais recente primeiro
-    return Number(b.dataset.lastTime) - Number(a.dataset.lastTime);
-  });
-
-  itens.forEach(li => lista.appendChild(li));
-}
-
-
-// ===============================
-// 🔔 BADGE + TEMPO
-// ===============================
 function atualizarBadgeComTempo(li) {
   const badge = li.querySelector(".badge");
   const tempo = li.querySelector(".tempo");
 
   const status = li.dataset.status;
-  const lastTime = Number(li.dataset.lastTime);
+  const lastTime = Number(li.dataset.lastTime || 0);
 
   // 🔔 BADGE
-  if (status === "novo") {
-    badge.innerText = "Novo";
-    badge.classList.remove("hidden");
-  }
-  else if (status === "nao-visto") {
-    badge.innerText = "Não visto";
-    badge.classList.remove("hidden");
-  }
-  else if (status === "por-responder") {
-    badge.innerText = "Por responder";
-    badge.classList.remove("hidden");
-  }
-  else {
-    badge.classList.add("hidden");
+  if (badge) {
+    if (status === "novo") {
+      badge.innerText = "Novo";
+      badge.classList.remove("hidden");
+    }
+    else if (status === "nao-visto") {
+      badge.innerText = "Não visto";
+      badge.classList.remove("hidden");
+    }
+    else if (status === "por-responder") {
+      badge.innerText = "Por responder";
+      badge.classList.remove("hidden");
+    }
+    else {
+      badge.classList.add("hidden");
+    }
   }
 
   // ⏱ TEMPO
-  if (lastTime > 0) {
-    tempo.innerText = formatarTempo(lastTime);
-  } else {
-    tempo.innerText = "";
+  if (tempo) {
+    tempo.innerText = lastTime > 0 ? formatarTempo(lastTime) : "";
   }
 }
 
-
-// ===============================
-// ⏱ FORMATAR TEMPO (WHATSAPP STYLE)
-// ===============================
-function formatarTempo(ts) {
-  const diff = Date.now() - ts;
-
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "agora";
-  if (min < 60) return `${min} min`;
-
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h} h`;
-
-  const d = Math.floor(h / 24);
-  return `${d} d`;
-}
 
 async function carregarModelo() {
   const res = await fetch("/api/modelo/me", {
@@ -510,65 +503,6 @@ function adicionarNovoClienteNaLista(cliente_id, nome) {
 
   // 🔁 organiza depois de tudo pronto
   organizarListaClientes();
-}
-
-
-function formatarTempo(timestamp) {
-  if (!timestamp || timestamp === "0") return "";
-
-  const diff = Date.now() - Number(timestamp);
-  const min = Math.floor(diff / 60000);
-  const h   = Math.floor(diff / 3600000);
-  const d   = Math.floor(diff / 86400000);
-
-  if (min < 1) return "agora";
-  if (min < 60) return `${min} min`;
-  if (h < 24) return `${h} h`;
-  if (d === 1) return "ontem";
-  return `${d} dias`;
-}
-
-function organizarListaClientes() {
-  const lista = document.getElementById("listaClientes");
-  const itens = [...lista.querySelectorAll(".chat-item")];
-
-  const prioridadeStatus = {
-    "novo": 1,
-    "nao-visto": 2,
-    "por-responder": 3,
-    "normal": 4
-  };
-
-  itens.sort((a, b) => {
-    const pa = prioridadeStatus[a.dataset.status] || 4;
-    const pb = prioridadeStatus[b.dataset.status] || 4;
-
-    // 1️⃣ prioridade por status
-    if (pa !== pb) return pa - pb;
-
-    // 2️⃣ se status igual → mais recente primeiro
-    const ta = Number(a.dataset.lastTime || 0);
-    const tb = Number(b.dataset.lastTime || 0);
-    return tb - ta;
-  });
-
-  itens.forEach(li => lista.appendChild(li));
-}
-
-function atualizarBadgeComTempo(li) {
-  const badge = li.querySelector(".badge");
-  if (!badge) return;
-
-  // só mostra tempo se NÃO for novo / não visto / por responder
-  if (li.dataset.status === "normal") {
-    const texto = formatarTempo(li.dataset.lastTime);
-    if (texto) {
-      badge.innerText = texto;
-      badge.classList.remove("hidden");
-    } else {
-      badge.classList.add("hidden");
-    }
-  }
 }
 
 async function abrirPopupConteudos() {
