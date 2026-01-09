@@ -1063,27 +1063,55 @@ router.get("/api/cliente/transacoes", authCliente, async (req, res) => {
   try {
     const clienteId = req.user.id;
 
-    const result = await db.query(`
+    // 📦 Conteúdos comprados
+    const conteudos = await db.query(`
       SELECT
-        id,
-        codigo,
-        tipo,
-        status,
-        valor_bruto,
-        taxa_gateway,
-        created_at,
-        modelo_id,
-        message_id
-      FROM transacoes
-      WHERE cliente_id = $1
-      ORDER BY created_at DESC
+        'conteudo' AS tipo,
+        cp.id,
+        cp.modelo_id,
+        cp.valor_total AS valor,
+        cp.status,
+        cp.criado_em AS created_at,
+        cp.message_id
+      FROM conteudo_pacotes cp
+      WHERE cp.cliente_id = $1
+        AND cp.status = 'pago'
     `, [clienteId]);
 
-    res.json(result.rows);
+    // ⭐ Assinaturas VIP
+    const assinaturas = await db.query(`
+      SELECT
+        'assinatura' AS tipo,
+        v.id,
+        v.modelo_id,
+        (
+          v.valor_assinatura +
+          v.taxa_transacao +
+          v.taxa_plataforma
+        ) AS valor,
+        CASE
+          WHEN v.ativo THEN 'ativa'
+          ELSE 'inativa'
+        END AS status,
+        v.created_at,
+        NULL AS message_id
+      FROM vip_subscriptions v
+      WHERE v.cliente_id = $1
+    `, [clienteId]);
+
+    // 🔀 Unifica e ordena
+    const historico = [
+      ...conteudos.rows,
+      ...assinaturas.rows
+    ].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    res.json(historico);
 
   } catch (err) {
-    console.error("Erro ao buscar transações do cliente:", err);
-    res.status(500).json({ error: "Erro ao buscar transações do cliente" });
+    console.error("Erro histórico cliente:", err);
+    res.status(500).json({ error: "Erro ao buscar histórico do cliente" });
   }
 });
 
