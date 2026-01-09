@@ -164,3 +164,31 @@ document.getElementById("fecharModal")?.addEventListener("click", () => {
   video.src = "";
   modal.classList.add("hidden");
 });
+
+async function excluirConteudo(id) {
+  if (!confirm("Tem certeza que deseja excluir este conteúdo?")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/conteudos/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      alert(txt || "Erro ao excluir conteúdo");
+      return;
+    }
+
+    // 🔄 atualiza lista
+    listarConteudos();
+
+  } catch (err) {
+    console.error("Erro excluirConteudo:", err);
+    alert("Erro ao excluir conteúdo");
+  }
+}
