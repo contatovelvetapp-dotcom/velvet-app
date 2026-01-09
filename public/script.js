@@ -150,16 +150,15 @@ async function login() {
   window.location.href = "/profile.html";
   return;
 }
-
 // 🔥 CLIENTE
 const ref = localStorage.getItem("ref_modelo");
 
 if (ref) {
-  // limpa para não ficar redirecionando sempre
+  // simula clique no feed
+  localStorage.setItem("modelo_id", ref);
   localStorage.removeItem("ref_modelo");
 
-  // perfil público da modelo
-  window.location.href = `/modelo.html?id=${ref}`;
+  window.location.href = "/profile.html";
 } else {
   window.location.href = "/clientHome.html";
 }
