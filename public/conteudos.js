@@ -76,13 +76,11 @@ async function uploadConteudo() {
   const fd = new FormData();
   fd.append("conteudo", file);
 
-  const res = await fetch("/api/conteudos/upload", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token")
-    },
-    body: fd
-  });
+const res = await fetch("/api/conteudos/me", {
+  headers: {
+    Authorization: "Bearer " + localStorage.getItem("token")
+  }
+});
 
   const data = await res.json();
   if (!data.success) {
@@ -95,9 +93,8 @@ async function uploadConteudo() {
   listarConteudos();
 }
 
-// ---------- LISTAR ----------
 async function listarConteudos() {
-  const res = await fetch("/api/conteudos", {
+  const res = await fetch("/api/conteudos/me", {
     headers: {
       Authorization: "Bearer " + localStorage.getItem("token")
     }
@@ -137,33 +134,6 @@ async function listarConteudos() {
 
     lista.appendChild(card);
   });
-}
-
-// ---------- EXCLUIR ----------
-async function excluirConteudo(id) {
-  if (!confirm("Deseja excluir este conteúdo?")) return;
-
-  const res = await fetch(`/api/conteudos/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token")
-    }
-  });
-
-  // 🔥 SE DER 403, NÃO TENTAR JSON
-  if (!res.ok) {
-    const texto = await res.text();
-    alert(texto);
-    return;
-  }
-
-  const data = await res.json();
-  if (!data.success) {
-    alert("Erro ao excluir conteúdo");
-    return;
-  }
-
-  listarConteudos();
 }
 
 function abrirModalMidia(url, isVideo) {
