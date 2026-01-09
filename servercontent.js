@@ -22,10 +22,7 @@ cloudinary.config({
 
 const cron = require("node-cron");
 
-const requireRole = require("./middleware/requireRole");
-
-const { auth, authModelo } = require("./middlewares/auth");
-
+const { auth, authModelo } = require("./middleware/auth");
 
 cron.schedule("0 3 * * *", async () => {
   console.log("🔍 Verificando clientes com chargeback...");
