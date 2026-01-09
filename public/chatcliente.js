@@ -660,13 +660,16 @@ document.getElementById("confirmarPagamento").onclick = async () => {
 // ===============================
 // ⚡ PAGAR COM PIX — CONTEÚDO
 // ===============================
+// ===============================
+// ⚡ PAGAR COM PIX — CONTEÚDO
+// ===============================
 async function pagarComPix(message_id, preco) {
-  if (!message_id || preco <= 0) {
+  if (!Number(message_id) || Number(preco) <= 0) {
     alert("Conteúdo inválido");
     return;
   }
 
-  // 🔢 APENAS VISUAL
+  // 🔢 VISUAL (igual VIP)
   const taxaTransacao  = Number((preco * 0.10).toFixed(2));
   const taxaPlataforma = Number((preco * 0.05).toFixed(2));
   const valorTotal     = Number(
@@ -689,8 +692,7 @@ async function pagarComPix(message_id, preco) {
       Authorization: "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({
-      message_id,
-      valor_base: preco
+      message_id
     })
   });
 
@@ -706,13 +708,12 @@ async function pagarComPix(message_id, preco) {
 
   document.getElementById("pixCopia").value = data.copia_cola;
 
-  window.__PIX_CONTEXT__ = {
-    tipo: "conteudo",
-    payment_id: data.payment_id,
-    message_id,
-    valor_base: preco
+  // 🔐 controle interno (igual VIP)
+  pagamentoAtual = {
+    message_id
   };
 }
+
 
 
 
