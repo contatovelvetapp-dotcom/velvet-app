@@ -11,41 +11,108 @@
 
 <div id="header-container"></div>
   <style>
-    body {
-      background: #fff;
-      color: #1E1E26;
-      font-family: "Poppins", sans-serif;
-      padding: 30px;
-    }
+     /* ===============================
+   BASE
+================================ */
+* {
+  box-sizing: border-box;
+}
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 22px;
-    }
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: #f7f7fb;
+  color: #1f1f1f;
+}
 
-    .transacao {
-      background: #E1E1E1;
-      border: 1px solid #C9C9C9;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 14px;
-    }
+/* ===============================
+   CONTEÚDO
+================================ */
+h1 {
+  margin: 32px 16px 24px;
+  font-size: 26px;
+  font-weight: 600;
+  text-align: center;
+}
 
-    .linha {
-      font-size: 14px;
-      margin: 4px 0;
-    }
+/* ===============================
+   LISTA
+================================ */
+#lista {
+  max-width: 720px;
+  margin: 0 auto 40px;
+  padding: 0 16px;
+}
 
-    strong {
-      color: #1E1E26;
-    }
+/* ===============================
+   CARD TRANSAÇÃO
+================================ */
+.transacao {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 
-    .negativo {
-      color: #ff5a5a;
-      font-weight: bold;
-    }
+.transacao:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+}
 
-    
+/* ===============================
+   LINHAS
+================================ */
+.linha {
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.linha strong {
+  font-weight: 600;
+}
+
+/* ===============================
+   CABEÇALHO DA TRANSAÇÃO
+================================ */
+.transacao .linha:first-child {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+/* ===============================
+   STATUS
+================================ */
+.transacao .linha strong {
+  text-transform: capitalize;
+}
+
+.transacao .linha:last-child {
+  margin-bottom: 0;
+}
+
+/* ===============================
+   RESPONSIVO
+================================ */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 22px;
+  }
+
+  .transacao {
+    padding: 16px;
+  }
+
+  .linha {
+    font-size: 13px;
+  }
+}
+
 .footer {
   margin-top: 60px;
   padding: 20px;
@@ -184,5 +251,7 @@ carregarTransacoes();
   <div class="footer-copy">
     © 2026 Velvet. Todos os direitos reservados.
   </div>
+
+   <script src="/header.js"></script>
 </body>
 </html>
