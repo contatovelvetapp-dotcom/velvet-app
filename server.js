@@ -2100,25 +2100,29 @@ app.post("/api/pagamento/conteudo/pix", authCliente, async (req, res) => {
       return res.status(400).json({ error: "message_id inválido" });
     }
 
-    // 🔎 busca preço real no banco
-    const result = await db.query(`
-      SELECT preco
+    // 🔎 busca preço + modelo_id (OBRIGATÓRIO)
+    const result = await db.query(
+      `
+      SELECT preco, modelo_id
       FROM messages
       WHERE id = $1
         AND cliente_id = $2
         AND tipo = 'conteudo'
-    `, [message_id, req.user.id]);
+      `,
+      [message_id, req.user.id]
+    );
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Conteúdo não encontrado" });
     }
 
-    const preco = Number(result.rows[0].preco);
+    const { preco, modelo_id } = result.rows[0];
 
-    const taxaTransacao  = Number((preco * 0.10).toFixed(2));
-    const taxaPlataforma = Number((preco * 0.05).toFixed(2));
+    const valorBase = Number(preco);
+    const taxaTransacao  = Number((valorBase * 0.10).toFixed(2));
+    const taxaPlataforma = Number((valorBase * 0.05).toFixed(2));
 
-    let valorTotal = preco + taxaTransacao + taxaPlataforma;
+    let valorTotal = valorBase + taxaTransacao + taxaPlataforma;
     if (valorTotal < 1) valorTotal = 1;
 
     const mpClient = new MercadoPagoConfig({
@@ -2133,20 +2137,30 @@ app.post("/api/pagamento/conteudo/pix", authCliente, async (req, res) => {
         payment_method_id: "pix",
         description: `Conteúdo ${message_id}`,
         external_reference: `conteudo_${message_id}`,
-        payer: { email: "cliente@velvet.lat" }
+        payer: {
+          email: "cliente@velvet.lat"
+        },
+        metadata: {
+          tipo: "conteudo",
+          cliente_id: req.user.id,
+          modelo_id: modelo_id,
+          message_id: Number(message_id)
+        }
       }
     });
 
     res.json({
       qr_code: pix.point_of_interaction.transaction_data.qr_code_base64,
-      copia_cola: pix.point_of_interaction.transaction_data.qr_code
+      copia_cola:
+        pix.point_of_interaction.transaction_data.qr_code
     });
 
   } catch (err) {
-    console.error("Erro PIX conteúdo:", err);
+    console.error("❌ Erro PIX conteúdo:", err);
     res.status(500).json({ error: "Erro ao gerar PIX" });
   }
 });
+
 
 
 // ===============================
