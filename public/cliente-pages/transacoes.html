@@ -39,7 +39,11 @@ async function carregarTransacoes() {
 
       div.innerHTML = `
         <div class="linha">
-          <strong>#${t.codigo}</strong> ${t.tipo.toUpperCase()}
+          <strong>
+  #${t.tipo === "conteudo" ? "C" : "A"}-${t.id}
+</strong>
+${t.tipo.toUpperCase()}
+
         </div>
 
         <div class="linha">
