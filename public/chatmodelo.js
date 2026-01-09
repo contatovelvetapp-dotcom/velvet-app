@@ -86,6 +86,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarListaClientes();
   await aplicarUnreadModelo();
 
+    const ultimoCliente = localStorage.getItem("chat_cliente_ativo");
+
+  if (ultimoCliente) {
+    const li = [...document.querySelectorAll("#listaClientes li")]
+      .find(el => Number(el.dataset.clienteId) === Number(ultimoCliente));
+
+    if (li) li.click();
+  }
+
+
   const sendBtn = document.getElementById("sendBtn");
   const input   = document.getElementById("messageInput");
   const btnConteudo = document.getElementById("btnEnviarConteudo");
@@ -198,8 +208,10 @@ li.innerHTML = `
       const avatarEl = document.getElementById("chatAvatar");
       avatarEl.src = "/assets/avatar-default.png";
       cliente_id = c.cliente_id;
+      localStorage.setItem("chat_cliente_ativo", cliente_id);
       chatAtivo = { cliente_id, modelo_id };
       await carregarConteudosVistos(cliente_id);
+      
 
       document.getElementById("clienteNome").innerText =
   c.username || c.nome;
