@@ -524,10 +524,10 @@ async function abrirPopupConteudos() {
   grid.innerHTML = "Carregando...";
 
   const res = await fetch("/api/conteudos/me", {
-  headers: {
-    Authorization: "Bearer " + localStorage.getItem("token")
-  }
-});
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
 
   if (!res.ok) {
     grid.innerHTML = "Erro ao carregar conteúdos";
@@ -543,33 +543,39 @@ async function abrirPopupConteudos() {
 
   grid.innerHTML = "";
 
- conteudos.forEach(c => {
-  const jaVisto = conteudosVistosCliente.has(c.id);
+  conteudos.forEach(c => {
+    const jaVisto = conteudosVistosCliente.has(c.id);
 
-  const item = document.createElement("div");
-  item.className = "preview-item" + (jaVisto ? " visto" : "");
-  item.dataset.conteudoId = c.id;
+    const item = document.createElement("div");
+    item.className =
+      "preview-item" +
+      (jaVisto ? " visto desabilitado" : "");
+    item.dataset.conteudoId = c.id;
 
-  item.innerHTML = `
-    ${c.tipo === "video"
-      ? `<video src="${c.url}" muted></video>`
-      : `<img src="${c.url}" />`
+    item.innerHTML = `
+      ${c.tipo === "video"
+        ? `<video src="${c.url}" muted></video>`
+        : `<img src="${c.url}" />`
+      }
+      ${jaVisto ? `<span class="badge-visto">Visto</span>` : ""}
+    `;
+
+    // 🚫 REGRA FINAL:
+    // conteúdo visto (pago OU grátis) NUNCA pode ser reenviado
+    if (jaVisto) {
+      item.onclick = () => {
+        alert("Este conteúdo já foi visto por este cliente e não pode ser reenviado.");
+      };
+    } else {
+      item.onclick = () => {
+        item.classList.toggle("selected");
+      };
     }
-    ${jaVisto ? `<span class="badge-visto">Visto</span>` : ""}
-  `;
 
-  // 🔒 só permite selecionar se NÃO foi visto
-  if (!jaVisto) {
-    item.onclick = () => item.classList.toggle("selected");
-  }
-
-  grid.appendChild(item);
-});
-
+    grid.appendChild(item);
+  });
 }
 
-
- 
 function confirmarEnvioConteudo() {
   if (!cliente_id || !modelo_id) {
     alert("Selecione um cliente primeiro.");
