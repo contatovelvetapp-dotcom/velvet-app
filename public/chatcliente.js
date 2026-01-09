@@ -657,7 +657,10 @@ document.getElementById("confirmarPagamento").onclick = async () => {
 };
 
 
-async function abrirPixConteudo(message_id, preco) {
+// ===============================
+// ⚡ PAGAR COM PIX — CONTEÚDO
+// ===============================
+async function pagarComPix(message_id, preco) {
   if (!message_id || preco <= 0) {
     alert("Conteúdo inválido");
     return;
@@ -683,7 +686,7 @@ async function abrirPixConteudo(message_id, preco) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + token
+      Authorization: "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify({
       message_id,
@@ -703,8 +706,12 @@ async function abrirPixConteudo(message_id, preco) {
 
   document.getElementById("pixCopia").value = data.copia_cola;
 
-  window.__PIX_PAYMENT_ID__ = data.payment_id;
-  window.__PIX_MESSAGE_ID__ = message_id;
+  window.__PIX_CONTEXT__ = {
+    tipo: "conteudo",
+    payment_id: data.payment_id,
+    message_id,
+    valor_base: preco
+  };
 }
 
 
