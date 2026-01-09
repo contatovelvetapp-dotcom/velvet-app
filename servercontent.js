@@ -2,9 +2,11 @@
 const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
-const authMiddleware = require("./middleware/auth");
 const db = require("./db");
 const cloudinary = require("cloudinary").v2;
+const authMiddleware = require("./middleware/auth");
+const requireRole = require("./middleware/requireRole");
+
 
 const router = express.Router();   // ⬅️ PRIMEIRO SEMPRE
 
@@ -21,12 +23,6 @@ cloudinary.config({
 });
 
 const cron = require("node-cron");
-
-const {
-  auth,
-  authMiddleware,
-  requireRole
-} = require("./auth");
 
 
 cron.schedule("0 3 * * *", async () => {
