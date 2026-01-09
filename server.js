@@ -742,7 +742,6 @@ socket.on("sendConteudo", async ({ cliente_id, modelo_id, conteudos_ids, preco }
 });
 
 
-
  // 👁️ CLIENTE VISUALIZOU CONTEÚDO
 socket.on("conteudoVisto", async ({ message_id }) => {
   console.log("🔓 Conteúdo liberado:", message_id);
@@ -794,6 +793,36 @@ socket.on("conteudoVisto", async ({ message_id }) => {
     </div>
   `;
 });
+
+socket.on("marcarConteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
+  try {
+    // 🔒 segurança
+    if (!socket.user || socket.user.role !== "cliente") return;
+    if (socket.user.id !== cliente_id) return;
+
+    // ✅ marca como visto (grátis OU pago)
+    await db.query(
+      `
+      UPDATE messages
+      SET visto = true
+      WHERE id = $1
+        AND cliente_id = $2
+        AND modelo_id = $3
+      `,
+      [message_id, cliente_id, modelo_id]
+    );
+
+    // 🔥 avisa cliente + modelo
+    const sala = `chat_${cliente_id}_${modelo_id}`;
+    io.to(sala).emit("conteudoVisto", {
+      message_id: Number(message_id)
+    });
+
+  } catch (err) {
+    console.error("❌ Erro marcarConteudoVisto:", err);
+  }
+});
+
 
 
 });
