@@ -786,6 +786,56 @@ async function abrirPixConteudo(message_id, preco) {
 }
 
 
+async function pagarComCartao() {
+  document.getElementById("escolhaPagamento").classList.add("hidden");
+
+  if (!pagamentoAtual?.message_id) {
+    alert("Conteúdo inválido");
+    return;
+  }
+
+  const res = await fetch("/api/pagamento/conteudo/cartao", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({
+      message_id: pagamentoAtual.message_id
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data.error || "Erro no pagamento");
+    return;
+  }
+
+  // valores
+  document.getElementById("cartaoValorConteudo").innerText =
+    valorBRL(data.valor_base);
+
+  document.getElementById("cartaoTaxaTransacao").innerText =
+    valorBRL(data.taxa_transacao);
+
+  document.getElementById("cartaoTaxaPlataforma").innerText =
+    valorBRL(data.taxa_plataforma);
+
+  document.getElementById("cartaoValorTotal").innerText =
+    valorBRL(data.valor_total);
+
+  // Stripe Elements
+  elements = stripe.elements({
+    clientSecret: data.clientSecret
+  });
+
+  const paymentElement = elements.create("payment");
+  paymentElement.mount("#payment-element");
+
+  document.getElementById("paymentModal").classList.remove("hidden");
+}
+
+
 
 
 

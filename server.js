@@ -60,6 +60,72 @@ app.post("/webhook/stripe", express.raw({ type: "application/json" }), async (re
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object;
 
+if (pi.metadata?.tipo === "conteudo") {
+  const {
+    cliente_id,
+    modelo_id,
+    message_id,
+    valor_base,
+    taxa_transacao,
+    taxa_plataforma
+  } = pi.metadata;
+
+  const valor_total = pi.amount / 100;
+
+  await db.query(
+    `
+    INSERT INTO conteudo_pacotes (
+      message_id,
+      cliente_id,
+      modelo_id,
+      preco,
+      valor_base,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      status,
+      payment_id,
+      metodo_pagamento,
+      pago_em
+    )
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pago',$9,'cartao',NOW())
+    ON CONFLICT (message_id, cliente_id)
+    DO NOTHING
+    `,
+    [
+      message_id,
+      cliente_id,
+      modelo_id,
+      valor_base,
+      valor_base,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      pi.id
+    ]
+  );
+
+  await db.query(
+    `
+    UPDATE messages
+    SET visto = true
+    WHERE id = $1
+      AND cliente_id = $2
+      AND modelo_id = $3
+    `,
+    [message_id, cliente_id, modelo_id]
+  );
+
+  console.log("✅ CONTEÚDO PAGO (CARTÃO) REGISTRADO:", message_id);
+
+  const sala = `chat_${cliente_id}_${modelo_id}`;
+  io.to(sala).emit("conteudoVisto", {
+    message_id: Number(message_id)
+  });
+}
+
+
+
     if (pi.metadata?.tipo === "vip") {
       await ativarVipAssinatura({
         cliente_id: pi.metadata.cliente_id,
@@ -1988,49 +2054,64 @@ app.post("/webhook/mercadopago", async (req, res) => {
     // ===============================
     // 🔓 CONTEÚDO
     // ===============================
-    if (tipo === "conteudo") {
-      const {
-        cliente_id,
-        modelo_id,
-        message_id
-      } = pagamento.metadata;
+if (tipo === "conteudo") {
+  const {
+    cliente_id,
+    modelo_id,
+    message_id,
+    valor_base,
+    taxa_transacao,
+    taxa_plataforma
+  } = pagamento.metadata;
 
-      if (!message_id) {
-        console.log("⛔ Conteúdo sem message_id");
-        return res.sendStatus(200);
-      }
+  const valor_total = pagamento.transaction_amount;
 
-      // 🛡️ PROTEÇÃO CONTRA DUPLICAÇÃO
-      const check = await db.query(
-        `SELECT visto FROM messages WHERE id = $1`,
-        [message_id]
-      );
+  await db.query(
+    `
+    INSERT INTO conteudo_pacotes (
+      message_id,
+      cliente_id,
+      modelo_id,
+      preco,
+      valor_base,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      status,
+      payment_id,
+      metodo_pagamento,
+      pago_em
+    )
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pago',$9,'pix',NOW())
+    ON CONFLICT (message_id, cliente_id)
+    DO NOTHING
+    `,
+    [
+      message_id,
+      cliente_id,
+      modelo_id,
+      valor_base,
+      valor_base,
+      taxa_transacao,
+      taxa_plataforma,
+      valor_total,
+      pagamento.id
+    ]
+  );
 
-      if (check.rows[0]?.visto === true) {
-        console.log("ℹ️ Conteúdo já liberado:", message_id);
-        return res.sendStatus(200);
-      }
+  await db.query(
+    `
+    UPDATE messages
+    SET visto = true
+    WHERE id = $1
+      AND cliente_id = $2
+      AND modelo_id = $3
+    `,
+    [message_id, cliente_id, modelo_id]
+  );
 
-      // 🔓 marca como visto
-      await db.query(
-        `
-        UPDATE messages
-        SET visto = true
-        WHERE id = $1
-          AND cliente_id = $2
-          AND modelo_id = $3
-        `,
-        [message_id, cliente_id, modelo_id]
-      );
-
-      // 🔔 avisa cliente + modelo
-      const sala = `chat_${cliente_id}_${modelo_id}`;
-      io.to(sala).emit("conteudoVisto", {
-        message_id
-      });
-
-      console.log("✅ CONTEÚDO LIBERADO:", message_id);
-    }
+  console.log("✅ CONTEÚDO PAGO (PIX) REGISTRADO:", message_id);
+}
 
     return res.sendStatus(200);
 
@@ -2160,6 +2241,77 @@ app.post("/api/pagamento/conteudo/pix", authCliente, async (req, res) => {
     res.status(500).json({ error: "Erro ao gerar PIX" });
   }
 });
+
+
+app.post(
+  "/api/pagamento/conteudo/cartao",
+  authCliente,
+  async (req, res) => {
+    try {
+      const { message_id } = req.body;
+
+      if (!message_id) {
+        return res.status(400).json({ error: "message_id inválido" });
+      }
+
+      // 🔎 busca preço + modelo_id
+      const result = await db.query(
+        `
+        SELECT preco, modelo_id
+        FROM messages
+        WHERE id = $1
+          AND cliente_id = $2
+          AND tipo = 'conteudo'
+        `,
+        [message_id, req.user.id]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Conteúdo não encontrado" });
+      }
+
+      const { preco, modelo_id } = result.rows[0];
+
+      const valorBase = Number(preco);
+      const taxaTransacao  = Number((valorBase * 0.10).toFixed(2));
+      const taxaPlataforma = Number((valorBase * 0.05).toFixed(2));
+
+      let valorTotal = valorBase + taxaTransacao + taxaPlataforma;
+      if (valorTotal < 1) valorTotal = 1;
+
+      // Stripe trabalha em centavos
+      const amount = Math.round(valorTotal * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "brl",
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          tipo: "conteudo",
+          cliente_id: req.user.id,
+          modelo_id,
+          message_id: Number(message_id),
+          valor_base: valorBase,
+          taxa_transacao: taxaTransacao,
+          taxa_plataforma: taxaPlataforma
+        }
+      });
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        valor_base: valorBase,
+        taxa_transacao: taxaTransacao,
+        taxa_plataforma: taxaPlataforma,
+        valor_total: valorTotal
+      });
+
+    } catch (err) {
+      console.error("❌ Erro cartão conteúdo:", err);
+      res.status(500).json({ error: "Erro ao iniciar pagamento" });
+    }
+  }
+);
+
 
 
 
