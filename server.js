@@ -2357,6 +2357,32 @@ app.post(
   }
 );
 
+app.post("/api/track-acesso", async (req, res) => {
+  try {
+    const { ref, src } = req.body;
+
+    if (!ref && !src) {
+      return res.json({ ok: true });
+    }
+
+    await db.query(`
+      INSERT INTO acessos_origem (modelo_id, origem, ip, user_agent)
+      VALUES ($1, $2, $3, $4)
+    `, [
+      ref?.replace("modelo_", "") || null,
+      src || "desconhecido",
+      req.ip,
+      req.headers["user-agent"]
+    ]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Erro track acesso:", err);
+    res.status(500).json({ error: "Erro ao registrar acesso" });
+  }
+});
+
+
 
 
 

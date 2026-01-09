@@ -173,6 +173,10 @@ async function register() {
     return;
   }
 
+  // 🔹 PEGA A ORIGEM DO CLIENTE (já salva no index.html)
+  const ref = localStorage.getItem("ref_modelo");
+  const src = localStorage.getItem("origem_trafego");
+
   const res = await fetch("/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -181,7 +185,11 @@ async function register() {
       senha,
       role,
       nome: email.split("@")[0],
-      ageConfirmed: true
+      ageConfirmed: true,
+
+      // 🔥 AQUI ESTÁ O SEGREDO
+      ref,   // modelo que trouxe
+      src    // instagram / tiktok
     })
   });
 

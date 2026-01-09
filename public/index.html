@@ -120,6 +120,25 @@
   </div>
 </div>
 
+<!-- tracking origem -->
+<script>
+  const params = new URLSearchParams(window.location.search);
+
+  const ref = params.get("ref");
+  const src = params.get("src");
+
+  if (ref) localStorage.setItem("ref_modelo", ref);
+  if (src) localStorage.setItem("origem_trafego", src);
+
+  if (ref || src) {
+    fetch("/api/track-acesso", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref, src })
+    });
+  }
+</script>
+
 
 <!-- SCRIPT -->
 <script src="script.js" defer></script>
