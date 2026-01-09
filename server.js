@@ -1859,7 +1859,7 @@ app.delete(
 // 🗑 EXCLUIR MIDIA (PERFIL MODELO)
 // ===============================
 app.delete(
-  "/api/midias/:id",
+  "/api/conteudos/:id",
   auth,
   authModelo,
   async (req, res) => {
