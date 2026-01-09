@@ -581,18 +581,18 @@ SELECT
   cliente_id,
   modelo_id,
   sender,
-
-  conteudo AS text,   -- ✅ só isso
-  tipo,               -- ✅ só uma vez
-
+  text,          -- ✅ EXISTE
+  tipo,          -- texto | conteudo
   preco,
   visto,
-  quantidade,
+  conteudo_id,
+  pacote_id,
   created_at
 FROM messages
 WHERE cliente_id = $1
   AND modelo_id  = $2
 ORDER BY created_at ASC;
+
       `,
       [cliente_id, modelo_id]
     );
