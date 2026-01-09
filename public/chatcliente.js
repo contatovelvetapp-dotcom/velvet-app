@@ -76,16 +76,7 @@ socket.on("conteudoVisto", async ({ message_id }) => {
   console.log("🔓 Conteúdo liberado:", message_id);
   conteudosLiberados.add(Number(message_id));
 
-  /* ==========================
-     🔒 FECHA POPUP PIX
-  ========================== */
-  if (
-    pagamentoAtual.message_id &&
-    Number(pagamentoAtual.message_id) === Number(message_id)
-  ) {
-    document.getElementById("popupPix").classList.add("hidden");
-    pagamentoAtual = {};
-  }
+  fecharPopupPix();
 
   /* ==========================
      🔄 ATUALIZA CARD NO CHAT
@@ -165,6 +156,8 @@ function fecharPopupPix() {
   // limpa estado de pagamento
   pagamentoAtual = {};
 }
+
+
 
 
 // ===============================
@@ -693,18 +686,28 @@ function pagarComPix() {
 }
 
 
+let intervaloConfirmacaoPix = null;
+
 async function abrirPixConteudo(message_id, preco) {
-  if (!message_id || preco <= 0) {
+  if (!message_id || Number(preco) <= 0) {
     alert("Conteúdo inválido");
     return;
   }
 
+  // 🔐 guarda estado do pagamento
+  pagamentoAtual = {
+    message_id: Number(message_id),
+    preco: Number(preco)
+  };
+
+  // 💰 cálculos
   const taxaTransacao  = Number((preco * 0.10).toFixed(2));
   const taxaPlataforma = Number((preco * 0.05).toFixed(2));
   const valorTotal     = Number(
     (preco + taxaTransacao + taxaPlataforma).toFixed(2)
   );
 
+  // 🧾 UI
   document.getElementById("pixValorBase").innerText = valorBRL(preco);
   document.getElementById("pixTaxaTransacao").innerText = valorBRL(taxaTransacao);
   document.getElementById("pixTaxaPlataforma").innerText = valorBRL(taxaPlataforma);
@@ -712,28 +715,74 @@ async function abrirPixConteudo(message_id, preco) {
 
   document.getElementById("popupPix").classList.remove("hidden");
 
-  const res = await fetch("/api/pagamento/conteudo/pix", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + localStorage.getItem("token")
-    },
-    body: JSON.stringify({
-      message_id
-    })
-  });
+  try {
+    // 🔗 cria pagamento Pix
+    const res = await fetch("/api/pagamento/conteudo/pix", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({ message_id })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    alert(data.error || "Erro ao gerar PIX");
-    return;
+    if (!res.ok) {
+      alert(data.error || "Erro ao gerar PIX");
+      return;
+    }
+
+    // 🧾 QR Code
+    document.getElementById("pixQr").src =
+      "data:image/png;base64," + data.qr_code;
+
+    document.getElementById("pixCopia").value =
+      data.copia_cola;
+
+    // 🔁 POLLING — confirma pagamento pelo BANCO (verdade final)
+    if (intervaloConfirmacaoPix) {
+      clearInterval(intervaloConfirmacaoPix);
+    }
+
+    intervaloConfirmacaoPix = setInterval(async () => {
+      try {
+        const statusRes = await fetch(
+          `/api/chat/conteudo-status/${pagamentoAtual.message_id}`,
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token")
+            }
+          }
+        );
+
+        if (!statusRes.ok) return;
+
+        const status = await statusRes.json();
+
+        if (status.liberado === true) {
+          clearInterval(intervaloConfirmacaoPix);
+          intervaloConfirmacaoPix = null;
+
+          // 🔓 fecha popup
+          fecharPopupPix();
+
+          // 🔄 força atualização do chat
+          socket.emit("conteudoVisto", {
+            message_id: pagamentoAtual.message_id
+          });
+
+          pagamentoAtual = {};
+        }
+      } catch (err) {
+        console.error("Erro polling Pix:", err);
+      }
+    }, 3000);
+
+  } catch (err) {
+    console.error("Erro Pix:", err);
+    alert("Erro inesperado no Pix");
   }
-
-  document.getElementById("pixQr").src =
-    "data:image/png;base64," + data.qr_code;
-
-  document.getElementById("pixCopia").value = data.copia_cola;
 }
 
 

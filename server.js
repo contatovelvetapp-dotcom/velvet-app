@@ -1266,6 +1266,35 @@ app.get("/modelo/relatorio", (req, res) => {
   );
 });
 
+app.get(
+  "/api/chat/conteudo-status/:message_id",
+  authCliente,
+  async (req, res) => {
+    const message_id = Number(req.params.message_id);
+
+    if (!Number.isInteger(message_id)) {
+      return res.status(400).json({ liberado: false });
+    }
+
+    const result = await db.query(
+      `
+      SELECT visto
+      FROM messages
+      WHERE id = $1
+        AND cliente_id = $2
+      `,
+      [message_id, req.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.json({ liberado: false });
+    }
+
+    res.json({ liberado: result.rows[0].visto === true });
+  }
+);
+
+
 
 
 // ===============================
