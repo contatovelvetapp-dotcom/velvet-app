@@ -1059,6 +1059,36 @@ router.get("/content/transacoes", (req, res) => {
   );
 });
 
+router.get("/api/cliente/transacoes", authCliente, async (req, res) => {
+  try {
+    const clienteId = req.user.id;
+
+    const result = await db.query(`
+      SELECT
+        id,
+        codigo,
+        tipo,
+        status,
+        valor_bruto,
+        taxa_gateway,
+        created_at,
+        modelo_id,
+        message_id,
+        subscription_id
+      FROM transacoes
+      WHERE cliente_id = $1
+      ORDER BY created_at DESC
+    `, [clienteId]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar transações do cliente" });
+  }
+});
+
+
 
 
 
