@@ -2,11 +2,9 @@
 const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const authMiddleware = require("./middleware/auth");
 const db = require("./db");
 const cloudinary = require("cloudinary").v2;
-const authMiddleware = require("./middleware/auth");
-const requireRole = require("./middleware/requireRole");
-
 
 const router = express.Router();   // ⬅️ PRIMEIRO SEMPRE
 
@@ -23,6 +21,8 @@ cloudinary.config({
 });
 
 const cron = require("node-cron");
+
+const requireRole = require("./middleware/requireRole");
 
 
 cron.schedule("0 3 * * *", async () => {
@@ -1036,52 +1036,6 @@ router.get(
 //     res.json(result.rows[0]);
 //   }
 // );
-
-router.get("/api/modelo/ganhos-resumo", auth, authModelo, async (req, res) => {
-  try {
-    const modeloId = req.user.id;
-
-    // 📅 datas
-    const hoje = new Date().toISOString().slice(0, 10);
-    const mesAtual = hoje.slice(0, 7);
-
-    // ===============================
-    // 💰 MÍDIAS
-    // ===============================
-    const midias = await db.query(`
-      SELECT
-        COALESCE(SUM(preco - taxa_transacao - taxa_plataforma), 0) AS total,
-        COALESCE(SUM(CASE WHEN pago_em::date = $2 THEN preco - taxa_transacao - taxa_plataforma END), 0) AS hoje,
-        COALESCE(SUM(CASE WHEN to_char(pago_em, 'YYYY-MM') = $1 THEN preco - taxa_transacao - taxa_plataforma END), 0) AS mes
-      FROM conteudo_pacotes
-      WHERE modelo_id = $3
-        AND status = 'pago'
-    `, [mesAtual, hoje, modeloId]);
-
-    // ===============================
-    // ⭐ ASSINATURAS
-    // ===============================
-    const assinaturas = await db.query(`
-      SELECT
-        COALESCE(SUM(valor_assinatura - taxa_transacao - taxa_plataforma), 0) AS total,
-        COALESCE(SUM(CASE WHEN created_at::date = $2 THEN valor_assinatura - taxa_transacao - taxa_plataforma END), 0) AS hoje,
-        COALESCE(SUM(CASE WHEN to_char(created_at, 'YYYY-MM') = $1 THEN valor_assinatura - taxa_transacao - taxa_plataforma END), 0) AS mes
-      FROM vip_subscriptions
-      WHERE modelo_id = $3
-        AND status = 'ativo'
-    `, [mesAtual, hoje, modeloId]);
-
-    res.json({
-      midias: midias.rows[0],
-      assinaturas: assinaturas.rows[0]
-    });
-
-  } catch (err) {
-    console.error("Erro ganhos modelo:", err);
-    res.status(500).json({ error: "Erro ao calcular ganhos" });
-  }
-});
-
 
 router.get(
   "/api/modelos",
