@@ -206,7 +206,7 @@ li.innerHTML = `
     // ===============================
     li.onclick = async () => {
       const avatarEl = document.getElementById("chatAvatar");
-      avatarEl.src = "/assets/avatar-default.png";
+      avatarEl.src = "/assets/avatarDefault.png";
       cliente_id = c.cliente_id;
       localStorage.setItem("chat_cliente_ativo", cliente_id);
       chatAtivo = { cliente_id, modelo_id };
@@ -225,7 +225,7 @@ li.innerHTML = `
       });
       if (res.ok) {
   const dados = await res.json();
-  avatarEl.src = dados.avatar || "/assets/avatar-default.png";
+  avatarEl.src = dados.avatar || "/assets/avatarDefault.png";
 
   avatarEl.onclick = () => {
     if (!dados.avatar) return;
