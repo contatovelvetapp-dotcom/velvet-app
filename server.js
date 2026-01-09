@@ -1881,31 +1881,32 @@ app.post("/api/pagamento/vip/pix", authCliente, async (req, res) => {
 });
 
 
+// ===============================
+// WEBHOOK MERCADOPAGO
+// ===============================
 app.post("/webhook/mercadopago", async (req, res) => {
   try {
     const paymentId = req.body?.data?.id;
-    if (!paymentId) {
-      return res.sendStatus(200);
-    }
+    if (!paymentId) return res.sendStatus(200);
 
     const mp = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN
     });
 
     const payment = new Payment(mp);
-
     const pagamento = await payment.get({ id: paymentId });
 
-    // ⏳ Só processa se aprovado
+    // ⏳ só processa se aprovado
     if (pagamento.status !== "approved") {
       return res.sendStatus(200);
     }
 
     const tipo = pagamento.metadata?.tipo;
+    if (!tipo) return res.sendStatus(200);
 
-    /* =========================
-       🟪 VIP
-    ========================= */
+    // ===============================
+    // 🔥 VIP
+    // ===============================
     if (tipo === "vip") {
       const {
         cliente_id,
@@ -1923,6 +1924,7 @@ app.post("/webhook/mercadopago", async (req, res) => {
         taxa_plataforma
       });
 
+      // realtime
       const socketId = onlineClientes[cliente_id];
       if (socketId) {
         io.to(socketId).emit("vipAtivado", { modelo_id });
@@ -1931,29 +1933,40 @@ app.post("/webhook/mercadopago", async (req, res) => {
       console.log("✅ VIP ATIVADO:", cliente_id, modelo_id);
     }
 
-    /* =========================
-       📦 CONTEÚDO
-    ========================= */
+    // ===============================
+    // 🔓 CONTEÚDO
+    // ===============================
     if (tipo === "conteudo") {
       const {
-        message_id,
-        cliente_id
+        cliente_id,
+        modelo_id,
+        message_id
       } = pagamento.metadata;
 
-      // 🔓 LIBERA O CONTEÚDO
-      await db.query(`
+      if (!message_id) {
+        console.log("⛔ Conteúdo sem message_id");
+        return res.sendStatus(200);
+      }
+
+      // 🔓 marca como visto
+      await db.query(
+        `
         UPDATE messages
         SET visto = true
         WHERE id = $1
           AND cliente_id = $2
-      `, [message_id, cliente_id]);
+          AND modelo_id = $3
+        `,
+        [message_id, cliente_id, modelo_id]
+      );
 
-      const socketId = onlineClientes[cliente_id];
-      if (socketId) {
-        io.to(socketId).emit("conteudoVisto", { message_id });
-      }
+      // 🔔 avisa cliente + modelo
+      const sala = `chat_${cliente_id}_${modelo_id}`;
+      io.to(sala).emit("conteudoVisto", {
+        message_id
+      });
 
-      console.log("📦 CONTEÚDO LIBERADO:", message_id);
+      console.log("✅ CONTEÚDO LIBERADO:", message_id);
     }
 
     return res.sendStatus(200);
@@ -1963,7 +1976,6 @@ app.post("/webhook/mercadopago", async (req, res) => {
     return res.sendStatus(500);
   }
 });
-
 
 
 
