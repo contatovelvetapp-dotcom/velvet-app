@@ -146,10 +146,25 @@ async function login() {
   localStorage.setItem("token", data.token);
   localStorage.setItem("role", data.role);
 
-  window.location.href =
-    data.role === "modelo" ? "/profile.html" : "/clientHome.html";
+  if (data.role === "modelo") {
+  window.location.href = "/profile.html";
+  return;
 }
 
+// 🔥 CLIENTE
+const ref = localStorage.getItem("ref_modelo");
+
+if (ref) {
+  // limpa para não ficar redirecionando sempre
+  localStorage.removeItem("ref_modelo");
+
+  // perfil público da modelo
+  window.location.href = `/modelo.html?id=${ref}`;
+} else {
+  window.location.href = "/clientHome.html";
+}
+
+}
 // ===============================
 // REGISTER
 // ===============================
