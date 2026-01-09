@@ -158,6 +158,15 @@ socket.on("unreadUpdate", ({ modelo_id, unread }) => {
   contarChatsNaoLidosCliente();
 });
 
+function fecharPopupPix() {
+  const popup = document.getElementById("popupPix");
+  if (popup) popup.classList.add("hidden");
+
+  // limpa estado de pagamento
+  pagamentoAtual = {};
+}
+
+
 // ===============================
 // INIT
 // ===============================

@@ -675,33 +675,56 @@ if (conteudosFiltrados.length === 0) {
  });
 
  // 👁️ CLIENTE VISUALIZOU CONTEÚDO
-socket.on("marcarConteudoVisto", async ({ message_id, cliente_id, modelo_id }) => {
-  if (!socket.user || socket.user.role !== "cliente") return;
+socket.on("conteudoVisto", async ({ message_id }) => {
+  console.log("🔓 Conteúdo liberado:", message_id);
 
-  try {
-    // 1️⃣ marca como visto no banco
-    await db.query(
-      `
-      UPDATE messages
-      SET visto = true
-      WHERE id = $1
-        AND cliente_id = $2
-        AND modelo_id = $3
-      `,
-      [message_id, cliente_id, modelo_id]
-    );
+  conteudosLiberados.add(Number(message_id));
 
-    const sala = `chat_${cliente_id}_${modelo_id}`;
+  // ✅ FECHA POPUP PIX SEM CONDIÇÃO
+  fecharPopupPix();
 
-    // 2️⃣ avisa MODELO em tempo real
-    io.to(sala).emit("conteudoVisto", {
-      message_id
-    });
+  // 🔄 ATUALIZA CARD NO CHAT
+  const card = document.querySelector(
+    `.chat-conteudo[data-id="${message_id}"]`
+  );
 
-  } catch (err) {
-    console.error("❌ Erro marcarConteudoVisto:", err);
-  }
- });
+  if (!card) return;
+
+  const res = await fetch(`/api/chat/conteudo/${message_id}`, {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (!res.ok) return;
+
+  const midias = await res.json();
+
+  // 🔥 REMOVE ESTADO DE BLOQUEIO COMPLETAMENTE
+  card.classList.remove("bloqueado");
+  card.classList.add("livre");
+  card.removeAttribute("data-preco");
+
+  // 🔥 REMOVE BOTÃO DESBLOQUEAR
+  const info = card.querySelector(".conteudo-info");
+  if (info) info.remove();
+
+  // 🔥 RENDERIZA MÍDIAS
+  card.innerHTML = `
+    <div class="pacote-grid">
+      ${midias.map((m, index) => `
+        <div class="midia-item"
+             onclick="abrirConteudoSeguro(${message_id}, ${index})">
+          ${
+            m.tipo_media === "video"
+              ? `<video src="${m.url}" muted playsinline></video>`
+              : `<img src="${m.url}" />`
+          }
+        </div>
+      `).join("")}
+    </div>
+  `;
+});
 
 
 });
