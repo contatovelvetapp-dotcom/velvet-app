@@ -485,7 +485,7 @@ document.getElementById("fecharPix")?.addEventListener("click", () => {
 async function excluirMidia(id, card) {
   if (!confirm("Excluir esta mídia?")) return;
 
-  const res = await fetch(`/api/midias/${id}`, {
+  const res = await fetch(`/api/conteudos/${id}`, {
 
     method: "DELETE",
     headers: {
