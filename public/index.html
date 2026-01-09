@@ -120,30 +120,24 @@
   </div>
 </div>
 
+<!-- tracking origem -->
 <script>
-  try {
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
 
-    const ref = params.get("ref");
-    const src = params.get("src");
+  const ref = params.get("ref");
+  const src = params.get("src");
 
-    if (ref) localStorage.setItem("ref_modelo", ref);
-    if (src) localStorage.setItem("origem_trafego", src);
+  if (ref) localStorage.setItem("ref_modelo", ref);
+  if (src) localStorage.setItem("origem_trafego", src);
 
-    if (ref || src) {
-      fetch("/api/track-acesso", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ref, src })
-      }).catch(err => {
-        console.warn("Tracking ignorado:", err);
-      });
-    }
-  } catch (e) {
-    console.warn("Erro no tracking, ignorado:", e);
+  if (ref || src) {
+    fetch("/api/track-acesso", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref, src })
+    });
   }
 </script>
-
 
 
 <!-- SCRIPT -->
