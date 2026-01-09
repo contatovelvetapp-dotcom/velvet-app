@@ -267,10 +267,11 @@ async function carregarGraficoAssinaturasMidias() {
     return;
   }
 
-  const res = await authFetch(
-    `/content/api/transacoes/resumo-mensal?mes=${mes}`
-  );
-
+  const res = await authFetch("/api/modelo/ganhos-resumo", {
+  headers: {
+    Authorization: "Bearer " + localStorage.getItem("token")
+  }
+})
   if (!res || !res.ok) {
     console.error("Erro ao buscar resumo mensal");
     return;
