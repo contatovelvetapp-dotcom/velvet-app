@@ -291,7 +291,7 @@ async function carregarModelo() {
   });
 
   const data = await res.json();
-  modelo_id = data.user_id ?? data.id;
+  modelo_id = data.id;
   const nomeEl = document.getElementById("modeloNome");
   if (nomeEl) {
     nomeEl.innerText = data.nome || "Modelo";
