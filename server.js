@@ -927,7 +927,7 @@ app.get("/api/modelo/:id/feed", auth, async (req, res) => {
 
     const result = await db.query(`
       SELECT id, url, tipo
-      FROM midias
+      FROM conteudos
       WHERE user_id = $1
       ORDER BY criado_em DESC
     `, [id]);
@@ -1867,7 +1867,7 @@ app.delete(
 
     try {
       const result = await db.query(
-        "SELECT url FROM midias WHERE id = $1 AND user_id = $2",
+        "SELECT url FROM conteudos WHERE id = $1 AND user_id = $2",
         [id, req.user.id]
       );
 
@@ -1888,7 +1888,7 @@ app.delete(
 
       // 🗑 remove do banco
       await db.query(
-        "DELETE FROM midias WHERE id = $1 AND user_id = $2",
+        "DELETE FROM conteudos WHERE id = $1 AND user_id = $2",
         [id, req.user.id]
       );
 
