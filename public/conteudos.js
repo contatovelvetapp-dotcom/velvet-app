@@ -76,21 +76,38 @@ async function uploadConteudo() {
   const fd = new FormData();
   fd.append("conteudo", file);
 
-const res = await fetch("/api/conteudos/me", {
-  headers: {
-    Authorization: "Bearer " + localStorage.getItem("token")
-  }
-});
+  try {
+    const res = await fetch("/api/conteudos/upload", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: fd
+    });
 
-  const data = await res.json();
-  if (!data.success) {
+    if (!res.ok) {
+      const txt = await res.text();
+      alert(txt || "Erro ao enviar conteúdo");
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+      alert("Erro ao enviar conteúdo");
+      return;
+    }
+
+    // ✅ reset UI
+    fileInput.value = "";
+    fileNameSpan.textContent = "Nenhum ficheiro selecionado";
+
+    // 🔄 recarrega lista
+    listarConteudos();
+
+  } catch (err) {
+    console.error("Erro uploadConteudo:", err);
     alert("Erro ao enviar conteúdo");
-    return;
   }
-
-  fileInput.value = "";
-  fileNameSpan.textContent = "Nenhum ficheiro selecionado";
-  listarConteudos();
 }
 
 async function listarConteudos() {
