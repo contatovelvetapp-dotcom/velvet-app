@@ -43,8 +43,7 @@ async function carregarTransacoes() {
         </div>
 
         <div class="linha">
-          Data:
-          ${new Date(t.created_at).toLocaleString()}
+          Data: ${new Date(t.created_at).toLocaleString()}
         </div>
 
         <div class="linha">
@@ -63,7 +62,7 @@ async function carregarTransacoes() {
 
         ${
           t.tipo === "assinatura"
-            ? `<div class="linha">Assinatura ID: ${t.subscription_id}</div>`
+            ? `<div class="linha">Assinatura VIP</div>`
             : ""
         }
       `;

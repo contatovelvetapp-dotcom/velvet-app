@@ -1073,8 +1073,7 @@ router.get("/api/cliente/transacoes", authCliente, async (req, res) => {
         taxa_gateway,
         created_at,
         modelo_id,
-        message_id,
-        subscription_id
+        message_id
       FROM transacoes
       WHERE cliente_id = $1
       ORDER BY created_at DESC
@@ -1083,7 +1082,7 @@ router.get("/api/cliente/transacoes", authCliente, async (req, res) => {
     res.json(result.rows);
 
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao buscar transações do cliente:", err);
     res.status(500).json({ error: "Erro ao buscar transações do cliente" });
   }
 });
