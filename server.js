@@ -267,8 +267,8 @@ async function uploadConteudo(req, res) {
     });
     await db.query(
       `
-      INSERT INTO conteudos (user_id, url, tipo)
-      VALUES ($1, $2, $3)
+      INSERT INTO conteudos (user_id, url, tipo, tipo_conteudo)
+      VALUES ($1, $2, $3, 'venda')
       `,
       [req.user.id, result.secure_url, result.resource_type]
     );
@@ -878,9 +878,10 @@ app.get("/api/feed/me", auth, async (req, res) => {
     const result = await db.query(
       `
       SELECT id, url, tipo, criado_em
-      FROM conteudos
-      WHERE user_id = $1
-      ORDER BY criado_em DESC
+FROM conteudos
+WHERE user_id = $1
+  AND tipo_conteudo = 'feed'
+ORDER BY criado_em DESC
       `,
       [req.user.id]
     );
@@ -927,9 +928,10 @@ app.get("/api/modelo/:id/feed", auth, async (req, res) => {
 
     const result = await db.query(`
       SELECT id, url, tipo
-      FROM conteudos
-      WHERE user_id = $1
-      ORDER BY criado_em DESC
+FROM conteudos
+WHERE user_id = $1
+  AND tipo_conteudo = 'feed'
+ORDER BY criado_em DESC
     `, [id]);
 
     res.json(result.rows);
@@ -1398,9 +1400,10 @@ app.get("/api/conteudos/me", authModelo, async (req, res) => {
     const result = await db.query(
       `
       SELECT id, url, tipo
-      FROM conteudos
-      WHERE user_id = $1
-      ORDER BY id DESC
+FROM conteudos
+WHERE user_id = $1
+  AND tipo_conteudo = 'venda'
+ORDER BY id DESC
       `,
       [req.user.id]
     );
