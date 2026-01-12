@@ -1145,13 +1145,26 @@ app.get(
   }
 );
 
-app.get("/api/modelo/publico/:id", async (req, res) => {
-  const { id } = req.params;
+app.get("/api/modelo/publico/:id", auth, async (req, res) => {
+  const modelo_id = Number(req.params.id);
+
+  if (!Number.isInteger(modelo_id)) {
+    return res.status(400).json({ error: "modelo_id inválido" });
+  }
 
   try {
     const result = await db.query(
-      "SELECT id, nome, bio, avatar, capa FROM modelos WHERE id = $1",
-      [id]
+      `
+      SELECT
+        m.user_id AS id,
+        m.nome,
+        m.bio,
+        m.avatar,
+        m.capa
+      FROM modelos m
+      WHERE m.user_id = $1
+      `,
+      [modelo_id]
     );
 
     if (result.rows.length === 0) {
@@ -1159,43 +1172,13 @@ app.get("/api/modelo/publico/:id", async (req, res) => {
     }
 
     res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Erro perfil público:", err);
-    res.status(500).json({ error: "Erro interno" });
-  }
-});
-
-//ROTA CLIENTE PERFIL
-app.get("/api/modelo/publico/:nome", auth, async (req, res) => {
-  try {
-    if (req.user.role !== "cliente") {
-      return res.status(403).json({ error: "Apenas clientes" });
-    }
-
-    const { nome } = req.params;
-
-    const result = await db.query(`
-      SELECT
-        m.user_id AS id,   -- 🔥 ESSENCIAL
-        m.nome,
-        m.avatar,
-        m.capa,
-        m.bio
-      FROM modelos m
-      WHERE m.nome = $1
-    `, [nome]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Modelo não encontrada" });
-    }
-
-    res.json(result.rows[0]);
 
   } catch (err) {
     console.error("Erro perfil público:", err);
     res.status(500).json({ error: "Erro interno" });
   }
 });
+
 
 // ===============================
 // CHAT — LISTA PARA CLIENTE
