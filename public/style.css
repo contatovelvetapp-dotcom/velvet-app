@@ -232,7 +232,7 @@ body {
 
 /* CAIXA */
 .modal-box {
-  position: absolute;
+  position: relative;
   width: 360px;
   max-width: 90%;
   margin: auto;
