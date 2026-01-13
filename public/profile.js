@@ -4,7 +4,7 @@ const modeloIdParam = params.get("modelo");
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
 const PERFIL_PUBLICO = !!modeloIdParam;
-const modo = modelo_id ? "publico" : "privado";
+const modo = role === "cliente" ? "publico" : "privado";
 const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
@@ -129,18 +129,15 @@ function aplicarRoleNoBody() {
 // PERFIL
 // ===============================
 function iniciarPerfil() {
-
-  if (modelo_id) {
-    carregarPerfilPublico();
-    return;
-  }
-
-  if (token && role === "modelo") {
+  if (modo === "privado") {
     carregarPerfil();
     carregarFeed();
   }
-}
 
+  if (modo === "publico") {
+    carregarPerfilPublico();
+}
+}
 
 function valorBRL(valor) {
   return Number(valor).toLocaleString("pt-BR", {

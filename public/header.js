@@ -103,12 +103,7 @@ if (!menu) return;
 
 if (role === "modelo") {
   menu.innerHTML = menuModelo;
-} if (!role) {
-  // visitante
-  document.body.classList.add("role-visitante");
-  return;
-}
-else if (role === "cliente") {
+} else if (role === "cliente") {
   menu.innerHTML = menuCliente;
 } else {
   console.warn("❌ Role inválido:", role);
