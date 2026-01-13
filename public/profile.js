@@ -1,19 +1,16 @@
 const params = new URLSearchParams(window.location.search);
+let modelo_id = Number(params.get("modelo"));
 const modeloIdParam = params.get("modelo");
-
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
-
 const PERFIL_PUBLICO = !!modeloIdParam;
-
+const modo = role === "cliente" ? "publico" : "privado";
 const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
+
 const socket = io();
 
-// ===============================
-// 🚦 DECISÃO DE FLUXO
-// ===============================
 if (modelo_id) {
   // 🔓 PERFIL PÚBLICO (cliente ou visitante)
   carregarPerfilPublico();
@@ -57,13 +54,6 @@ function logout() {
   window.location.href = "/index.html";
 }
 
-const modo = role === "cliente" ? "publico" : "privado";
-
-// ===============================
-// ELEMENTOS DO PERFIL
-// ===============================
-let modelo_id = Number(params.get("modelo"));
-
 if (!modelo_id || isNaN(modelo_id)) {
   console.error("❌ Modelo não identificada na URL");
   document.body.innerHTML = `
@@ -74,8 +64,6 @@ if (!modelo_id || isNaN(modelo_id)) {
   `;
   throw new Error("modelo_id inválido");
 }
-
-
 
 const avatarImg  = document.getElementById("profileAvatar");
 const capaImg    = document.getElementById("profileCapa");
@@ -179,7 +167,6 @@ async function carregarPerfil() {
   const feed = feedRes.ok ? await feedRes.json() : [];
   renderizarFeedModelo(feed);
 }
-
 
 async function carregarPerfilPublico() {
   const res = await fetch(`/api/modelo/publico/${modelo_id}`);
