@@ -1,4 +1,3 @@
-const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
 const ref   = localStorage.getItem("ref_modelo");
 
@@ -20,8 +19,8 @@ if (token && role) {
 // ===============================
 // ESTADO GLOBAL
 // ===============================
-let modalMode = "login";          // login | registe
-let pendingAction = null;         // login | register
+let modalMode = "login";       
+let pendingAction = null;        
 
 // ===============================
 // AGE GATE
