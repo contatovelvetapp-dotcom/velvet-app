@@ -211,6 +211,18 @@ abrirPagamentoChat(preco, messageId);
 
  });
 
+ const btnFechar = document.getElementById("fecharPagamento");
+  const modalPagamento = document.getElementById("paymentModal");
+
+  if (btnFechar && modalPagamento) {
+    btnFechar.addEventListener("click", () => {
+      modalPagamento.classList.add("hidden");
+
+      // opcional: limpar Stripe Elements ao fechar
+      const paymentEl = document.getElementById("payment-element");
+      if (paymentEl) paymentEl.innerHTML = "";
+    });
+  }
 
 });
 
