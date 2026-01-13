@@ -221,17 +221,6 @@ body {
     cursor: pointer;
 }
 
-.btn-secundario {background: #7B2CFF;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 25px;
-    cursor: pointer;
-  }
-
 
 #profileName {
     text-align: center;
@@ -567,10 +556,6 @@ body.role-cliente .only-cliente {
   display: inline-flex !important;
 }
 
-body:not(.role-modelo) .only-cliente {
-  display: inline-flex !important;
-}
-
 
 /* =========================================
    🔒 MÍDIA BLOQUEADA (CLIENTE NÃO VIP)
@@ -614,10 +599,9 @@ body:not(.role-modelo) .only-cliente {
 }
 
 /* impede abrir modal */
-.midiaCard.bloqueada .midiaThumb {
+.midiaCard.bloqueada * {
   pointer-events: none;
 }
-
 
 
 /* MODAL BASE (igual chat) */

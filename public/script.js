@@ -1,27 +1,21 @@
+// ===============================
+// INDEX — SCRIPT LIMPO (VELVET)
+// ===============================
+
+// 🔁 REDIRECIONAMENTO SE LOGADO
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
-const ref   = localStorage.getItem("ref_modelo");
 
 if (token && role) {
-
-  if (role === "modelo") {
-  }
-
-  else if (role === "cliente") {
-    if (ref) {
-      window.location.href = `/profile.html?modelo=${ref}`;
-      localStorage.removeItem("ref_modelo");
-    } else {
-      window.location.href = "/clientHome.html";
-    }
-  }
+  window.location.href =
+    role === "modelo" ? "/profile.html" : "/clientHome.html";
 }
 
 // ===============================
 // ESTADO GLOBAL
 // ===============================
-let modalMode = "login";       
-let pendingAction = null;        
+let modalMode = "login";          // login | registe
+let pendingAction = null;         // login | register
 
 // ===============================
 // AGE GATE
@@ -152,33 +146,24 @@ async function login() {
   localStorage.setItem("token", data.token);
   localStorage.setItem("role", data.role);
 
-if (data.role === "modelo") {
-  const res = await fetch("/api/modelo/me", {
-    headers: { Authorization: "Bearer " + data.token }
-  });
-
-  if (!res.ok) {
-    alert("Erro ao carregar perfil da modelo");
-    return;
-  }
-
-  const modelo = await res.json();
-
-  window.location.href = `/profile.html?modelo=${modelo.user_id}`;
+  if (data.role === "modelo") {
+  window.location.href = "/profile.html";
   return;
 }
-
 // 🔥 CLIENTE
-const refModelo = localStorage.getItem("ref_modelo");
+const ref = localStorage.getItem("ref_modelo");
 
-if (refModelo) {
-  window.location.href = `/profile.html?modelo=${refModelo}`;
+if (ref) {
+  // simula clique no feed
+  localStorage.setItem("modelo_id", ref);
   localStorage.removeItem("ref_modelo");
+
+  window.location.href = "/profile.html";
 } else {
   window.location.href = "/clientHome.html";
 }
-}
 
+}
 // ===============================
 // REGISTER
 // ===============================

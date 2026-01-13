@@ -1,34 +1,25 @@
-const params = new URLSearchParams(window.location.search);
-let modelo_id = Number(params.get("modelo"));
-const modeloIdParam = params.get("modelo");
+// ===============================
+// AUTH GUARD
+// ===============================
 const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
-const PERFIL_PUBLICO = !!modeloIdParam;
-const modo = modelo_id ? "publico" : "privado";
+const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
 
-let stripe = null;
-
-if (token) {
-  stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
+if (!token) {
+  window.location.href = "/index.html";
+  throw new Error("Sem token");
 }
+
+const socket = io();
 
 // autentica socket
-let socket = null;
-
-if (token) {
-  socket = io();
-  socket.emit("auth", { token });
-}
-
+socket.emit("auth", { token });
 
 // registra cliente online
-if (role === "cliente" && token) {
-  const decoded = decodeJWT(token);
-  if (decoded?.id) {
-    socket.emit("loginCliente", Number(decoded.id));
-  }
+if (role === "cliente") {
+  socket.emit("loginCliente", Number(decodeJWT(token).id));
 }
 
 function decodeJWT(token) {
@@ -40,22 +31,24 @@ function decodeJWT(token) {
   }
 }
 
+
+
 function logout() {
-  // 🔐 autenticação
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
+  localStorage.clear();
   window.location.href = "/index.html";
 }
+const modo = role === "cliente" ? "publico" : "privado";
 
-if (!modelo_id || isNaN(modelo_id)) {
-  console.error("❌ Modelo não identificada na URL");
-  document.body.innerHTML = `
-    <div style="padding:40px;text-align:center">
-      <h2>Perfil indisponível</h2>
-      <p>Este link não contém uma modelo válida.</p>
-    </div>
-  `;
-  throw new Error("modelo_id inválido");
+// ===============================
+// ELEMENTOS DO PERFIL
+// ===============================
+let modelo_id = localStorage.getItem("modelo_id");
+
+// 🔒 Guard APENAS para perfil público
+if (modo === "publico" && (!modelo_id || modelo_id === "undefined")) {
+  alert("Modelo não identificada.");
+  window.location.href = "/clientHome.html";
+  throw new Error("modelo_id ausente no perfil público");
 }
 
 const avatarImg  = document.getElementById("profileAvatar");
@@ -80,35 +73,24 @@ document.addEventListener("DOMContentLoaded", () => {
   iniciarUploads();
   iniciarBioPopup();
 
-//   document.getElementById("btnVipPix")?.addEventListener("click", () => {
-//   fecharEscolha();
-//   abrirPopupPix(); // sua função existente
-// });
+  document.getElementById("btnVipPix")?.addEventListener("click", () => {
+  fecharEscolha();
+  abrirPopupPix(); // sua função existente
+});
 
-// document.getElementById("btnVipCartao")?.addEventListener("click", () => {
-//   fecharEscolha();
-//   pagarComCartao(); // sua função Stripe
-// });
+document.getElementById("btnVipCartao")?.addEventListener("click", () => {
+  fecharEscolha();
+  pagarComCartao(); // sua função Stripe
+});
 
   document.getElementById("fecharPagamento")
   ?.addEventListener("click", fecharPagamento);
   
-btnChat.onclick = () => {
-
-   if (!token) {
-  abrirAvisoVip();
-  return;
-  }
-
-  if (!window.__CLIENTE_VIP__) {
-    document
-      .getElementById("escolhaPagamento")
-      .classList.remove("hidden");
-    return;
-  }
-
+  btnChat?.addEventListener("click", () => {
   window.location.href = "/chatcliente.html";
-};
+ });
+
+
 
 
 });
@@ -145,54 +127,54 @@ function valorBRL(valor) {
 
 async function carregarPerfil() {
   const res = await fetch("/api/modelo/me", {
-    headers: {
-      Authorization: "Bearer " + token
-    }
+    headers: { Authorization: "Bearer " + token }
   });
 
   if (!res.ok) return;
 
   const modelo = await res.json();
+  localStorage.setItem("modelo_id", modelo.id);
+  modelo_id = modelo.id;
+
   aplicarPerfilNoDOM(modelo);
-
-  const feedRes = await fetch("/api/feed/me", {
-    headers: {
-      Authorization: "Bearer " + token
-    }
-  });
-
-  const feed = feedRes.ok ? await feedRes.json() : [];
-  renderizarFeedModelo(feed);
 }
 
 async function carregarPerfilPublico() {
-  const res = await fetch(`/api/modelo/publico/${modelo_id}`);
+  const res = await fetch(`/api/modelo/publico/${modelo_id}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+
   if (!res.ok) return;
 
   const modelo = await res.json();
+  localStorage.setItem("modelo_id", modelo.id);
+  modelo_id = modelo.id;
+
   aplicarPerfilNoDOM(modelo);
+
+  // 🔐 VERIFICAR VIP
+  const vipRes = await fetch(`/api/vip/status/${modelo_id}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
 
   let isVip = false;
 
-  // 🔒 só verifica VIP se estiver logado
-  if (token) {
-    const vipRes = await fetch(`/api/vip/status/${modelo_id}`, {
-      headers: { Authorization: "Bearer " + token }
-    });
+  if (vipRes.ok) {
+    const vipData = await vipRes.json();
+    if (vipData.vip) {
+      isVip = true;
 
-    if (vipRes.ok) {
-      const vipData = await vipRes.json();
-      isVip = vipData.vip === true;
-
-      if (isVip && btnVip) {
+      if (btnVip) {
         btnVip.textContent = "VIP ativo";
         btnVip.disabled = true;
       }
     }
   }
 
+  // ✅ 1️⃣ DEFINE VIP GLOBAL (ESSENCIAL)
   window.__CLIENTE_VIP__ = isVip;
 
+  // ✅ 2️⃣ AGORA SIM carrega o feed
   carregarFeedPublico();
 }
 
@@ -200,53 +182,45 @@ async function carregarPerfilPublico() {
 // VIP
 // ===============================
 btnVip?.addEventListener("click", async () => {
+  if (!modelo_id) {
+    alert("Modelo não identificada");
+    return;
+  }
 
-  if (!token) {
-  abrirAvisoVip();
-  return;
-}
-
-  // 🔵 CLIENTE LOGADO → VERIFICA VIP
+  // 🔒 CHECA SE JÁ É VIP (UX — evita pagar 2x)
   try {
-    const res = await fetch(`/api/vip/status/${modelo_id}`, {
-      headers: { Authorization: "Bearer " + token }
+    const statusRes = await fetch(`/api/vip/status/${modelo_id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
     });
 
-    if (!res.ok) throw new Error();
+    if (!statusRes.ok) {
+      throw new Error("Falha ao verificar status VIP");
+    }
 
-    const { vip } = await res.json();
+    const statusData = await statusRes.json();
 
-    if (vip) {
+    if (statusData.vip === true) {
       alert("💜 Você já é VIP desta modelo");
       return;
     }
 
-    // 🟣 NÃO VIP → PAGAMENTO
-    document
-      .getElementById("escolhaPagamento")
-      .classList.remove("hidden");
+    // ✅ NÃO É VIP → ABRE POPUP DE ESCOLHA
+    const popup = document.getElementById("escolhaPagamento");
+    if (!popup) {
+      console.error("Popup de escolha de pagamento não encontrado");
+      alert("Erro interno. Recarregue a página.");
+      return;
+    }
+
+    popup.classList.remove("hidden");
 
   } catch (err) {
-    alert("Erro ao verificar VIP");
+    console.error("Erro ao verificar status VIP:", err);
+    alert("Erro ao verificar status VIP");
   }
 });
-
-function abrirAvisoVip() {
-  document
-    .getElementById("popupAvisoVip")
-    ?.classList.remove("hidden");
-}
-
-function fecharAvisoVip() {
-  document
-    .getElementById("popupAvisoVip")
-    ?.classList.add("hidden");
-}
-
-function seguirParaLogin() {
-  fecharAvisoVip();
-  abrirPopupLogin();
-}
 
 
 
@@ -270,15 +244,14 @@ function carregarFeed() {
 function carregarFeedPublico() {
   if (!listaMidias) return;
 
-  const headers = token
-    ? { Authorization: "Bearer " + token }
-    : {};
-
-  fetch(`/api/modelo/${modelo_id}/feed`, { headers })
+  fetch(`/api/modelo/${modelo_id}/feed`, {
+    headers: { Authorization: "Bearer " + token }
+  })
     .then(r => r.json())
     .then(data => {
+      // 🔎 SUPORTE A QUALQUER FORMATO
       const feed = Array.isArray(data) ? data : data.feed || data.midias || [];
-      
+
       listaMidias.innerHTML = "";
 
       feed.forEach(item => {
@@ -286,7 +259,6 @@ function carregarFeedPublico() {
       });
     });
 }
-
 
 function fecharEscolha() {
   document
@@ -316,7 +288,6 @@ function iniciarBioPopup() {
 // UPLOAD AVATAR
 // ===============================
 inputAvatar?.addEventListener("change", async () => {
-  if (role !== "modelo") return;
   const file = inputAvatar.files[0];
   if (!file) return;
 
@@ -344,7 +315,6 @@ inputAvatar?.addEventListener("change", async () => {
 // UPLOAD CAPA
 // ===============================
 inputCapa?.addEventListener("change", async () => {
-  if (role !== "modelo") return;
   const file = inputCapa.files[0];
   if (!file) return;
 
@@ -367,6 +337,27 @@ inputCapa?.addEventListener("change", async () => {
     alert("Erro ao atualizar capa");
   }
 });
+
+inputCapa?.addEventListener("change", async () => {
+    const file = inputCapa.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append("capa", file);
+
+    const res = await fetch("/uploadCapa", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      body: fd
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      capaImg.src = data.url; // 🔥 atualiza na hora
+    }
+  });
 
 btnSalvarBio?.addEventListener("click", async () => {
   const bio = bioInput.value.trim();
@@ -398,7 +389,6 @@ btnSalvarBio?.addEventListener("click", async () => {
 // ===============================
 function iniciarUploads() {
   inputMedia?.addEventListener("change", async () => {
-    if (role !== "modelo") return;
     const file = inputMedia.files[0];
     if (!file) return;
 
@@ -424,47 +414,57 @@ function adicionarMidia(id, url) {
   card.className = "midiaCard";
 
   const ext = url.split(".").pop().toLowerCase();
-  const isVideo = ["mp4", "webm", "ogg"].includes(ext);
+  const isVideo = ["mp4","webm","ogg"].includes(ext);
 
   const el = document.createElement(isVideo ? "video" : "img");
   el.src = url;
   el.className = "midiaThumb";
   if (isVideo) el.muted = true;
 
-  // 🔓 MODELO — SEMPRE LIBERADO
-  if (role === "modelo") {
+  // 🔒 BLOQUEIO PARA CLIENTE NÃO VIP
+  if (role === "cliente" && !window.__CLIENTE_VIP__) {
+    card.classList.add("bloqueada");
+
+    card.addEventListener("click", () => {
+      alert("🔒 Conteúdo exclusivo para membros VIP");
+    });
+  } else {
     el.addEventListener("click", () =>
       abrirModalMidia(url, isVideo)
     );
   }
 
-  else if (!token || !window.__CLIENTE_VIP__) {
-  card.classList.add("bloqueada");
+  card.appendChild(el);
+  if (role === "modelo") {
+  const btnExcluir = document.createElement("button");
+  btnExcluir.className = "btnExcluirMidia";
+  btnExcluir.textContent = "Excluir";
 
-  card.addEventListener("click", () => {
-    if (!token) {
-      abrirPopupLogin();
-    } else {
-      document
-        .getElementById("escolhaPagamento")
-        .classList.remove("hidden");
-    }
-  });
+  btnExcluir.onclick = () => excluirMidia(id, card);
+  card.appendChild(btnExcluir);
+}
+  listaMidias.appendChild(card);
 }
 
 
-  card.appendChild(el);
+function abrirModalMidia(url, isVideo) {
+  const modal = document.getElementById("modalMidia");
+  const img = document.getElementById("modalImg");
+  const video = document.getElementById("modalVideo");
 
-  // 🗑 BOTÃO EXCLUIR (SÓ MODELO)
-  if (role === "modelo") {
-    const btnExcluir = document.createElement("button");
-    btnExcluir.className = "btnExcluirMidia";
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.onclick = () => excluirMidia(id, card);
-    card.appendChild(btnExcluir);
+  img.style.display = "none";
+  video.style.display = "none";
+
+  if (isVideo) {
+    video.src = url;
+    video.style.display = "block";
+    video.play();
+  } else {
+    img.src = url;
+    img.style.display = "block";
   }
 
-  listaMidias.appendChild(card);
+  modal.classList.remove("hidden");
 }
 
 // FECHAR MODAL
@@ -513,6 +513,8 @@ function aplicarPerfilNoDOM(modelo) {
   if (modelo.avatar) avatarImg.src = modelo.avatar;
   if (modelo.capa) capaImg.src = modelo.capa;
 }
+
+
 
 
 async function abrirPopupPix() {
@@ -584,8 +586,7 @@ function copiarPix() {
   alert("Código Pix copiado 💜");
 }
 
-if (socket) {
-  socket.on("vipAtivado", ({ modelo_id: modeloVip }) => {
+socket.on("vipAtivado", ({ modelo_id: modeloVip }) => {
   if (Number(modeloVip) !== Number(modelo_id)) return;
 
   // 🔒 fecha popup PIX
@@ -605,10 +606,7 @@ if (socket) {
 
   // 🔓 desbloqueia conteúdos
   carregarFeedPublico();
- 
- });
-}
-
+});
 
 async function pagarComCartao() {
   fecharEscolha();
@@ -692,6 +690,8 @@ document
     }
 });
 
+
+
 function mostrarVipAtivadoPopup() {
   const popup = document.getElementById("popupVipAtivado");
 
@@ -710,70 +710,6 @@ function fecharVipAtivado() {
     .getElementById("popupVipAtivado")
     .classList.add("hidden");
 }
-
-function abrirPopupLogin() {
-  const modal = document.getElementById("loginModal");
-  if (!modal) {
-    console.warn("loginModal não encontrado");
-    return;
-  }
-  modal.classList.remove("hidden");
-}
-
-// ===============================
-// 🖼️ MODAL DE MÍDIA (FEED)
-// ===============================
-function abrirModalMidia(url, isVideo) {
-  const modal = document.getElementById("modalMidia");
-  const img   = document.getElementById("modalImg");
-  const video = document.getElementById("modalVideo");
-
-  if (!modal) {
-    console.error("❌ modalMidia não encontrado no DOM");
-    return;
-  }
-
-  // 🔄 reset
-  img.style.display = "none";
-  video.style.display = "none";
-  video.pause();
-  video.src = "";
-
-  if (isVideo) {
-    video.src = url;
-    video.style.display = "block";
-    video.play();
-  } else {
-    img.src = url;
-    img.style.display = "block";
-  }
-
-  modal.classList.remove("hidden");
-}
-
-window.closeLoginModal = function () {
-  document.getElementById("loginModal")?.classList.add("hidden");
-};
-
-
-function startRegister() {
-  document.getElementById("modalTitle").innerText = "Criar conta";
-  document.getElementById("registerRole").classList.remove("hidden");
-  document.getElementById("modalSubmit").innerText = "Criar conta";
-  document.querySelector(".modal-switch").classList.add("hidden");
-  document.getElementById("switchToLogin").classList.remove("hidden");
-}
-
-function switchToLogin() {
-  document.getElementById("modalTitle").innerText = "Entrar";
-  document.getElementById("registerRole").classList.add("hidden");
-  document.getElementById("modalSubmit").innerText = "Entrar";
-  document.querySelector(".modal-switch").classList.remove("hidden");
-  document.getElementById("switchToLogin").classList.add("hidden");
-}
-
-
-
 
 
 
