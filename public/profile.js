@@ -1,27 +1,32 @@
 const params = new URLSearchParams(window.location.search);
 let modelo_id = Number(params.get("modelo"));
 const modeloIdParam = params.get("modelo");
-const token = localStorage.getItem("token");
-const role  = localStorage.getItem("role");
 const PERFIL_PUBLICO = !!modeloIdParam;
 const modo = modelo_id ? "publico" : "privado";
+const stripe = stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
 
-let stripe = null;
+const socket = io();
 
-if (token) {
-  stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
+if (modelo_id) {
+  // 🔓 PERFIL PÚBLICO (cliente ou visitante)
+  carregarPerfilPublico();
+} 
+else if (token && role === "modelo") {
+  // 🔐 PERFIL DA MODELO LOGADA
+  carregarPerfilModeloLogada();
+} 
+else {
+  // fallback de segurança
+  console.warn("Nenhum perfil válido para carregar");
 }
+
 
 // autentica socket
-let socket = null;
-
 if (token) {
-  socket = io();
   socket.emit("auth", { token });
 }
-
 
 // registra cliente online
 if (role === "cliente" && token) {
@@ -80,38 +85,43 @@ document.addEventListener("DOMContentLoaded", () => {
   iniciarUploads();
   iniciarBioPopup();
 
-//   document.getElementById("btnVipPix")?.addEventListener("click", () => {
-//   fecharEscolha();
-//   abrirPopupPix(); // sua função existente
-// });
+  document.getElementById("btnVipPix")?.addEventListener("click", () => {
+  fecharEscolha();
+  abrirPopupPix(); // sua função existente
+});
 
-// document.getElementById("btnVipCartao")?.addEventListener("click", () => {
-//   fecharEscolha();
-//   pagarComCartao(); // sua função Stripe
-// });
+document.getElementById("btnVipCartao")?.addEventListener("click", () => {
+  fecharEscolha();
+  pagarComCartao(); // sua função Stripe
+});
 
   document.getElementById("fecharPagamento")
   ?.addEventListener("click", fecharPagamento);
   
 btnChat.onclick = () => {
-
   if (!token) {
-    abrirPopupLogin();
+    openAgeGate("register")
     return;
   }
 
   if (!window.__CLIENTE_VIP__) {
-    document
-      .getElementById("escolhaPagamento")
-      .classList.remove("hidden");
+    abrirPopupVip();
     return;
   }
 
   window.location.href = "/chatcliente.html";
 };
+  if (!token) {
+    openAgeGate("register"); // 🔥 mesmo popup do index
+    return;
+  }
 
-
+  // cliente logado → pagamento
+  document
+    .getElementById("escolhaPagamento")
+    ?.classList.remove("hidden");
 });
+
 
 // ===============================
 // ROLE VISUAL
@@ -126,15 +136,18 @@ function aplicarRoleNoBody() {
 // PERFIL
 // ===============================
 function iniciarPerfil() {
-  if (modo === "privado") {
+
+  if (modelo_id) {
+    carregarPerfilPublico();
+    return;
+  }
+
+  if (token && role === "modelo") {
     carregarPerfil();
     carregarFeed();
   }
+}
 
-  if (modo === "publico") {
-    carregarPerfilPublico();
-}
-}
 
 function valorBRL(valor) {
   return Number(valor).toLocaleString("pt-BR", {
@@ -200,14 +213,15 @@ async function carregarPerfilPublico() {
 // VIP
 // ===============================
 btnVip?.addEventListener("click", async () => {
+  if (!modelo_id) return;
 
-  // 🔴 VISITANTE → LOGIN
+  // 🔐 1️⃣ NÃO LOGADO → LOGIN
   if (!token) {
-    abrirPopupLogin();
+    openAgeGate("register");
     return;
   }
 
-  // 🔵 CLIENTE LOGADO → VERIFICA VIP
+  // 🔐 2️⃣ LOGADO, VERIFICA VIP
   try {
     const res = await fetch(`/api/vip/status/${modelo_id}`, {
       headers: { Authorization: "Bearer " + token }
@@ -222,16 +236,16 @@ btnVip?.addEventListener("click", async () => {
       return;
     }
 
-    // 🟣 NÃO VIP → PAGAMENTO
+    // 🔓 3️⃣ LOGADO + NÃO VIP → PAGAMENTO
     document
       .getElementById("escolhaPagamento")
-      .classList.remove("hidden");
+      ?.classList.remove("hidden");
 
   } catch (err) {
-    alert("Erro ao verificar VIP");
+    console.error("Erro VIP:", err);
+    alert("Erro ao verificar status VIP");
   }
 });
-
 
 // ===============================
 // FEED
@@ -253,15 +267,14 @@ function carregarFeed() {
 function carregarFeedPublico() {
   if (!listaMidias) return;
 
-  const headers = token
-    ? { Authorization: "Bearer " + token }
-    : {};
-
-  fetch(`/api/modelo/${modelo_id}/feed`, { headers })
+  fetch(`/api/modelo/${modelo_id}/feed`, {
+    headers: { Authorization: "Bearer " + token }
+  })
     .then(r => r.json())
     .then(data => {
+      // 🔎 SUPORTE A QUALQUER FORMATO
       const feed = Array.isArray(data) ? data : data.feed || data.midias || [];
-      
+
       listaMidias.innerHTML = "";
 
       feed.forEach(item => {
@@ -269,7 +282,6 @@ function carregarFeedPublico() {
       });
     });
 }
-
 
 function fecharEscolha() {
   document
@@ -299,7 +311,6 @@ function iniciarBioPopup() {
 // UPLOAD AVATAR
 // ===============================
 inputAvatar?.addEventListener("change", async () => {
-  if (role !== "modelo") return;
   const file = inputAvatar.files[0];
   if (!file) return;
 
@@ -327,7 +338,6 @@ inputAvatar?.addEventListener("change", async () => {
 // UPLOAD CAPA
 // ===============================
 inputCapa?.addEventListener("change", async () => {
-  if (role !== "modelo") return;
   const file = inputCapa.files[0];
   if (!file) return;
 
@@ -350,6 +360,27 @@ inputCapa?.addEventListener("change", async () => {
     alert("Erro ao atualizar capa");
   }
 });
+
+inputCapa?.addEventListener("change", async () => {
+    const file = inputCapa.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append("capa", file);
+
+    const res = await fetch("/uploadCapa", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      body: fd
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      capaImg.src = data.url; // 🔥 atualiza na hora
+    }
+  });
 
 btnSalvarBio?.addEventListener("click", async () => {
   const bio = bioInput.value.trim();
@@ -381,7 +412,6 @@ btnSalvarBio?.addEventListener("click", async () => {
 // ===============================
 function iniciarUploads() {
   inputMedia?.addEventListener("change", async () => {
-    if (role !== "modelo") return;
     const file = inputMedia.files[0];
     if (!file) return;
 
@@ -421,20 +451,25 @@ function adicionarMidia(id, url) {
     );
   }
 
+  // 🔒 CLIENTE / VISITANTE
   else if (!token || !window.__CLIENTE_VIP__) {
-  card.classList.add("bloqueada");
+    card.classList.add("bloqueada");
 
-  card.addEventListener("click", () => {
-    if (!token) {
-      abrirPopupLogin();
-    } else {
-      document
-        .getElementById("escolhaPagamento")
-        .classList.remove("hidden");
-    }
-  });
-}
+    card.addEventListener("click", () => {
+      if (!token) {
+        openAgeGate("register");
+      } else {
+        abrirPopupVip();
+      }
+    });
+  }
 
+  // 🔓 CLIENTE VIP
+  else {
+    el.addEventListener("click", () =>
+      abrirModalMidia(url, isVideo)
+    );
+  }
 
   card.appendChild(el);
 
@@ -567,8 +602,7 @@ function copiarPix() {
   alert("Código Pix copiado 💜");
 }
 
-if (socket) {
-  socket.on("vipAtivado", ({ modelo_id: modeloVip }) => {
+socket.on("vipAtivado", ({ modelo_id: modeloVip }) => {
   if (Number(modeloVip) !== Number(modelo_id)) return;
 
   // 🔒 fecha popup PIX
@@ -588,10 +622,7 @@ if (socket) {
 
   // 🔓 desbloqueia conteúdos
   carregarFeedPublico();
- 
- });
-}
-
+});
 
 async function pagarComCartao() {
   fecharEscolha();
