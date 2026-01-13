@@ -2,23 +2,17 @@
 // AUTH GUARD
 // ===============================
 const role  = localStorage.getItem("role");
-const token = localStorage.getItem("token");
 const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
 const socket = io();
 
 // autentica socket
-if (token) {
-  socket.emit("auth", { token });
-}
+socket.emit("auth", { token });
 
 // registra cliente online
-if (role === "cliente" && token) {
-  const decoded = decodeJWT(token);
-  if (decoded?.id) {
-    socket.emit("loginCliente", Number(decoded.id));
-  }
+if (role === "cliente") {
+  socket.emit("loginCliente", Number(decodeJWT(token).id));
 }
 
 function decodeJWT(token) {
