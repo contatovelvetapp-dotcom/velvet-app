@@ -603,9 +603,10 @@ body:not(.role-modelo) .only-cliente {
 }
 
 /* impede abrir modal */
-.midiaCard.bloqueada * {
+.midiaCard.bloqueada .midiaThumb {
   pointer-events: none;
 }
+
 
 
 /* MODAL BASE (igual chat) */
