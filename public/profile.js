@@ -3,7 +3,7 @@ let modelo_id = Number(params.get("modelo"));
 const modeloIdParam = params.get("modelo");
 const PERFIL_PUBLICO = !!modeloIdParam;
 const modo = modelo_id ? "publico" : "privado";
-const stripe = Stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
+const stripe = stripe("pk_live_51SlJ2zJb9evIocfiAuPn5wzOJqWqn4e356uasq214hRTPsdQGawPec3iIcD43ufhBvjQYMLKmKRMKnjwmC88iIT1006lA5XqGE");
 let elements;
 window.__CLIENTE_VIP__ = false;
 
