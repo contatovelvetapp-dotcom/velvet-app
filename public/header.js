@@ -67,8 +67,6 @@ async function initUsuario() {
   }
 }
 
-
-
 // =========================================================
 // MENUS POR ROLE
 // =========================================================
@@ -86,7 +84,7 @@ const menuCliente = `
 const menuModelo = `
 <div class="menu-header">Menu</div>
 
-<button onclick="location.href='/profile.html'">Meu Perfil</button>
+<button onclick="voltarParaPerfil()">Meu Perfil</button>
 <button onclick="abrirConteudos()">Conteúdos</button>    
 <button onclick="location.href='/chatmodelo.html'">Chat</button>
 <button id="btnAlterarAvatar">Alterar foto do Perfil</button>
@@ -270,23 +268,26 @@ async function atualizarUnreadModeloHeader() {
   }
 }
 
+function voltarParaPerfil() {
+  const params = new URLSearchParams(window.location.search);
+  const modeloId = params.get("modelo");
+
+  if (!modeloId) {
+    alert("Modelo não identificada");
+    return;
+  }
+
+  window.location.href = `/profile.html?modelo=${modeloId}`;
+}
+
 // =========================================================
 // 🏠 LOGO → HOME POR ROLE (delegação global)
 // =========================================================
 document.addEventListener("click", (e) => {
   const logo = e.target.closest(".logo-app");
   if (!logo) return;
-
-  const role = localStorage.getItem("role");
-
-  if (role === "modelo") {
-    window.location.href = "/profile.html";
-  } else if (role === "cliente") {
-    window.location.href = "/clientHome.html";
-  } else {
-    window.location.href = "/index.html";
-  }
-});
+window.location.href = "/index.html";
+  });
 
 // =========================================================
 // 💬 BOTÃO DE MENSAGENS → CHAT POR ROLE
