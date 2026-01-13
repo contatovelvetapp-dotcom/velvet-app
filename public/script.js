@@ -1,4 +1,3 @@
-const token = localStorage.getItem("token");
 const role  = localStorage.getItem("role");
 const ref   = localStorage.getItem("ref_modelo");
 
@@ -169,16 +168,18 @@ if (data.role === "modelo") {
 }
 
 // 🔥 CLIENTE
-const refModelo = localStorage.getItem("ref_modelo");
+const ref = localStorage.getItem("ref_modelo");
 
-if (refModelo) {
-  window.location.href = `/profile.html?modelo=${refModelo}`;
+if (ref) {
+  // redireciona corretamente para o perfil da modelo
+  window.location.href = `/profile.html?modelo=${ref}`;
   localStorage.removeItem("ref_modelo");
 } else {
   window.location.href = "/clientHome.html";
 }
-}
 
+
+}
 // ===============================
 // REGISTER
 // ===============================
