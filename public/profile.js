@@ -201,10 +201,11 @@ async function carregarPerfilPublico() {
 // ===============================
 btnVip?.addEventListener("click", async () => {
 
+  // 🔴 VISITANTE → LOGIN
   if (!token) {
-  abrirAvisoVip();
-  return;
-}
+    abrirPopupLogin();
+    return;
+  }
 
   // 🔵 CLIENTE LOGADO → VERIFICA VIP
   try {
@@ -230,24 +231,6 @@ btnVip?.addEventListener("click", async () => {
     alert("Erro ao verificar VIP");
   }
 });
-
-function abrirAvisoVip() {
-  document
-    .getElementById("popupAvisoVip")
-    ?.classList.remove("hidden");
-}
-
-function fecharAvisoVip() {
-  document
-    .getElementById("popupAvisoVip")
-    ?.classList.add("hidden");
-}
-
-function seguirParaLogin() {
-  fecharAvisoVip();
-  abrirPopupLogin();
-}
-
 
 
 // ===============================
