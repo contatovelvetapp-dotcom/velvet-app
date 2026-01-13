@@ -221,6 +221,17 @@ body {
     cursor: pointer;
 }
 
+.btn-secundario {background: #7B2CFF;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 25px;
+    cursor: pointer;
+  }
+
 
 #profileName {
     text-align: center;
